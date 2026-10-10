@@ -235,6 +235,15 @@ def test_shipment_lookup_adds_only_pre_escalation_context(monkeypatch, tmp_path)
     lookup._index.cache_clear()
     assert lookup.find_shipment("TG-039") == lookup.find_shipment("DL-039-O") == task  # task ref + event ref
     assert lookup.find_shipment("DL-025") == case  # its own Primary beats a mention elsewhere
+    for spoken in ("DL0390", "DL-039-O", "DL 039", "dl039"):  # speech-to-text variants of DL-039-O
+        assert lookup.find_shipment(spoken) == task, spoken
+    for n, ref in (("040", "DL-041-A"), ("041", "DL-041-B")):
+        other = tmp_path / "data" / n
+        other.mkdir()
+        (other / "index.md").write_text(f"# Case {n}\n\n## Case details\n- **Primary shipment:** {ref}\n")
+    lookup._index.cache_clear()
+    assert lookup.find_shipment("DL041") is None  # the core points at two cases: no guess
+    assert lookup.find_shipment("DL-041-A") == tmp_path / "data" / "040"  # the exact form still matches
     monkeypatch.setattr(desk, "CASES_DIR", tmp_path / "cases")
     folder = desk.write_case_folder("conv_x", "Ana", "DL025", "Any news on my kettle?", "", "")
     built = (folder / "index.md").read_text() + (folder / "history.md").read_text()

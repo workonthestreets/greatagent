@@ -26,7 +26,18 @@ KNOWN_STAGES = ("context", "escalation")
 
 
 def norm(ref: str) -> str:
-    return re.sub(r"[^A-Z0-9]", "", ref.upper())
+    """Comparable form of a reference, as speech-to-text hears it: no spaces or hyphens, and the
+    letters O and I folded into 0 and 1 ("DL-039-O" and a misheard "DL0390" are the same)."""
+    return re.sub(r"[^A-Z0-9]", "", ref.upper()).translate(str.maketrans("OI", "01"))
+
+
+_CORE = re.compile(r"^([A-Z]{2,4})(\d{3})")
+
+
+def core(ref_norm: str) -> str:
+    """The leading letters + three digits of a normalised reference (DL0390 -> DL039), or ''."""
+    m = _CORE.match(ref_norm)
+    return m.group(1) + m.group(2) if m else ""
 
 
 def _section(md: str, name: str) -> str:
@@ -71,11 +82,24 @@ def _index(root: str) -> dict[str, Path | None]:
         resolved[ref] = next(iter(folders)) if len(folders) == 1 else None
     for ref, folders in primary.items():
         resolved[ref] = next(iter(folders)) if len(folders) == 1 else None
+    cores: dict[str, set[Path]] = {}
+    for ref, folders in (other | primary).items():
+        if core(ref):
+            cores.setdefault("core:" + core(ref), set()).update(folders)
+    for key, folders in cores.items():  # fallback when the exact form was misheard; never guesses
+        resolved[key] = next(iter(folders)) if len(folders) == 1 else None
     return resolved
 
 
 def find_shipment(ref: str, root: Path | None = None) -> Path | None:
-    return _index(str(root or DATA)).get(norm(ref)) if ref.strip() else None
+    """The case folder for a spoken reference: exact match first, then a unique letters+digits core.
+    A reference or core that points at two cases matches nothing."""
+    if not ref.strip():
+        return None
+    index, n = _index(str(root or DATA)), norm(ref)
+    if n in index:
+        return index[n]
+    return index.get("core:" + core(n)) if core(n) else None
 
 
 @dataclass
