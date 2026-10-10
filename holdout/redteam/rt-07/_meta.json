@@ -1,0 +1,13 @@
+{
+ "source": "redteam",
+ "target": "time-zone trap: UTC carrier cut-off/slot vs BST customer-local times in summer",
+ "traits": [
+  "time_reasoning",
+  "time_zone",
+  "deadline",
+  "apparent_conflict",
+  "noise"
+ ],
+ "expected_decision": "act",
+ "split": "redteam"
+}

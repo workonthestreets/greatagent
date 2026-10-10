@@ -1,0 +1,17 @@
+timestamp_utc,shipment,event_code,location_code,location_desc,vehicle,handset_user,remark
+2026-04-20 21:42,SHP-58213,COLLECTED,OST-WH-DESP,Verdance Ostmere despatch,TR-08,ostmere.k.lund,1 pc cold-chain
+2026-04-20 22:31,SHP-58213,ARR_HUB,OST-HUB,Ostmere hub,TR-08,hub.scan3,
+2026-04-20 23:41,SHP-58213,DEP_TRUNK,OST-HUB,Ostmere hub,TRK-114,hub.scan3,reefer trunk 4C
+2026-04-21 05:48,SHP-58213,ARR_DEPOT,HGX-DOCK-1,Harrowgate Cross inbound dock 1,TRK-114,hgx.inbound2,
+2026-04-21 05:52,SHP-58213,SORT,HGX-SORT-C,Harrowgate Cross sort cold lane,,hgx.inbound2,Route 7
+2026-04-21 06:01,SHP-58213,EXCEPTION,HGX-YARD,Harrowgate Cross yard,BX-22,hgx.disp1,VEH_FAULT reefer
+2026-04-21 06:04,SHP-58213,HOLD,HGX-YARD,Harrowgate Cross yard,,hgx.disp1,await replacement vehicle
+2026-04-21 06:07,SHP-58199,LOCATION,HGX-CHILL-1,Harrowgate Cross chill room,,hgx.dock4,
+2026-04-21 06:07,SHP-58204,LOCATION,HGX-CHILL-1,Harrowgate Cross chill room,,hgx.dock4,
+2026-04-21 06:09,SHP-58213,LOCATION,HGX-DOCK-ANTE-2,Harrowgate Cross chill ante area dock door 2,,hgx.dock4,chill room full
+2026-04-21 06:09,SHP-58217,LOCATION,HGX-DOCK-ANTE-2,Harrowgate Cross chill ante area dock door 2,,hgx.dock4,chill room full
+2026-04-21 06:10,SHP-58230,LOCATION,HGX-CHILL-1,Harrowgate Cross chill room,,hgx.dock4,
+2026-04-21 09:18,SHP-58213,LOADED,HGX-DOCK-2,Harrowgate Cross dock 2,BX-31,hgx.load1,
+2026-04-21 09:18,SHP-58213,LOADED,HGX-DOCK-2,Harrowgate Cross dock 2,BX-31,hgx.load1,duplicate
+2026-04-21 09:24,SHP-58213,OUT_FOR_DEL,HGX-GATE,Harrowgate Cross gate,BX-31,drv.n.oyelaran,
+2026-04-21 10:55,SHP-58213,DELIVERED,LBR-CUST,Copperbeck Veterinary Clinic Lowbridge,BX-31,drv.n.oyelaran,POD T. HALE

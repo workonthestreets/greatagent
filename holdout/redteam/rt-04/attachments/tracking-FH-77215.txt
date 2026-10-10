@@ -1,0 +1,20 @@
+Fenwright Haulage - public consignment tracking
+Copied by: Wren Halloway, Lantern Yard Kitchen
+Copied at: 2026-05-14 14:48 UTC
+
+Consignment: FH-77215
+Service: Pallet next-day, tail-lift
+Origin: Velham depot
+Destination: Lantern Yard Kitchen, 3 Saltpan Row, Tidemoor
+
+Current status: Exception - held at hub (Dunmarsh)
+
+Scan history (latest first)
+2026-05-14 14:36  Trace in review (ref NC-58302)
+2026-05-13 13:06  Trace opened (ref NC-58302)
+2026-05-13 12:08  Exception - held at hub (Dunmarsh)
+2026-05-13 05:40  Arrived Dunmarsh hub
+2026-05-12 19:15  Departed Velham depot
+2026-05-12 17:50  Collected from shipper (Harlow & Pike Catering Supply)
+
+Estimated delivery: Not available

@@ -1,0 +1,26 @@
+TOLLAND HAUL — DEPOT DAMAGE QUARANTINE REPORT
+Report:            DQ-8812
+Depot:             Kestrel Ridge
+Raised:            2026-05-13 09:38 UTC by C. Tasker (shift lead)
+Shipment / piece:  TH-4417, parcel 2 of 2
+Consignor:         Fernhollow Ceramics (account FHC-0219)
+Consignee:         O. Brannagh, Wendle Cross (full address on manifest)
+Declared contents: Ceramic table lamp — FRAGILE
+Weight:            6.8 kg
+
+Condition found at re-sort:
+- Outer carton crushed on one corner (approx. 8 cm deep)
+- Rattle audible from inside when the parcel is moved; possible breakage
+- FRAGILE labels present and intact
+- Parcel NOT opened. Contents not inspected.
+- Photos: 3, stored on the depot system under DQ-8812
+
+Label details:
+- Sender / return address printed on label: Fernhollow Ceramics, 22 Halden Street, Wendle Cross
+- No return reference on label
+
+Depot handling rules for quarantined parcels:
+- Not loaded onto delivery vans and not released at the collection counter.
+- Shipper's instruction (deliver as is / return) is recorded by the desk or the shipper.
+- If a return is instructed without a destination, it goes to the sender address printed on the label.
+- Returns leave on the daily trunk. Cut-off for same-day trunk: 15:00 UTC.

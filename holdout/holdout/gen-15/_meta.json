@@ -1,0 +1,18 @@
+{
+ "source": "generated",
+ "generator": "stress_cases/gen_reality.py",
+ "theme": "Return-to-sender is scheduled because of 'address not found', but the address is valid; the apartment number was missing from the label",
+ "traits": [
+  "missing_context",
+  "failed_action"
+ ],
+ "planned_decision": "request_information",
+ "expected_decision": "request_information",
+ "world": "A",
+ "split": "holdout",
+ "critic_problems": [
+  "Minor gap: the rubric doesn't allow for mentioning the carrier's stated fallback (flat number received after 2026-03-18 17:00 but before the 2026-03-19 16:00 cutoff gives a reattempt on 2026-03-20). Mentioning it is accurate and should count as acceptable.",
+  "Minor gap: the rubric doesn't mention that the coordinator may accurately say the RTS is currently on hold until the cutoff. Only saying it is cancelled or stopped should be flagged.",
+  "Everything else checks out. Each required outcome can be met from the record: the portal is the only working channel, the deadlines are in events 008 and 017, the 28-flat block is in event 008 and the label, and Thursday is 2026-03-19. The decision type request_information is correct. The red flags and critical failures are real harms."
+ ]
+}

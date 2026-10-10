@@ -1,0 +1,15 @@
+PLOVER ARC LOGISTICS - LABEL DATA EXTRACT
+Shipment: DL-247
+Sender: Tallowmere Goods, Warehouse dispatch (order TG-247)
+Service: Standard parcel, signature not required
+Consignee name: PELL ARROW
+Address line 1: 14 SALTMARKET ROW
+Address line 2: 
+Town: HALVERSTONE
+Postcode: HV3 7QD
+Consignee phone: (none)
+Consignee email: p.arrow@kestremail.example
+Weight: 1.8 kg
+Attempts: 1 (2026-03-16 15:40 UTC, code ANF)
+Address validation: POSTCODE+PREMISE MATCH = YES; MULTI-OCCUPANCY = YES (28 units); UNIT SUPPLIED = NO
+RTS status: SCHEDULED, manifest close 2026-03-19 16:00 UTC (HOLD active)

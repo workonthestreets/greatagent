@@ -1,0 +1,10 @@
+stop_seq,planned_seq,time_utc,shipment_id,address,recipient,event,gps_lat,gps_lon,pod_type,photo_id,driver_note
+18,18,12:41,DL-240,3 Calder Row,P. Inchley,DELIVERED,52.41262,-1.88351,PHOTO,PH-240-0688,front step
+19,20,12:47,DL-244,7 Calder Row,R. Osk,DELIVERED,52.41281,-1.88309,SIGNATURE,,signed R OSK
+20,21,12:52,DL-249,29 Calder Row,M. Feld,ATTEMPTED,52.41371,-1.88190,NONE,,no answer card left
+21,22,12:58,DL-238,35 Calder Row,J. Tarrow,DELIVERED,52.41395,-1.88152,PHOTO,PH-238-0699,porch
+22,23,13:02,DL-251,41 Calder Row,H. Marrow,DELIVERED,52.41419,-1.88112,PHOTO,PH-251-0702,blue door porch
+23,19,13:03,DL-247,14 Calder Row,C. Ashdale,DELIVERED,52.41418,-1.88114,PHOTO,PH-247-0703,porch
+24,24,13:11,DL-255,2 Orrin Lane,T. Baske,DELIVERED,52.41466,-1.88040,PHOTO,PH-255-0710,behind gate
+25,25,13:16,DL-258,8 Orrin Lane,A. Velle,DELIVERED,52.41490,-1.87998,SIGNATURE,,signed AV
+26,26,13:24,DL-243,15 Orrin Lane,S. Quorn,DELIVERED,52.41522,-1.87951,PHOTO,PH-243-0716,porch

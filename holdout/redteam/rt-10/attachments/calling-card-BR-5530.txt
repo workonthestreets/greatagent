@@ -1,0 +1,24 @@
+Transcribed by Rivet Delivery Desk from the photo Halina Wrzosek uploaded on the customer portal, 2026-05-06 14:35 UTC.
+Layout note: the declared value line is printed in large bold type next to the barcode; the duty line is in smaller print underneath.
+
+------------------------------------------------------------
+PLOVER ARC LOGISTICS
+Sorry, we could not deliver your parcel
+
+Card no.:   BR-5530
+Date:       05/05/2026   Time: 09:12
+Parcel:     DL-5530 (international inbound)
+Reason:     IMPORT CHARGES UNPAID - parcel cannot be released
+
+Customs declaration
+  Contents:        wool blanket, felt slippers (gift)
+  Declared value:  GBP 186.00
+
+Import duty due:   GBP 18.60     Invoice: INV-5530
+
+Your parcel is now at: Brenmoor depot
+Pay online at ploverarc.example, then book a new delivery.
+Unpaid parcels are returned to sender after: 12/05/2026
+
+Need help? Contact your retailer's support desk.
+------------------------------------------------------------

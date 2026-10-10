@@ -141,11 +141,15 @@ class LLM:
             if final is not None:
                 data = dict(final.input) if isinstance(final.input, dict) else {}
                 data = coerce_to_schema(data, final_tool["input_schema"])
+                props = final_tool["input_schema"].get("properties", {})
                 missing = [k for k in required if k not in data]
-                if not missing:
+                wrong = [k for k in required if k in data and not _type_ok(data[k], props.get(k, {}))]
+                if not missing and not wrong:
                     return data
+                problem = (f"Missing required fields: {missing}. " if missing else "") + (
+                    f"Fields with the wrong type (must be a JSON {', '.join(props[k].get('type', '?') for k in wrong)}): {wrong}. " if wrong else "")
                 results = [{"type": "tool_result", "tool_use_id": final.id, "is_error": True,
-                            "content": f"Missing required fields: {missing}. Call {final_tool['name']} again with all fields."}]
+                            "content": f"{problem}Call {final_tool['name']} again with all fields, as proper JSON values."}]
                 results += [{"type": "tool_result", "tool_use_id": b.id, "is_error": True, "content": "not executed"}
                             for b in tool_uses if b is not final]
                 messages.append({"role": "user", "content": results})
@@ -169,6 +173,11 @@ class LLM:
 
 
 # ---------------------------------------------------------------------- helpers
+def _type_ok(value, schema: dict) -> bool:
+    t = schema.get("type")
+    return {"object": isinstance(value, dict), "array": isinstance(value, list)}.get(t, True)
+
+
 def coerce_to_schema(value, schema: dict):
     """Repair common structured-output slips without inventing content: a nested array or
     object returned as a JSON string is parsed; a lone object where an array is expected is
