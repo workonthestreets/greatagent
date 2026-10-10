@@ -277,6 +277,12 @@ def capture_for_desk(report: CallReport) -> dict:
     return {"say": say, "status": "logged", "case": case}
 
 
+@app.get("/health")
+def health() -> dict:
+    """Unauthenticated liveness check: which agent decides, nothing else."""
+    return {"ok": True, "agent": os.getenv("VOICE_AGENT", "deskagent")}
+
+
 class UpdateQuery(BaseModel):
     conversation_id: str = Field(max_length=200)
 

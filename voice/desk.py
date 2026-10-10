@@ -15,13 +15,19 @@ import os
 import sys
 import threading
 import time
+from collections import deque
 from datetime import UTC, datetime
 from pathlib import Path
 
 from triage.outbox import deliver, slug
 
 CASES_DIR = Path(os.getenv("VOICE_CASES_DIR", "runs/voice/cases"))
+DESK_MODEL = "claude-sonnet-5-5"  # cheaper than deskagent's Opus default; VOICE_DESK_MODEL overrides
+MAX_AT_ONCE = 2
 _threads: dict[str, threading.Thread] = {}  # conversation id -> worker, so tests can join
+_running = threading.BoundedSemaphore(MAX_AT_ONCE)
+_starts: deque[float] = deque()  # start times of recent runs, for the hourly cap
+_cap_lock = threading.Lock()
 
 DECISION_WORDS = {
     "act": "Our desk has acted on it",
@@ -91,7 +97,7 @@ def run(conversation_id: str, folder: Path) -> dict:
     try:
         load_case, process_case, write_case = _deskagent()
         case = load_case(folder, track="Delivery & Logistics")
-        res = process_case(case, model=os.getenv("VOICE_DESK_MODEL") or None)
+        res = process_case(case, model=os.getenv("VOICE_DESK_MODEL") or DESK_MODEL)
         write_case(folder / "answer", res)
         plan = res.get("plan") or {}
         out = {"status": "done", "decision_type": plan.get("decision_type"),
@@ -107,9 +113,36 @@ def run(conversation_id: str, folder: Path) -> dict:
     return out
 
 
+def _cap_reason() -> str:
+    """'' when a run may start; otherwise why not. Protects the API credit the Reality Test needs."""
+    per_hour = int(os.getenv("VOICE_DESK_MAX_PER_HOUR", "20"))
+    with _cap_lock:
+        now = time.time()
+        while _starts and now - _starts[0] > 3600:
+            _starts.popleft()
+        if len(_starts) >= per_hour:
+            return f"hourly cap of {per_hour} deskagent runs reached"
+        if not _running.acquire(blocking=False):
+            return f"{MAX_AT_ONCE} deskagent runs already in progress"
+        _starts.append(now)
+        return ""
+
+
+def _run_and_release(conversation_id: str, folder: Path) -> None:
+    try:
+        run(conversation_id, folder)
+    finally:
+        _running.release()
+
+
 def start(conversation_id: str, folder: Path) -> None:
+    """Start deskagent on the call unless a cap says no; a capped case stays saved for a human."""
+    reason = _cap_reason()
+    if reason:
+        (folder / "result.json").write_text(json.dumps({"status": "capped", "reason": reason}))
+        return
     (folder / "result.json").write_text(json.dumps({"status": "pending"}))
-    worker = threading.Thread(target=run, args=(conversation_id, folder), daemon=True)
+    worker = threading.Thread(target=_run_and_release, args=(conversation_id, folder), daemon=True)
     _threads[conversation_id] = worker
     worker.start()
 

@@ -166,3 +166,25 @@ def test_tool_hands_call_to_deskagent_and_speaks_only_templates(monkeypatch, tmp
                          headers={"X-Tool-Secret": "s3"}).json()["say"]
     assert update.startswith("Our desk has asked for the information it needs, and has contacted Parcel trace team")
 
+
+def test_deskagent_runs_are_capped_but_cases_still_saved(monkeypatch, tmp_path):
+    from voice import desk
+    monkeypatch.setenv("VOICE_TOOL_SECRET", "s3")
+    monkeypatch.setenv("VOICE_AGENT", "deskagent")
+    monkeypatch.setenv("VOICE_DESK_MAX_PER_HOUR", "1")
+    monkeypatch.setattr(voice, "LOG_DIR", tmp_path)
+    monkeypatch.setattr(desk, "CASES_DIR", tmp_path / "cases")
+    monkeypatch.setattr(desk, "_starts", desk.deque())
+    runs = []
+    monkeypatch.setattr(desk, "run", lambda conv, folder: runs.append(conv))
+    client = TestClient(voice.app)
+    for conv in ("conv_one1", "conv_two2"):
+        reply = client.post("/voice/tool", headers={"X-Tool-Secret": "s3"}, json={
+            "conversation_id": conv, "caller_name": "Ana", "order_ref": "DL-1", "issue": "Parcel late."}).json()
+        assert reply["status"] == "logged"
+    desk._threads["conv_one1"].join(5)
+    assert runs == ["conv_one1"]
+    capped = json.loads((tmp_path / "cases" / "conv-two2" / "result.json").read_text())
+    assert capped["status"] == "capped" and (tmp_path / "cases" / "conv-two2" / "index.md").exists()
+    assert client.get("/health").json() == {"ok": True, "agent": "deskagent"}
+
