@@ -121,9 +121,10 @@ def test_run_case_reports_model_failure(monkeypatch):
 def test_api_endpoints(monkeypatch, tmp_path):
     from fastapi.testclient import TestClient
     from api_v2 import app as api
+    from api_v2 import routes   # the endpoints (shared with the hub) live here
     (tmp_path / "demo.md").write_text(CASE_MD)
-    monkeypatch.setattr(api, "CASES", tmp_path)
-    monkeypatch.setattr(api, "run_case", lambda md, name, model=None: {"case": name, "error": None})
+    monkeypatch.setattr(routes, "CASES", tmp_path)
+    monkeypatch.setattr(routes, "run_case", lambda md, name, model=None: {"case": name, "error": None})
     c = TestClient(api.app)
     listed = c.get("/api/v2/cases").json()
     assert [x["id"] for x in listed] == ["demo"] and len(listed[0]["events"]) == 2 and listed[0]["title"].startswith("DL-001")
