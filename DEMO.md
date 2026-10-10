@@ -28,7 +28,19 @@ ngrok http 8000                                # terminal 2 (cloudflared works t
 cd web && npm run dev                          # terminal 3, http://localhost:3000
 ```
 
-### ElevenLabs agent → hub (Kashif's existing agent)
+### Voice line on Railway (Kashif) → hub mirror
+
+The live voice line (`https://voice-production-ef21.up.railway.app`, see `voice/README.md` and `deploy/README.md`) decides each call with `deskagent` itself, the same planner → lint → reviewer pipeline. The caller hears only fixed templates. After deciding, the voice line posts the finished case to the hub's `POST /webhooks/record_case` (spec: `voice/HUB_MIRROR.md`).
+
+The hub records the call, the reviewed messages and a staff note in `/ops`, and doesn't run its own agent again. It ignores a call it has already recorded (keyed on `voice_case_id`). Phone cases therefore show up already decided, with no approval step; the Approvals step is shown with D103.
+
+To turn the mirror on, set these on the Railway `voice` service:
+- `HUB_URL`: the hub's public URL, either the laptop tunnel or the Railway hub once it's deployed
+- `HUB_WEBHOOK_SECRET`: the hub's value
+
+### ElevenLabs agent → hub directly (alternative)
+
+Use this if the voice line is down.
 
 Add two **Webhook tools** to the agent. Each one: method POST, response timeout 10 s, header `X-Hub-Secret` of type **Secret**, set to `HUB_WEBHOOK_SECRET`.
 
