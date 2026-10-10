@@ -33,3 +33,24 @@ def test_a_track_holding_one_case_is_still_a_track(tmp_path):
     _case(root / "Banking & Financial Services" / "001")
     assert [(p.parent.name, p.name) for p in discover_cases(root)] == [
         ("Banking & Financial Services", "001"), ("Delivery & Logistics", "007")]
+
+
+def test_case_without_history_says_so(tmp_path):
+    folder = tmp_path / "Delivery & Logistics" / "005"
+    folder.mkdir(parents=True)
+    (folder / "index.md").write_text(INDEX)
+    case = load_case(folder)
+    assert not case.events and any(w.startswith("no history.md") for w in case.warnings)
+    assert not any(w.startswith("no history.md") for w in load_case(_case(tmp_path / "x" / "006")).warnings)
+
+
+def test_zip_attachment_lists_members_and_reads_text_ones(tmp_path):
+    folder = _case(tmp_path / "Delivery & Logistics" / "008")
+    (folder / "attachments").mkdir()
+    with zipfile.ZipFile(folder / "attachments" / "bundle.zip", "w") as z:
+        z.writestr("scans/carrier.txt", "Carrier scan DL-039-O at Northgate")
+        z.writestr("photo.jpg", b"\xff\xd8not text")
+        z.writestr("inner.zip", b"PK nested")
+    body = case_body_text(load_case(folder))
+    assert "Carrier scan DL-039-O at Northgate" in body
+    assert "photo.jpg" in body and "inner.zip" in body and "PK nested" not in body

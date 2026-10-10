@@ -231,6 +231,34 @@ def _shrink_image(raw: bytes) -> Optional[bytes]:
     return None
 
 
+ZIP_TEXT_EXT = {".txt", ".md", ".csv", ".json", ".eml"}
+
+
+def _zip_text(p: Path) -> str:
+    """A zip's member names plus its text members, read in memory: no extraction, no nested archives,
+    members over the per-file cap skipped, the whole thing capped at MAX_TEXT_CHARS."""
+    import zipfile
+    with zipfile.ZipFile(p) as z:
+        members = [i for i in z.infolist() if not i.is_dir()]
+        parts = ["Archive members: " + ", ".join(i.filename for i in members[:200])]
+        total = 0
+        for i in members:
+            if Path(i.filename).suffix.lower() not in ZIP_TEXT_EXT or i.file_size > MAX_TEXT_CHARS or total >= MAX_TEXT_CHARS:
+                continue
+            raw = z.read(i)[:MAX_TEXT_CHARS]
+            text = next((t for t in (_try_decode(raw, e) for e in ("utf-8", "utf-8-sig", "latin-1")) if t is not None), "")
+            parts.append(f"--- {i.filename} ---\n{text}")
+            total += len(text)
+    return "\n\n".join(parts)
+
+
+def _try_decode(raw: bytes, encoding: str) -> Optional[str]:
+    try:
+        return raw.decode(encoding)
+    except UnicodeDecodeError:
+        return None
+
+
 def _load_attachment(p: Path, root: Path, media: bool = True) -> Attachment:
     rel = str(p.relative_to(root))
     ext = p.suffix.lower()
@@ -270,6 +298,9 @@ def _load_attachment(p: Path, root: Path, media: bool = True) -> Attachment:
                 if not att.data_b64:
                     att.kind = "unsupported"
             return att
+        if ext == ".zip":
+            return Attachment(p.name, rel, "text", text=_zip_text(p)[:MAX_TEXT_CHARS],
+                              note="zip archive: member list and text members only")
         if ext in (".docx", ".xlsx", ".pptx"):
             t = _office_text(p)
             note = f"truncated: only the first {MAX_TEXT_CHARS} characters are included" if len(t) > MAX_TEXT_CHARS else ""
@@ -326,6 +357,8 @@ def load_case(path: str | Path, public_cutoff: bool = False, track: str = "", me
         else:
             case.warnings.append("no stage markers: could not determine escalation cutoff; showing full history")
     case.events = events
+    if not history_md and not events:
+        case.warnings.append("no history.md: answered from index/attachments only; the current time is unknown")
     if public_cutoff and index_md:
         index_md = _strip_index_for_eval(index_md, case)
 
