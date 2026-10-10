@@ -6,6 +6,8 @@ An autonomous coordinator for a delivery & logistics operations desk. Given a ca
 
 Built for the Dwelly Real-World Agents Hackathon (London, 10 Oct 2026), **Delivery & Logistics** track.
 
+**Demo video (60 s):** [demo/demo.mp4](demo/demo.mp4)
+
 ## 1. What we built
 
 A command-line agent (`run.py`) that processes a folder of cases in parallel and writes, for each case:
