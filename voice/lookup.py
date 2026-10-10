@@ -34,19 +34,44 @@ def _section(md: str, name: str) -> str:
     return m.group(1).strip() if m else ""
 
 
+_PRIMARY = re.compile(r"\*\*Primary (?:shipment|task reference):\*\*\s*(\S+)")
+
+
+def _known_events(history: str) -> list[str]:
+    """Events staged Context or Escalation, stopping at the first later or unstaged event."""
+    events = []
+    for block in _EVENT.split(history)[1:]:
+        stage = _STAGE.search(block)
+        if not stage or stage.group(1).strip().lower() not in KNOWN_STAGES:
+            break
+        events.append(block.strip())
+    return events
+
+
 @lru_cache(maxsize=1)
-def _index(root: str) -> dict[str, Path]:
-    """Normalised reference -> case folder. The Primary shipment wins over other refs."""
-    primary: dict[str, Path] = {}
-    other: dict[str, Path] = {}
+def _index(root: str) -> dict[str, Path | None]:
+    """Normalised reference -> case folder, or None when a reference points at two cases (no guessing).
+
+    A case's own Primary shipment / task reference beats a reference merely mentioned in its Case
+    details or its pre-escalation events.
+    """
+    primary: dict[str, set[Path]] = {}
+    other: dict[str, set[Path]] = {}
     for idx in sorted(Path(root).glob("*/index.md")):
+        folder = idx.parent
         details = _section(idx.read_text(errors="replace"), "Case details")
-        m = re.search(r"\*\*Primary shipment:\*\*\s*(\S+)", details)
+        m = _PRIMARY.search(details)
         if m:
-            primary.setdefault(norm(m.group(1)), idx.parent)
-        for ref in _REF.findall(details):
-            other.setdefault(norm(ref), idx.parent)
-    return other | primary
+            primary.setdefault(norm(m.group(1)), set()).add(folder)
+        history = folder.joinpath("history.md").read_text(errors="replace") if (folder / "history.md").exists() else ""
+        for ref in _REF.findall(details + "\n" + "\n".join(_known_events(history))):
+            other.setdefault(norm(ref), set()).add(folder)
+    resolved: dict[str, Path | None] = {}
+    for ref, folders in other.items():
+        resolved[ref] = next(iter(folders)) if len(folders) == 1 else None
+    for ref, folders in primary.items():
+        resolved[ref] = next(iter(folders)) if len(folders) == 1 else None
+    return resolved
 
 
 def find_shipment(ref: str, root: Path | None = None) -> Path | None:
@@ -67,14 +92,9 @@ def known_context(folder: Path) -> KnownContext:
     """The case as the desk saw it at the moment of escalation, never after."""
     index = folder.joinpath("index.md").read_text(errors="replace")
     details = _LATER_DETAIL.sub("", _section(index, "Case details"))
-    m = re.search(r"\*\*Primary shipment:\*\*\s*(\S+)", details)
+    m = _PRIMARY.search(details)
     history = folder.joinpath("history.md").read_text(errors="replace") if (folder / "history.md").exists() else ""
-    events = []
-    for block in _EVENT.split(history)[1:]:
-        stage = _STAGE.search(block)
-        if not stage or stage.group(1).strip().lower() not in KNOWN_STAGES:
-            break  # the first event after escalation, or an unstaged history: stop, never guess
-        events.append(block.strip())
+    events = _known_events(history)  # the first later or unstaged event stops it: never guess
     linked = sorted({a for e in events for a in _ATTACHMENT.findall(e) if (folder / a).is_file()})
     return KnownContext(folder.name, m.group(1) if m else "", details, _section(index, "Initial request"),
                         events, linked)

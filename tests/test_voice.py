@@ -227,6 +227,14 @@ def test_shipment_lookup_adds_only_pre_escalation_context(monkeypatch, tmp_path)
     monkeypatch.setattr(lookup, "DATA", tmp_path / "data")
     lookup._index.cache_clear()
     assert lookup.find_shipment("dl 025") == lookup.find_shipment("DL025") == case
+    task = tmp_path / "data" / "039"
+    task.mkdir()
+    (task / "index.md").write_text("# Case 039\n\n## Case details\n- **Primary task reference:** TG-039\n")
+    (task / "history.md").write_text('<a id="event-001"></a>\n## t — event 001\n- **Stage:** Escalation\n\n'
+                                     "Parcel DL-039-O and DL-025 never came.\n")
+    lookup._index.cache_clear()
+    assert lookup.find_shipment("TG-039") == lookup.find_shipment("DL-039-O") == task  # task ref + event ref
+    assert lookup.find_shipment("DL-025") == case  # its own Primary beats a mention elsewhere
     monkeypatch.setattr(desk, "CASES_DIR", tmp_path / "cases")
     folder = desk.write_case_folder("conv_x", "Ana", "DL025", "Any news on my kettle?", "", "")
     built = (folder / "index.md").read_text() + (folder / "history.md").read_text()

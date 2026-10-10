@@ -25,7 +25,7 @@ from scorer.cases import load_cases
 
 ROOT = Path(__file__).resolve().parents[1] / "data" / "public-cases"
 CALLER = re.compile(r"recipient|customer", re.IGNORECASE)
-SHIPMENT = re.compile(r"\*\*Primary shipment:\*\*\s*(\S+)")
+SHIPMENT = re.compile(r"\*\*Primary (?:shipment|task reference):\*\*\s*(\S+)")
 
 
 def post(base: str, path: str, body: dict, secret: str) -> dict:
