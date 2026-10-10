@@ -1,0 +1,13 @@
+{
+ "source": "generated",
+ "generator": "stress_cases/gen_reality.py",
+ "theme": "Recipient was hurt by a falling parcel cage during collection at a pickup point and mentions a lawyer",
+ "traits": [
+  "escalation",
+  "noise"
+ ],
+ "planned_decision": "escalate_to_human",
+ "expected_decision": "escalate_to_human",
+ "world": "A",
+ "split": "dev"
+}

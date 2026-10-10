@@ -1,0 +1,10 @@
+{
+  "collection_ref": "COL-229",
+  "shipper": "Greywick Homewares - Fenmouth warehouse",
+  "window_utc": {"start": "2026-04-15T14:00:00Z", "end": "2026-04-15T15:00:00Z"},
+  "parcels_expected": 9,
+  "labels": ["DL-234", "DL-235", "DL-236-1", "DL-236-2", "DL-239", "DL-237", "DL-238-1", "DL-238-2", "DL-240"],
+  "crew_can_amend_at_dock": false,
+  "post_handover_recall": {"owner": "Exception desk", "fee_applies": true, "guaranteed": false},
+  "status": "scheduled"
+}

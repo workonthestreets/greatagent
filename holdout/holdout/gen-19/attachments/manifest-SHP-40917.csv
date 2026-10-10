@@ -1,0 +1,8 @@
+shipper_ref,order_ref,carton_id,description,length_cm,width_cm,height_cm,weight_kg,handling_note
+SHP-40917,ORD-55130,SHP-40917-01,Stoneware dinner plates x24,60,40,35,18.0,FRAGILE
+SHP-40917,ORD-55130,SHP-40917-02,Stoneware bowls x36,60,40,40,22.5,FRAGILE
+SHP-40917,ORD-55130,SHP-40917-03,Glazed floor vase large x2,70,50,55,31.5,FRAGILE; HEAVY - two-person lift
+SHP-40917,ORD-55130,SHP-40917-04,Mugs x48,50,40,35,15.0,FRAGILE
+SHP-40917,ORD-55130,SHP-40917-05,Serving platters x12,65,45,30,19.5,FRAGILE
+SHP-40917,ORD-55130,SHP-40917-06,Display stands and packing inserts,55,40,30,12.0,
+TOTAL,,6 cartons,,,,,118.5,

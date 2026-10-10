@@ -21,7 +21,9 @@ TEXT_EXT = {".md", ".txt", ".csv", ".json", ".eml", ".html", ".htm", ".xml", ".y
 IMAGE_EXT = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp"}
 MAX_TEXT_CHARS = 120_000          # per file
 MAX_TOTAL_CHARS = 600_000         # whole case
-MAX_IMAGE_BYTES = 4_500_000
+MAX_IMAGE_BYTES = 3_600_000      # raw bytes; base64 adds ~33% and the API limit is 5 MB per image
+MAX_IMAGES = 12
+MAX_PDF_B64_BYTES = 8_000_000
 
 # Sections of a public example index.md that reveal the ending (hidden in eval mode).
 REVEALING_SECTIONS = {"overview", "next action at escalation", "outcome", "boundaries and remaining work",
@@ -29,7 +31,9 @@ REVEALING_SECTIONS = {"overview", "next action at escalation", "outcome", "bound
 REVEALING_DETAIL_KEYS = ("status", "updated", "completed", "resolved", "closed")
 
 EVENT_SPLIT = re.compile(r'(?=^<a id="event-\d+"></a>\s*$)', re.M)
-EVENT_HEADER = re.compile(r'^##\s+(?P<ts>.+?)\s+—\s+event\s+(?P<num>\d+)', re.M)
+EVENT_HEADER = re.compile(r'^#{2,3}\s+(?P<ts>.+?)\s+[—–-]+\s+event\s+(?P<num>\d+)', re.M | re.I)
+HEADER_SPLIT = re.compile(r'(?=^#{2,3}\s+.+?\s+[—–-]+\s+event\s+\d+)', re.M | re.I)
+TS_PREFIX = re.compile(r'(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}(?::\d{2})?)')
 META_LINE = re.compile(r'^-\s+\*\*(?P<k>[^*]+?):\*\*\s*(?P<v>.*)$', re.M)
 LINK = re.compile(r'\]\(([^)]+)\)')
 
@@ -75,9 +79,12 @@ class Case:
     now: str = ""
     warnings: List[str] = field(default_factory=list)
     mode: str = "reality"
+    answer_name: str = ""      # set by the runner only when two discovered cases would share an answer folder
 
     @property
     def answer_id(self) -> str:
+        if self.answer_name:
+            return self.answer_name
         return str(int(self.case_id)) if self.case_id.isdigit() else self.case_id
 
 
@@ -94,7 +101,9 @@ def _read_text(p: Path) -> str:
 
 def parse_events(history: str) -> List[Event]:
     events: List[Event] = []
-    for chunk in EVENT_SPLIT.split(history):
+    # Normally each event starts with an <a id="event-N"> anchor; fall back to the headings if there are none.
+    chunks = EVENT_SPLIT.split(history) if EVENT_SPLIT.search(history) else HEADER_SPLIT.split(history)
+    for chunk in chunks:
         m = EVENT_HEADER.search(chunk)
         if not m:
             continue
@@ -157,16 +166,89 @@ def _strip_index_for_eval(index_md: str, case: Case) -> str:
     return "".join(keep)
 
 
-def _load_attachment(p: Path, root: Path) -> Attachment:
+def _office_text(p: Path) -> str:
+    """Text from .docx / .xlsx / .pptx using only the standard library (they are zipped XML)."""
+    import zipfile
+    with zipfile.ZipFile(p) as z:
+        names = z.namelist()
+        if p.suffix.lower() == ".xlsx":
+            shared = []
+            if "xl/sharedStrings.xml" in names:
+                xml = z.read("xl/sharedStrings.xml").decode("utf-8", "replace")
+                shared = [re.sub(r"<[^>]+>", "", si) for si in re.findall(r"<si>(.*?)</si>", xml, flags=re.S)]
+            rows_out = []
+            for n in sorted(x for x in names if x.startswith("xl/worksheets/sheet") and x.endswith(".xml")):
+                xml = z.read(n).decode("utf-8", "replace")
+                rows_out.append(f"[{n.split('/')[-1]}]")
+                for row in re.findall(r"<row[^>]*>(.*?)</row>", xml, flags=re.S):
+                    cells = []
+                    for attrs, inner in re.findall(r"<c([^>]*)>(.*?)</c>", row, flags=re.S):
+                        v = re.search(r"<v>(.*?)</v>", inner, flags=re.S)
+                        t = re.search(r"<t[^>]*>(.*?)</t>", inner, flags=re.S)
+                        val = v.group(1) if v else (t.group(1) if t else "")
+                        if 't="s"' in attrs and val.isdigit() and int(val) < len(shared):
+                            val = shared[int(val)]
+                        cells.append(val)
+                    rows_out.append(",".join(cells))
+            return "\n".join(rows_out)
+        parts = sorted(n for n in names if n in ("word/document.xml",) or n.startswith(("ppt/slides/slide", "word/header", "word/footer")))
+        out = []
+        for n in parts:
+            xml = z.read(n).decode("utf-8", "replace")
+            xml = re.sub(r"</w:p>|</a:p>|<w:br/>", "\n", xml)
+            out.append(re.sub(r"<[^>]+>", "", xml))
+        import html
+        return html.unescape("\n".join(out)).strip()
+
+
+def _sniff_image(raw: bytes) -> str:
+    if raw[:8] == b"\x89PNG\r\n\x1a\n":
+        return "image/png"
+    if raw[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    if raw[:6] in (b"GIF87a", b"GIF89a"):
+        return "image/gif"
+    if raw[:4] == b"RIFF" and raw[8:12] == b"WEBP":
+        return "image/webp"
+    return ""
+
+
+def _shrink_image(raw: bytes) -> Optional[bytes]:
+    """Downscale an oversized image to JPEG with Pillow, if it is installed."""
+    try:
+        from PIL import Image
+        import io
+        im = Image.open(io.BytesIO(raw))
+        im = im.convert("RGB")
+        for side in (2000, 1500, 1100):
+            im.thumbnail((side, side))
+            buf = io.BytesIO()
+            im.save(buf, format="JPEG", quality=80)
+            if buf.tell() <= MAX_IMAGE_BYTES:
+                return buf.getvalue()
+    except Exception:  # noqa: BLE001
+        return None
+    return None
+
+
+def _load_attachment(p: Path, root: Path, media: bool = True) -> Attachment:
     rel = str(p.relative_to(root))
     ext = p.suffix.lower()
     try:
         size = p.stat().st_size
-        if ext in IMAGE_EXT:
-            if size > MAX_IMAGE_BYTES:
-                return Attachment(p.name, rel, "unsupported", note=f"image too large to send ({size} bytes)")
-            return Attachment(p.name, rel, "image", media_type=IMAGE_EXT[ext],
-                              data_b64=base64.b64encode(p.read_bytes()).decode())
+        if ext in IMAGE_EXT or ext in (".heic", ".tif", ".tiff", ".bmp"):
+            if not media:
+                return Attachment(p.name, rel, "unsupported", note="image not sent (media-free retry after an earlier failure)")
+            raw = p.read_bytes()
+            mt = _sniff_image(raw)
+            if not mt or size > MAX_IMAGE_BYTES:
+                small = _shrink_image(raw)
+                if small is None:
+                    why = "unsupported image format" if not mt else f"image too large to send ({size} bytes)"
+                    return Attachment(p.name, rel, "unsupported", note=why)
+                return Attachment(p.name, rel, "image", media_type="image/jpeg", data_b64=base64.b64encode(small).decode(),
+                                  note=f"downscaled from {size} bytes")
+            return Attachment(p.name, rel, "image", media_type=mt, data_b64=base64.b64encode(raw).decode())
         if ext == ".pdf":
             raw = p.read_bytes()
             text = ""
@@ -179,13 +261,29 @@ def _load_attachment(p: Path, root: Path) -> Attachment:
                 text = ""
                 note = f"pdf text extraction failed: {exc}"
             att = Attachment(p.name, rel, "pdf", text=text[:MAX_TEXT_CHARS], media_type="application/pdf",
-                             data_b64=base64.b64encode(raw).decode() if size < 8_000_000 else "")
+                             data_b64=base64.b64encode(raw).decode() if (media and size < MAX_PDF_B64_BYTES) else "")
+            if len(text) > MAX_TEXT_CHARS:
+                att.note = f"truncated: only the first {MAX_TEXT_CHARS} characters of the PDF text are included"
             if not text:
-                att.note = "no extractable text layer; sent as native PDF for visual reading"
+                att.note = ("no extractable text layer; sent as native PDF for visual reading" if att.data_b64
+                            else "no extractable text layer and the PDF could not be sent for visual reading")
+                if not att.data_b64:
+                    att.kind = "unsupported"
             return att
+        if ext in (".docx", ".xlsx", ".pptx"):
+            t = _office_text(p)
+            note = f"truncated: only the first {MAX_TEXT_CHARS} characters are included" if len(t) > MAX_TEXT_CHARS else ""
+            return Attachment(p.name, rel, "text", text=t[:MAX_TEXT_CHARS], note=note)
         if ext in TEXT_EXT or (mimetypes.guess_type(p.name)[0] or "").startswith("text"):
             t = _read_text(p)
-            note = "truncated" if len(t) > MAX_TEXT_CHARS else ""
+            if "\x00" in t[:2000]:   # UTF-16 exports
+                for enc in ("utf-16", "utf-16-le"):
+                    try:
+                        t = p.read_bytes().decode(enc)
+                        break
+                    except UnicodeDecodeError:
+                        continue
+            note = f"truncated: only the first {MAX_TEXT_CHARS} characters are included" if len(t) > MAX_TEXT_CHARS else ""
             return Attachment(p.name, rel, "text", text=t[:MAX_TEXT_CHARS], note=note)
         # last resort: try to decode as text
         t = _read_text(p)
@@ -196,7 +294,7 @@ def _load_attachment(p: Path, root: Path) -> Attachment:
         return Attachment(p.name, rel, "unsupported", note=f"failed to read: {exc}")
 
 
-def load_case(path: str | Path, public_cutoff: bool = False, track: str = "") -> Case:
+def load_case(path: str | Path, public_cutoff: bool = False, track: str = "", media: bool = True) -> Case:
     root = Path(path)
     if root.is_file():
         text = _read_text(root)
@@ -236,19 +334,22 @@ def load_case(path: str | Path, public_cutoff: bool = False, track: str = "") ->
     # Any other top-level text files (e.g. a challenge question file)
     for p in sorted(root.iterdir()):
         if p.is_file() and p.name not in ("index.md", "history.md") and not p.name.startswith((".", "_")):
-            att = _load_attachment(p, root)
+            att = _load_attachment(p, root, media)
             if att.kind == "text":
                 case.files.append((p.name, att.text))
             else:
                 case.attachments.append(att)
 
     visible_text = "\n".join(t for _, t in case.files)
-    for p in sorted(x for x in root.rglob("*") if x.is_file() and x.parent != root and not x.name.startswith((".", "_"))):
+    for p in sorted(x for x in root.rglob("*") if x.is_file() and x.parent != root and not x.name.startswith((".", "_"))
+                    and not any(part.startswith(".") or part == "__MACOSX" for part in x.relative_to(root).parts[:-1])):
         rel = str(p.relative_to(root))
         if public_cutoff and (rel not in visible_text and p.name not in visible_text):
             case.hidden_attachments.append(rel)
             continue
-        case.attachments.append(_load_attachment(p, root))
+        case.attachments.append(_load_attachment(p, root, media))
+    if not media:
+        case.warnings.append("media-free retry: images and scanned PDFs were not sent to the model after an earlier failure")
 
     _finish(case)
     return case
@@ -276,7 +377,10 @@ def _finish(case: Case) -> None:
             if v and v not in bucket and v.lower() != "not specified":
                 bucket.append(v)
     case.channels, case.parties = chans, parties
-    case.now = case.events[-1].timestamp if case.events else ""
+    case.now = _latest_timestamp(case.events)
+    images = [a for a in case.attachments if a.kind == "image"]
+    for a in images[MAX_IMAGES:]:
+        a.kind, a.data_b64, a.note = "unsupported", "", f"not sent: more than {MAX_IMAGES} images in the case"
     total = sum(len(t) for _, t in case.files) + sum(len(a.text) for a in case.attachments)
     if total > MAX_TOTAL_CHARS:
         case.warnings.append(f"case text is very large ({total} chars); long files were truncated")
@@ -286,9 +390,28 @@ def _finish(case: Case) -> None:
             share = max(20_000, budget // max(1, len(case.files)))
             new_files.append((name, t if len(t) <= share else t[:share // 2] + "\n\n[... truncated middle ...]\n\n" + t[-share // 2:]))
         case.files = new_files
+        texts = [a for a in case.attachments if a.text]
+        share = max(10_000, (MAX_TOTAL_CHARS // 3) // max(1, len(texts)))
+        for a in texts:
+            if len(a.text) > share:
+                a.text = a.text[:share // 2] + "\n\n[... truncated middle ...]\n\n" + a.text[-share // 2:]
+                a.note = (a.note + "; " if a.note else "") + "middle truncated to fit the case budget"
     for a in case.attachments:
-        if a.kind == "unsupported":
+        if a.kind == "unsupported" or "truncated" in a.note:
             case.warnings.append(f"attachment {a.rel_path}: {a.note}")
+    if not case.events and any(n == "history.md" for n, _ in case.files):
+        case.warnings.append("could not parse dated events in history.md; the current time is unknown - read the history text directly")
+
+
+def _latest_timestamp(events: List[Event]) -> str:
+    """The latest event time (not simply the last in file order, in case the thread is newest-first)."""
+    best, best_key = "", ""
+    for e in events:
+        m = TS_PREFIX.search(e.timestamp)
+        key = f"{m.group(1)} {m.group(2)}" if m else ""
+        if key >= best_key:
+            best, best_key = e.timestamp, key
+    return best
 
 
 def discover_cases(path: str | Path) -> List[Path]:
@@ -298,7 +421,7 @@ def discover_cases(path: str | Path) -> List[Path]:
         return [root]
     if (root / "index.md").exists() or (root / "history.md").exists():
         return [root]
-    subdirs = sorted([d for d in root.iterdir() if d.is_dir() and not d.name.startswith(".")], key=_sort_key)
+    subdirs = sorted([d for d in root.iterdir() if d.is_dir() and not d.name.startswith(".") and d.name != "__MACOSX"], key=_sort_key)
     cases = [d for d in subdirs if any(d.glob("*.md")) or any(d.glob("*.txt"))]
     if cases:
         return cases
@@ -309,7 +432,8 @@ def discover_cases(path: str | Path) -> List[Path]:
     if nested:
         return nested
     # flat folder of case files
-    return sorted([p for p in root.iterdir() if p.is_file() and p.suffix.lower() in (".md", ".txt", ".json")], key=_sort_key)
+    return sorted([p for p in root.iterdir() if p.is_file() and not p.name.startswith((".", "_"))
+                   and p.suffix.lower() in (".md", ".txt", ".json")], key=_sort_key)
 
 
 def _sort_key(p: Path):

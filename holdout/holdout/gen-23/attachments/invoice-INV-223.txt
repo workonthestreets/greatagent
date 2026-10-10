@@ -1,0 +1,20 @@
+TALLOWMERE GOODS — INVOICE (text extract of PDF)
+Invoice no: INV-223
+Order ref: TG-223
+Invoice printed: 2026-03-13 08:14 UTC (pick stage 1)
+Bill to / Ship to: Pell Marrow, 4B Cinder Row, Halverstone HV3 2QL
+
+Line | SKU        | Description                    | Qty ordered | Qty shipped | Qty backordered | Unit  | Line total (shipped)
+1    | ASH-MUG-SG | Ashgrove stoneware mug, sage   | 6           | 4           | 2               | 9.00  | 36.00
+2    | ASH-BWL-28 | Ashgrove serving bowl 28 cm    | 2           | 2           | 0               | 24.00 | 48.00
+
+Subtotal shipped:      84.00
+Delivery:               0.00
+Invoice total:         84.00
+Payment captured 2026-03-12 (card ••4471): 102.00
+Balance:               18.00  STATUS: PENDING BACKORDER
+  (auto-credit if backorder cancelled; ships at no extra charge if fulfilled)
+Cartons at print:      1
+Carrier ref:           DL-223
+
+This document reflects quantities at time of printing.

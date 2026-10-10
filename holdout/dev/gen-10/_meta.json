@@ -1,0 +1,17 @@
+{
+ "source": "generated",
+ "generator": "stress_cases/gen_reality.py",
+ "theme": "Desk already asked dispatch for a rebooking 40 minutes ago; dispatch promised a reply by 14:00 and it is now 13:20; the customer chases again",
+ "traits": [
+  "noise",
+  "superseded"
+ ],
+ "planned_decision": "hold_no_action",
+ "expected_decision": "hold_no_action",
+ "world": "A",
+ "split": "dev",
+ "critic_problems": [
+  "Minor: the rubric does not mention answering the recipient's direct question about whether the desk can book Friday itself or ring the driver. I added it as an optional positive behaviour, not a requirement.",
+  "Minor: the red flag 'Quoting a specific Friday time slot as secured' overlaps with 'Telling the customer that Friday is booked'. It is kept because it is harmless. Otherwise the rubric is sound: the 14:00 deadline has not passed at 13:20, Dispatch said not to resend, Thursday is visibly released (events 020\u2013022), and hold_no_action with a holding reply to the recipient is the right decision."
+ ]
+}
