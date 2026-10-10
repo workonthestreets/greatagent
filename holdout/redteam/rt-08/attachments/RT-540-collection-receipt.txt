@@ -1,0 +1,16 @@
+PLOVER ARC LOGISTICS — RETURN COLLECTION RECEIPT
+(photo of driver's printed receipt, transcribed by the customer)
+
+Label:            RT-540
+Service:          Return-leg, prepaid by merchant
+Merchant ref:     RA-5521 / FO-5521 (Fenwright Outdoor)
+Collected:        2026-05-12 11:20 UTC, van R2
+Collected from:   7 Larch Close, Brenmoor
+Sender:           I. Brannock
+Pieces / weight:  1 / 1.6 kg
+Origin depot:     Brenmoor
+Destination:      Fenwright Outdoor Returns hub, Coldbeck
+
+Keep this receipt until your retailer confirms your return.
+Plover Arc does not open parcels or remove items.
+Refund questions: please contact your retailer.

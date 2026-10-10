@@ -1,0 +1,22 @@
+{
+  "request_id": "YLR-88213",
+  "site": "Harrowgate Home Stores - Selby Moor DC",
+  "requested": {"date": "2026-04-15", "window": "07:00-08:00", "po": "ORD-55812", "carrier": "Brannock Freight", "units": 3, "unit_type": "PALLET", "gross_kg": 1197},
+  "status": "REJECTED",
+  "reason_code": "SLOT_FULL",
+  "message": "Daily inbound capacity for 2026-04-15 has been reached. Do not resubmit for this date via Yardline.",
+  "exception_route": {
+    "team": "Selby Moor Inbound Exceptions",
+    "email": "inbound.exceptions@harrowgate-selby.example",
+    "phone": "+00 1740 552 019",
+    "hours_utc": "07:00-16:00",
+    "note": "Exception requests for the next calendar day must be received by 16:00 UTC and must quote the rejected request ID, PO, unit count and carrier. Approval is not guaranteed."
+  },
+  "next_available": [
+    {"date": "2026-04-16", "window": "08:00-09:00", "dock": "D2", "unit_type": "PALLET", "bookable_via_portal": true},
+    {"date": "2026-04-16", "window": "13:30-14:30", "dock": "D5", "unit_type": "PALLET", "bookable_via_portal": true},
+    {"date": "2026-04-17", "window": "07:00-08:00", "dock": "D1", "unit_type": "PALLET", "bookable_via_portal": true}
+  ],
+  "gate_policy": "Vehicles without a valid Yardline booking reference will not be admitted.",
+  "generated_at": "2026-04-14T10:41:03Z"
+}

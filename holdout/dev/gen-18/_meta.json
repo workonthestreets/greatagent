@@ -1,0 +1,19 @@
+{
+ "source": "generated",
+ "generator": "stress_cases/gen_reality.py",
+ "theme": "Weather route suspension: dispatch says routes resume 'after the 15:00 review'; customer demands a guaranteed delivery today for a birthday",
+ "traits": [
+  "deadline",
+  "noise"
+ ],
+ "planned_decision": "act",
+ "expected_decision": "act",
+ "world": "A",
+ "split": "dev",
+ "critic_problems": [
+  "Required outcome 1 asks for very specific reason wording ('wanted by 17:00, party at 18:00'). Any clear time-critical reason should pass, for example a birthday gift needed for an 18:00 party. The 17:00 wrapping preference is optional detail.",
+  "The 'not mentioning the 15:30 deadline' red flag repeats part of a required outcome. That is harmless, so it stays.",
+  "Mira's call dropped, but she gave a phone number. Phoning her back, or saying the desk will, is a legitimate way to reach her and should be listed as acceptable.",
+  "Everything else can be done from the visible record: the deadlines (14:45, 15:00, 15:30), the counter details, the phone number, the Dispatch correction and the Tallowmere refund rule. The decision type 'act' is right, because an action is needed before 14:45."
+ ]
+}

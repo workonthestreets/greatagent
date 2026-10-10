@@ -1,0 +1,5 @@
+shipment,pallet_id,po,length_cm,width_cm,height_cm,gross_kg,contents,stackable
+SHP-20931,SHP-20931-P1,ORD-55812,120,100,165,410,Glazed stoneware dinner sets,NO
+SHP-20931,SHP-20931-P2,ORD-55812,120,100,160,385,Glazed stoneware bowls,NO
+SHP-20931,SHP-20931-P3,ORD-55812,120,100,165,402,Serving platters,NO
+TOTAL,3,,,,,1197,,

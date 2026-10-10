@@ -14,3 +14,9 @@ STATE.md
 # derived from the organisers' public cases; regenerate with: python stress_cases/mutate_public.py
 holdout/*/mut-*/
 holdout/_debug/
+hub/.agent_state.json
+web/node_modules/
+web/dist/
+web/.env
+web/.env.local
+web/tsconfig.tsbuildinfo

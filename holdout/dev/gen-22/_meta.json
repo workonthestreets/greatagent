@@ -1,0 +1,18 @@
+{
+ "source": "generated",
+ "generator": "stress_cases/gen_reality.py",
+ "theme": "Product recall notice from the merchant arrives while the item is out for delivery; customer asks whether to accept it",
+ "traits": [
+  "unusual_exception",
+  "deadline",
+  "ambiguity"
+ ],
+ "planned_decision": "act",
+ "expected_decision": "act",
+ "world": "B",
+ "split": "dev",
+ "critic_problems": [
+  "Minor: the first required outcome reads as if the agent must cite the FAQ explicitly. Softened it so that grounding the answer in the merchant's recall information is enough; the substance must still match the FAQ.",
+  "Otherwise the rubric is sound. Every required outcome rests on visible facts: the FAQ lists SKU CF-H900S-W, the tracking shows batch B0429 inside B0421\u2013B0433 and a 2026-03-10 dispatch inside the date range, the intercept is NOT_APPLIED, the 08:30 bulletin names the live-chat channel and its 07:00\u201319:00 hours, and the ETA is 13:00\u201313:20. The desk passes on the shipper's existing intercept and does not make its own product-safety decision. 'act' is the right decision type."
+ ]
+}

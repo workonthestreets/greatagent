@@ -1,0 +1,22 @@
+{
+  "shipment": "KL-58302",
+  "shipper": "Corbel & Finch Home",
+  "shipper_ref": "ORD-CF-771204",
+  "item_description": "Halo 900 Slim oil-filled heater, white, SKU CF-H900S-W",
+  "shipper_ref_batch": "B0429",
+  "dispatched_from_shipper": "2026-03-10T16:40:00Z",
+  "recipient": {"name": "M. Tolland", "address": "Flat 3, 18 Wexley Row, Brackenford"},
+  "status": "OUT_FOR_DELIVERY",
+  "vehicle": "BRK-14",
+  "eta_window": "2026-03-11T13:00:00Z/2026-03-11T13:20:00Z",
+  "exceptions": [
+    {
+      "type": "SHIPPER_INTERCEPT_REQUESTED",
+      "requested_by": "Corbel & Finch Home (shipper account CF-0088)",
+      "requested_at": "2026-03-11T11:48:00Z",
+      "action": "RETURN_TO_SENDER",
+      "status": "NOT_APPLIED",
+      "reason": "Item already on vehicle; handset not updated. The Route Desk must contact the driver manually."
+    }
+  ]
+}

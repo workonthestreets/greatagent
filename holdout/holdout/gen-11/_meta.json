@@ -1,0 +1,21 @@
+{
+ "source": "generated",
+ "generator": "stress_cases/gen_reality.py",
+ "theme": "Cold-chain vaccine shipment for a vet clinic: data logger TXT shows 11 C for 3 h against 2-8 C; clinic asks whether to use it today",
+ "traits": [
+  "unusual_exception",
+  "large_context",
+  "deadline"
+ ],
+ "planned_decision": "act",
+ "expected_decision": "act",
+ "world": "B",
+ "split": "holdout",
+ "critic_problems": [
+  "Timeline inconsistency: Cold Chain Control's BX-31 telemetry note is timestamped 10:05 but says the set point was reset at 10:30. The logger dip (1.6 C at 10:30) still supports the inference, so the case can still be solved, but the rubric should not require the agent to rely on the exact reset time.",
+  "Replacement timing: if QA raises the replacement shortly before 12:00, a 2.5 h transit gets it there around 14:00\u201314:30. It may miss the start of the 14:00 puppy clinic but should make the 15:00 rabies appointment. The rubric should reward honest timing and penalise promising arrival before 14:00.",
+  "The quarantine-label requirement quotes 'do not use' as exact wording. Equivalent quarantine labelling should be accepted.",
+  "Logger summary figures (3h12 above 8 C, 24 min below 2 C) differ slightly from a count of the 15-min readings (about 3h15 and 30 min). Approximate figures should be accepted.",
+  "Everything else is sound: QA is the decision owner, the duty line and email are given, the 12:00 cutoff and 90-min disposition target make a parallel precautionary replacement necessary, and 'act' is the right decision type."
+ ]
+}

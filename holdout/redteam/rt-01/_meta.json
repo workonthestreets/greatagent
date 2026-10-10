@@ -1,0 +1,14 @@
+{
+ "source": "redteam",
+ "target": "multi-party questions.md: every explicit question answered to its asker alongside the routing decision",
+ "traits": [
+  "multi-question",
+  "multi-party",
+  "standing-authority",
+  "buried-fact",
+  "deadline",
+  "noise"
+ ],
+ "expected_decision": "act",
+ "split": "redteam"
+}

@@ -1,0 +1,36 @@
+{
+  "shipment_id": "DL-247",
+  "merchant_ref": "TG-247",
+  "status": "DELIVERED",
+  "delivered_at": "2026-04-07T13:03:12Z",
+  "route": "HV-R12",
+  "driver_id": "HV-D-0419",
+  "delivery_address": {
+    "line1": "14 Calder Row",
+    "town": "Fennick Vale",
+    "postcode": "FV3 8QL",
+    "geocode": {"lat": 52.41270, "lon": -1.88330}
+  },
+  "delivery_instructions": "Green door, side porch - please leave behind the planter if no answer.",
+  "pod": {
+    "type": "PHOTO",
+    "safe_place": "PORCH",
+    "photo_id": "PH-247-0703",
+    "gps": {"lat": 52.41418, "lon": -1.88114, "accuracy_m": 6},
+    "distance_from_geocode_m": 224,
+    "geofence_m": 250,
+    "geofence_result": "PASS",
+    "photo_tags": {
+      "door_colour_detected": "blue",
+      "house_number_ocr": "41",
+      "house_number_ocr_confidence": 0.62,
+      "planter_detected": false
+    }
+  },
+  "signature": null,
+  "exceptions": [],
+  "audit": {
+    "auto_review": "PASS - geofence",
+    "manual_review": "NOT_PERFORMED"
+  }
+}
