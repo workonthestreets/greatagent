@@ -1,0 +1,101 @@
+case_id,decision_type,first_recipient,first_recipient_org,gold_owner,gold_action_class,gold_channel,channel_used,routing,action,channel,violations,n_violations,verdict,complexity_level,queue,human_gate,twist,source_set,confidence,empty_plan
+SYN-201,request_information,Kira Holt,customer,customer,ask_customer,Customer portal,Customer portal,1.0,1.0,1.0,,0,pass,1,awaiting_customer,none,extra_noise,synthetic_new,high,False
+SYN-202,act,Dispatch,carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,extra_noise,synthetic_new,high,False
+SYN-203,act,Tracking support,carrier,carrier,request_physical_trace,Depot work queue,Email,1.0,1.0,0.0,,0,pass,1,carrier_trace,none,none,synthetic_new,high,False
+SYN-204,act,Sedgeglass Counter supervisor,pickup_point,pickup_point,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,none,synthetic_new,high,False
+SYN-205,act,Route safety control,carrier,carrier,request_record_or_statement,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,attachment_reference,synthetic_new,medium,False
+SYN-206,act,Shipment tracking,international_carrier,international_carrier,request_physical_trace,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_trace,none,none,synthetic_new,high,False
+SYN-207,act,Collections control,carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,none,synthetic_new,high,False
+SYN-208,hold_no_action,Brue Ashby,customer,carrier,request_operator_action,Email,Customer portal,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,early_chase,synthetic_new,high,False
+SYN-209,act,Route safety control,carrier,carrier,request_record_or_statement,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,attachment_reference,synthetic_new,medium,False
+SYN-210,act,Ashvane Counter supervisor,pickup_point,pickup_point,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,none,synthetic_new,high,False
+SYN-211,act,Collections control,carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,extra_noise,synthetic_new,high,False
+SYN-212,act,Tracking support,carrier,carrier,request_physical_trace,Depot work queue,Email,1.0,1.0,0.0,,0,pass,1,carrier_trace,none,none,synthetic_new,high,False
+SYN-213,act,Collections control,carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,none,synthetic_new,high,False
+SYN-214,request_information,Sabe Holt,customer,customer,ask_customer,Customer portal,Customer portal,1.0,1.0,1.0,,0,pass,1,awaiting_customer,none,attachment_reference,synthetic_new,high,False
+SYN-215,request_information,Lumo Brisk,customer,customer,ask_customer,Customer portal,Customer portal,1.0,1.0,1.0,,0,pass,2,awaiting_customer,none,attachment_reference,synthetic_new,high,False
+SYN-216,act,Kira Ulm,customer,customer,ask_customer,Call transcript,Phone call to the callback number on the order (verified by Dispatch at booking),1.0,1.0,0.0,,0,pass,2,urgent_cutoff,none,extra_noise,synthetic_new,high,False
+SYN-217,request_information,Corin Ashby,customer,customer,ask_customer,Customer portal,Customer portal,1.0,1.0,1.0,,0,pass,2,awaiting_customer,none,none,synthetic_new,high,False
+SYN-218,act,Routing,carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,2,carrier_ops,none,extra_noise,synthetic_new,medium,False
+SYN-219,act,Dispatch,carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,2,carrier_ops,none,none,synthetic_new,high,False
+SYN-220,escalate_to_human,Galo Brisk,unknown,carrier,request_record_or_statement,Email,Customer portal,0.0,0.0,1.0,,0,partial,2,carrier_ops,soft,asserted_only,synthetic_new,high,False
+SYN-221,request_information,Ambe Noll,business_counterparty,business_counterparty,ask_counterparty,Business portal,Business portal,1.0,1.0,1.0,,0,pass,2,awaiting_counterparty,none,extra_noise,synthetic_new,high,False
+SYN-222,act,Warehouse dispatch,merchant,merchant,request_operator_action,Warehouse work queue,Warehouse work queue,1.0,1.0,1.0,,0,pass,2,urgent_cutoff,none,attachment_reference,synthetic_new,high,False
+SYN-223,act,Dispatch,carrier,carrier,request_record_or_statement,Email,Email,1.0,1.0,1.0,,0,pass,2,carrier_ops,soft,prohibited_request,synthetic_new,high,False
+SYN-224,act,Dispatch,carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,2,carrier_ops,none,none,synthetic_new,high,False
+SYN-225,request_information,Rask Holt,customer,customer,ask_customer,Customer portal,Customer portal,1.0,1.0,1.0,,0,pass,2,awaiting_customer,none,none,synthetic_new,high,False
+SYN-226,act,Rask Tern,customer,customer,ask_customer,Call transcript,Phone call to the callback number confirmed in the authenticated order-linked portal session,1.0,1.0,0.0,,0,pass,2,urgent_cutoff,none,none,synthetic_new,high,False
+SYN-227,act,Warehouse dispatch,merchant,merchant,request_operator_action,Warehouse work queue,Warehouse work queue,1.0,1.0,1.0,,0,pass,2,urgent_cutoff,none,none,synthetic_new,high,False
+SYN-228,act,Warehouse dispatch,merchant,merchant,request_operator_action,Warehouse work queue,Warehouse work queue,1.0,1.0,1.0,,0,pass,2,urgent_cutoff,none,extra_noise,synthetic_new,high,False
+SYN-229,act,Parcel trace team,carrier,carrier,request_physical_trace,Email,Email,1.0,1.0,1.0,,0,pass,3,carrier_trace,none,attachment_reference,synthetic_new,high,False
+SYN-230,act,Freight trace team,carrier,carrier,request_physical_trace,Email,Business portal,1.0,1.0,1.0,,0,pass,3,carrier_trace,none,none,synthetic_new,high,False
+SYN-231,act,Service guarantees,carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,3,billing_review,hard,arithmetic_vs_claim,synthetic_new,high,False
+SYN-232,act,Collections control,carrier,carrier,request_operator_action,Email,Business portal,1.0,1.0,1.0,,0,pass,3,carrier_ops,none,none,synthetic_new,high,False
+SYN-233,act,Tracking support,carrier,carrier,request_physical_trace,Email,Email,1.0,1.0,1.0,,0,pass,3,carrier_trace,none,none,synthetic_new,high,False
+SYN-234,act,Parcel support,carrier,carrier,request_physical_trace,Email,Email,1.0,1.0,1.0,,0,pass,3,carrier_trace,none,none,synthetic_new,high,False
+SYN-235,act,Service guarantees,carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,3,billing_review,hard,arithmetic_vs_claim,synthetic_new,high,False
+SYN-236,act,Service guarantees,carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,3,billing_review,hard,arithmetic_vs_claim,synthetic_new,high,False
+SYN-237,act,Tracking support,carrier,carrier,request_physical_trace,Email,Email,1.0,1.0,1.0,,0,pass,3,carrier_trace,none,none,synthetic_new,high,False
+SYN-238,act,Service guarantees,carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,3,billing_review,hard,arithmetic_vs_claim,synthetic_new,high,False
+SYN-239,act,Service guarantees,carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,3,billing_review,hard,arithmetic_vs_claim,synthetic_new,high,False
+SYN-240,act,Freight dispatch,carrier,carrier,request_physical_trace,Email,Freight portal,1.0,1.0,1.0,,0,pass,3,carrier_trace,none,none,synthetic_new,high,False
+SYN-241,request_information,Fenna Marrow,customer,customer,ask_customer,Customer portal,Customer portal,1.0,1.0,1.0,,0,pass,4,awaiting_customer,none,extra_noise,synthetic_new,high,False
+SYN-242,act,Replacement authorisations,merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,synthetic_new,high,False
+SYN-243,act,Return label team,merchant,merchant,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,synthetic_new,high,False
+SYN-244,act,Refunds team,merchant,merchant,request_authorisation_or_decision,Email,Warehouse work queue,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,synthetic_new,medium,False
+SYN-245,act,Business billing,carrier,carrier,request_review_or_investigation,Email,Freight portal,1.0,1.0,1.0,,0,pass,4,billing_review,hard,none,synthetic_new,high,False
+SYN-246,act,Import billing,carrier,carrier,request_record_or_statement,Email,Email,1.0,1.0,1.0,,0,pass,4,billing_review,none,document_mismatch,synthetic_new,high,False
+SYN-247,act,Secure shipment support,carrier,carrier,request_record_or_statement,Email,Email,1.0,1.0,1.0,,0,pass,4,carrier_ops,none,none,synthetic_new,high,False
+SYN-248,act,Returns authorisations,merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,synthetic_new,high,False
+SYN-249,act,Reshipment authorisations,merchant,merchant,request_authorisation_or_decision,Email,Warehouse work queue,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,synthetic_new,high,False
+SYN-250,act,Returns authorisations,merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,synthetic_new,high,False
+SYN-251,act,Reshipment authorisations,merchant,merchant,request_authorisation_or_decision,Email,Warehouse work queue,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,synthetic_new,high,False
+SYN-252,act,Return label team,merchant,merchant,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,attachment_reference,synthetic_new,high,False
+SYN-253,act,Business billing,carrier,carrier,request_review_or_investigation,Email,Business portal,1.0,1.0,1.0,,0,pass,4,billing_review,hard,none,synthetic_new,high,False
+SYN-254,act,Business billing,carrier,carrier,request_review_or_investigation,Email,Freight portal,1.0,1.0,1.0,,0,pass,4,billing_review,hard,none,synthetic_new,high,False
+SYN-255,act,Refunds team,merchant,merchant,request_authorisation_or_decision,Email,Warehouse work queue,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,synthetic_new,high,False
+SYN-256,act,Return label team,merchant,merchant,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,synthetic_new,high,False
+SYN-257,act,Delivery investigations,carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,5,investigations,hard,none,synthetic_new,high,False
+SYN-258,act,Dispatch review team,carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,5,investigations,soft,none,synthetic_new,high,False
+SYN-259,act,Destination depot staff,carrier,carrier,request_physical_trace,Depot work queue,Dispatch chat,1.0,1.0,0.0,,0,pass,5,carrier_trace,soft,conflicting_records,synthetic_new,high,False
+SYN-260,act,Returns authorisations,merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,5,merchant_authorisation,hard,conflicting_teams,synthetic_new,high,False
+SYN-261,act,"Delivery investigations, Plover Arc Logistics",carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,5,carrier_ops,soft,none,synthetic_new,high,False
+SYN-262,act,"Refunds team, Tallowmere Goods",merchant,merchant,request_review_or_investigation,Email,Email (registered email channel from the shipment record),1.0,1.0,1.0,,0,pass,5,merchant_authorisation,hard,injected_instruction,synthetic_new,high,False
+SYN-263,act,"Tracking support, Plover Arc Logistics",carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,5,investigations,hard,none,synthetic_new,high,False
+SYN-264,act,"Tracking support, Plover Arc Logistics",carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,5,investigations,soft,none,synthetic_new,high,False
+SYN-265,act,"Returns support, Tallowmere Goods",merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,5,merchant_authorisation,hard,conflicting_teams,synthetic_new,high,False
+SYN-266,act,"Tracking support, Plover Arc Logistics",carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,5,investigations,soft,none,synthetic_new,high,False
+SYN-267,act,"Tracking support, Plover Arc Logistics",carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,5,investigations,hard,none,synthetic_new,high,False
+SYN-268,act,"Tracking support, Plover Arc Logistics",carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,5,investigations,soft,extra_noise,synthetic_new,high,False
+SYN-269,act,"Order support, Tallowmere Goods",merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,5,merchant_authorisation,hard,conflicting_teams,synthetic_new,high,False
+SYN-270,act,"Order reconciliation, Tallowmere Goods",merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,5,merchant_authorisation,hard,conflicting_teams,synthetic_new,high,False
+SYN-271,act,"Safety lead, Plover Arc Logistics",carrier,carrier,escalate_safety,Safety incident queue,Safety incident queue,1.0,1.0,1.0,,0,pass,6,safety,hard,attachment_reference,synthetic_new,high,False
+SYN-272,act,Brineleaf Pantry food-safety lead,merchant,merchant,escalate_safety,Email,Email,1.0,1.0,1.0,,0,pass,6,safety,hard,extra_noise,synthetic_new,high,False
+SYN-273,act,"Safety lead, Plover Arc Logistics",carrier,carrier,escalate_safety,Safety incident queue,Safety incident queue,1.0,1.0,1.0,,0,pass,6,safety,hard,none,synthetic_new,high,False
+SYN-274,request_information,Joss Marrow,business_counterparty,business_counterparty,ask_counterparty,Email,Email (verified email on the shipper account),1.0,1.0,1.0,,0,pass,6,awaiting_counterparty,none,none,synthetic_new,high,False
+SYN-275,act,Pavo Vance,business_counterparty,business_counterparty,ask_counterparty,Business portal,Business portal,1.0,1.0,1.0,,0,pass,6,awaiting_counterparty,hard,none,synthetic_new,high,False
+SYN-276,act,"Freight planner, Plover Arc Logistics",carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,6,carrier_ops,hard,none,synthetic_new,high,False
+SYN-277,act,"Specialist returns scheduler, Tallowmere Goods",merchant,merchant,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,6,merchant_authorisation,none,attachment_reference,synthetic_new,high,False
+SYN-278,act,"Dispatch, Plover Arc Logistics",carrier,carrier,request_record_or_statement,Email,Email,1.0,1.0,1.0,,0,pass,6,carrier_ops,hard,vulnerable_customer,synthetic_new,medium,False
+SYN-279,act,Fenna Lusk,business_counterparty,business_counterparty,ask_counterparty,Business portal,Business portal,1.0,1.0,1.0,,0,pass,6,awaiting_counterparty,hard,none,synthetic_new,high,False
+SYN-280,request_information,Ulla Fane,business_counterparty,business_counterparty,ask_counterparty,Email,Email (verified email address on the shipper record),1.0,1.0,1.0,,0,pass,6,awaiting_counterparty,none,none,synthetic_new,high,False
+SYN-281,request_information,Tove Yarrow,business_counterparty,business_counterparty,ask_counterparty,Email,Email to Tove Yarrow's registered email address (as verified by Harbor Thread International),1.0,1.0,1.0,,0,pass,6,awaiting_counterparty,none,none,synthetic_new,high,False
+SYN-282,act,"Food-safety lead, Brineleaf Pantry",merchant,merchant,escalate_safety,Email,"Email (Brineleaf Pantry food-safety intake email thread for DL-282, addressed to the food-safety lead)",1.0,1.0,1.0,,0,pass,6,safety,hard,extra_noise,synthetic_new,high,False
+SYN-283,request_information,Nilo Rook,business_counterparty,business_counterparty,ask_counterparty,Email,Email to Nilo Rook's registered email address (from Quillmere Fabrication's registered business-portal account),1.0,1.0,1.0,,0,pass,6,awaiting_counterparty,none,extra_noise,synthetic_new,high,False
+SYN-284,act,Dispatch,carrier,carrier,request_record_or_statement,Email,Dispatch chat,1.0,1.0,1.0,,0,pass,6,carrier_ops,hard,vulnerable_customer,synthetic_new,high,False
+SYN-285,decline,Quillmere Fabrication account administrator,business_counterparty,business_counterparty,ask_counterparty,Business portal,Business portal,1.0,0.0,1.0,,0,pass,6,awaiting_counterparty,hard,attachment_reference,synthetic_new,high,False
+SYN-286,act,Safety lead,carrier,carrier,escalate_safety,Safety incident queue,Safety incident queue,1.0,1.0,1.0,,0,pass,6,safety,hard,extra_noise,synthetic_new,high,False
+SYN-287,act,"Duplicate returns, Tallowmere Goods",merchant,merchant,request_authorisation_or_decision,Email,"Email (Tallowmere Goods TG-287 thread from Order reconciliation, for routing to Duplicate returns)",1.0,1.0,1.0,,0,pass,7,merchant_authorisation,none,none,synthetic_new,high,False
+SYN-288,act,Returns trace team,carrier,carrier,request_physical_trace,Email,Depot work queue,1.0,1.0,1.0,,0,pass,7,carrier_trace,none,extra_noise,synthetic_new,high,False
+SYN-289,request_information,Corin Lusk,business_counterparty,business_counterparty,ask_counterparty,Business portal,Brindlewick Studio's verified business-portal account,1.0,1.0,1.0,,0,pass,7,awaiting_counterparty,none,attachment_reference,synthetic_new,high,False
+SYN-290,act,"Collections control, Plover Arc Logistics",carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,7,carrier_ops,none,duplicate_request,synthetic_new,high,False
+SYN-291,act,Dispatch,carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,7,carrier_ops,none,customer_reversal,synthetic_new,high,False
+SYN-292,act,Freight trace team,carrier,carrier,request_physical_trace,Email,Freight portal,1.0,1.0,1.0,,0,pass,7,carrier_trace,none,noisy_thread,synthetic_new,high,False
+SYN-293,act,Order control,merchant,merchant,request_authorisation_or_decision,Email,Warehouse work queue,1.0,1.0,1.0,,0,pass,7,merchant_authorisation,hard,extra_noise,synthetic_new,high,False
+SYN-294,act,Returns trace team,carrier,carrier,request_physical_trace,Email,Depot work queue,1.0,1.0,1.0,,0,pass,7,carrier_trace,none,extra_noise,synthetic_new,high,False
+SYN-295,act,Freight trace team,carrier,carrier,request_physical_trace,Email,Freight portal,1.0,1.0,1.0,,0,pass,7,carrier_trace,none,noisy_thread,synthetic_new,high,False
+SYN-296,act,Returns trace team,carrier,carrier,request_physical_trace,Email,Depot work queue,1.0,1.0,1.0,,0,pass,7,carrier_trace,none,none,synthetic_new,high,False
+SYN-297,act,Returns trace team,carrier,carrier,request_physical_trace,Email,Email,1.0,1.0,1.0,,0,pass,7,carrier_trace,none,none,synthetic_new,high,False
+SYN-298,act,Duplicate returns,merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,7,merchant_authorisation,none,none,synthetic_new,high,False
+SYN-299,act,Dispatch,carrier,carrier,request_operator_action,Email,Dispatch chat,1.0,1.0,1.0,,0,pass,7,carrier_ops,none,customer_reversal,synthetic_new,high,False
+SYN-300,act,Freight trace team,carrier,carrier,request_physical_trace,Email,Freight portal,1.0,1.0,1.0,,0,pass,7,carrier_trace,none,noisy_thread,synthetic_new,high,False
