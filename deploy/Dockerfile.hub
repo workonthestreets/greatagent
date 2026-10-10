@@ -12,6 +12,11 @@ RUN pip install --no-cache-dir -r hub/requirements.txt
 COPY deskagent/ deskagent/
 COPY db/ db/
 COPY hub/ hub/
+# hub/app.py mounts the v2 investigation endpoints (api_v2/routes.py -> deskagent_v1_1 -> preprocess, cases/).
+COPY api_v2/ api_v2/
+COPY deskagent_v1_1/ deskagent_v1_1/
+COPY preprocess/ preprocess/
+COPY cases/ cases/
 
 # The pipeline engine writes each run's audit files under runs/live/ (ephemeral on Railway).
 RUN useradd --create-home --uid 1000 app && mkdir -p /app/runs/live && chown -R app:app /app
