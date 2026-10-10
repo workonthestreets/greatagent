@@ -1,0 +1,19 @@
+{
+ "source": "generated",
+ "generator": "stress_cases/gen_reality.py",
+ "theme": "Merchant warehouse says the return was received; carrier says the return parcel is still in transit; refund team asks the desk to confirm receipt",
+ "traits": [
+  "conflicting",
+  "large_context"
+ ],
+ "planned_decision": "act",
+ "expected_decision": "act",
+ "world": "B",
+ "split": "holdout",
+ "critic_problems": [
+  "Required outcome 6 makes noting that confirmation 'may still be possible before the 17:00 batch' mandatory. That is a nice touch but not essential, and it drifts toward requiring set wording. Moved it to positive behaviours. The core requirement is still to leave the refund decision with Brindle & Oak and commit to reporting back.",
+  "Required outcome 2 lists every trace detail in parentheses (failed 25 Apr attempt, WP-14, 13:00\u201315:00 slot), which could be read as all required. The essential points are: in transit, no POD, out for delivery today. The other details are now examples.",
+  "Required outcome 7 requires a customer update, but an acceptable alternative allows deferring it until later the same day. Reworded the outcome so a same-day update is allowed and the two no longer conflict.",
+  "Everything else checks out against the record. The intake row (KL-R-48213, 1.18 kg, BO-CUSH-0412, handwritten slip) matches the CSV. The Fennick trace (IN_TRANSIT, POD null, LDD WP-14) and the depot notice (13:00\u201315:00, POD within 15 minutes) match the record, and Fennick confirmed the reprint kept the same reference in event 017. The decision type 'act' is correct."
+ ]
+}

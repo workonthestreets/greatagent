@@ -17,8 +17,14 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
-from deskagent.llm import load_dotenv
+import re
+import threading
+
+from deskagent.llm import FatalAPIError, load_dotenv
 from deskagent.loader import discover_cases, load_case
+
+STOP = threading.Event()   # set on a fatal API error (no credit / bad key): remaining cases are skipped, not failed
+MEDIA_ERRORS = ("image", "document", "pdf", "media", "too large", "413", "request_too_large", "base64")
 from deskagent.pipeline import process_case
 from deskagent.report import write_case, write_failure
 
@@ -43,14 +49,40 @@ def code_fingerprint() -> str:
     return h.hexdigest()
 
 
-def run_one(path: Path, out: Path, args) -> dict:
+def default_answer_id(path: Path) -> str:
+    name = path.stem if path.is_file() else path.name
+    return str(int(name)) if name.isdigit() else name
+
+
+def answer_names(cases: list) -> dict:
+    """Answer folder per case. Normally ANSWERS/<case number>; only if two discovered cases would
+    share a folder (e.g. the same number in two track folders) are those prefixed with their track."""
+    ids = [default_answer_id(c) for c in cases]
+    dup = {i for i in ids if ids.count(i) > 1}
+    out = {}
+    for c, i in zip(cases, ids):
+        if i in dup:
+            track = re.sub(r"[^a-z0-9]+", "-", c.parent.name.lower()).strip("-") or "case"
+            out[c] = f"{track}-{i}"
+        else:
+            out[c] = i
+    return out
+
+
+def run_one(path: Path, out: Path, args, answer_name: str = "") -> dict:
     t0 = time.time()
     case = None
     trace: list = []
-    for attempt in (1, 2):
+    media = True
+    if STOP.is_set():
+        return {"case": path.name, "ok": False, "skipped": True, "error": "skipped: Anthropic API unavailable (see earlier error)",
+                "elapsed_s": 0}
+    for attempt in (1, 2, 3):
         trace = []
         try:
-            case = load_case(path, public_cutoff=args.public_cutoff)
+            case = load_case(path, public_cutoff=args.public_cutoff, media=media)
+            if answer_name and answer_name != case.answer_id:
+                case.answer_name = answer_name
             res = process_case(case, model=args.model, review=not args.no_review, trace=trace)
             d = write_case(out, res)
             p = res["plan"]
@@ -58,13 +90,24 @@ def run_one(path: Path, out: Path, args) -> dict:
                     "approved": res["approved"], "summary": p.get("decision_summary"), "status": res["final_status"],
                     "elapsed_s": res["elapsed_s"], "attempt": attempt,
                     "failed_actions": sum(1 for e in res["executed"] if e["status"] == "failed")}
+        except FatalAPIError as exc:
+            STOP.set()
+            print(f"\n!!! FATAL: {exc}\n!!! Stopping: remaining cases are skipped. Fix the API key/credit, then re-run with --resume.\n",
+                  file=sys.stderr, flush=True)
+            return {"case": path.name, "ok": False, "skipped": True, "error": f"FatalAPIError: {exc}", "elapsed_s": round(time.time() - t0, 1)}
         except Exception as exc:  # noqa: BLE001
             err = f"{type(exc).__name__}: {exc}"
             trace.append({"type": "error", "attempt": attempt, "error": err, "traceback": traceback.format_exc()})
             print(f"  ! case {path.name} attempt {attempt} failed: {err}", file=sys.stderr, flush=True)
-            if attempt == 2:
+            has_media = case is not None and any(a.kind in ("image", "pdf") and a.data_b64 for a in case.attachments)
+            # Degrade instead of failing: retry without images / scanned PDFs if they may be the cause (or on the last try).
+            if media and has_media and (any(m in err.lower() for m in MEDIA_ERRORS) or attempt == 2):
+                media = False
+            elif attempt == 2 and not has_media:
+                attempt = 3
+            if attempt == 3:
                 cid = case.case_id if case else path.stem
-                aid = case.answer_id if case else (str(int(path.stem)) if path.stem.isdigit() else path.stem)
+                aid = case.answer_id if case else (answer_name or default_answer_id(path))
                 d = write_failure(out, cid, aid, case.title if case else path.name, err, trace)
                 return {"case": path.name, "answer_dir": str(d), "ok": False, "error": err,
                         "elapsed_s": round(time.time() - t0, 1)}
@@ -92,11 +135,14 @@ def main():
         sys.exit(f"No cases found under {args.cases}")
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
+    names = answer_names(cases)
+    collided = [f"{c.parent.name}/{c.name} -> {names[c]}" for c in cases if names[c] != default_answer_id(c)]
+    if collided:
+        print(f"WARNING: {len(collided)} case(s) share a case number with another discovered case; their answer folders are "
+              f"prefixed with the track: {', '.join(collided)}", flush=True)
     if args.resume:
         def _done(c: Path) -> bool:
-            name = c.stem if c.is_file() else c.name
-            aid = str(int(name)) if name.isdigit() else name
-            return (out / aid / "result.json").exists()
+            return (out / names[c] / "result.json").exists()
         skipped = [c.name for c in cases if _done(c)]
         cases = [c for c in cases if not _done(c)]
         if skipped:
@@ -108,11 +154,11 @@ def main():
 
     results = []
     with ThreadPoolExecutor(max_workers=max(1, args.workers)) as pool:
-        futs = {pool.submit(run_one, c, out, args): c for c in cases}
+        futs = {pool.submit(run_one, c, out, args, names[c]): c for c in cases}
         for f in as_completed(futs):
             r = f.result()
             results.append(r)
-            mark = "ok " if r["ok"] else "ERR"
+            mark = "ok " if r["ok"] else ("SKIP" if r.get("skipped") else "ERR")
             print(f"[{len(results)}/{len(cases)}] {mark} {r['case']}: {r.get('decision', '')} {r.get('summary') or r.get('error', '')}"[:220], flush=True)
 
     batch = {"started_utc": started, "finished_utc": datetime.now(timezone.utc).isoformat(), "git_commit": git_commit(),
@@ -131,7 +177,7 @@ def main():
         except Exception:  # noqa: BLE001
             pass
     batches.append(batch)
-    merged.update({r["case"]: r for r in results})
+    merged.update({r["case"]: r for r in results if not r.get("skipped")})
     results = sorted(merged.values(), key=lambda r: (0, int(r["case"])) if r["case"].isdigit() else (1, r["case"]))
     manifest = {**batch, "started_utc": batches[0]["started_utc"], "batches": batches, "results": results}
     manifest.pop("cases", None)
@@ -141,11 +187,13 @@ def main():
     for r in results:
         if r["ok"]:
             lines.append(f"| [{r['case']}]({Path(r['answer_dir']).name}/ANSWER.md) | {r['decision']} | {'yes' if r['approved'] else 'no → human'} | {str(r['status']).replace('|', '/')[:160]} |")
-        else:
+        elif r.get("answer_dir"):
             lines.append(f"| [{r['case']}]({Path(r['answer_dir']).name}/ANSWER.md) | SYSTEM FAILURE | - | {r['error'][:120]} |")
     (out / "SUMMARY.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     ok = sum(r["ok"] for r in results)
     print(f"Done: {ok}/{len(results)} cases produced a decision. Summary: {out / 'SUMMARY.md'}")
+    if STOP.is_set():
+        sys.exit("Stopped early: the Anthropic API is unavailable (credit/key). Fix it and re-run the same command with --resume.")
 
 
 if __name__ == "__main__":

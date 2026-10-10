@@ -1,0 +1,11 @@
+timestamp_utc,piece_id,event,location,weight_kg,note
+2026-03-13 15:02,DL-223-1,Collected,Tallowmere Warehouse Dock 2,6.8,piece 1 of 2
+2026-03-13 15:02,DL-223-2,Collected,Tallowmere Warehouse Dock 2,1.1,piece 2 of 2
+2026-03-13 21:40,DL-223-1,Arrived hub,Brenmoor depot,6.8,
+2026-03-13 21:41,DL-223-2,Arrived hub,Brenmoor depot,1.1,
+2026-03-14 04:10,DL-223-1,Sorted,Brenmoor depot,,to Halverstone
+2026-03-14 04:12,DL-223-2,Exception,Brenmoor depot,,Label damaged - held for relabel
+2026-03-14 04:12,DL-223-2,Exception,Brenmoor depot,,Label damaged - held for relabel (duplicate scan)
+2026-03-14 18:30,DL-223-1,Arrived,Halverstone depot,,
+2026-03-15 07:05,DL-223-1,Out for delivery,Halverstone route HV-4,,
+2026-03-15 11:48,DL-223-1,Delivered,4B Cinder Row,,Signed: P MARROW; piece 1 of 2

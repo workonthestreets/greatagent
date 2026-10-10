@@ -44,11 +44,17 @@ def _luhn_ok(s: str) -> bool:
     return total % 10 == 0
 
 
-def lint_text(text: str) -> List[dict]:
+def record_numbers(text: str) -> set:
+    """Long digit strings that already appear in the case record (tracking numbers, references).
+    Repeating these is not a card-number leak, so they are exempt from the card BLOCK."""
+    return {re.sub(r"\D", "", m.group(0)) for m in BLOCK_RULES[0][1].finditer(text or "")}
+
+
+def lint_text(text: str, allow_numbers: frozenset = frozenset()) -> List[dict]:
     findings = []
     for name, rx in BLOCK_RULES:
         for m in rx.finditer(text or ""):
-            if name == "payment_card_number" and not _luhn_ok(m.group(0)):
+            if name == "payment_card_number" and (not _luhn_ok(m.group(0)) or re.sub(r"\D", "", m.group(0)) in allow_numbers):
                 continue
             findings.append({"level": "BLOCK", "rule": name, "match": m.group(0)[:80]})
     for name, rx in WARN_RULES:
@@ -62,12 +68,12 @@ def lint_text(text: str) -> List[dict]:
     return findings
 
 
-def lint_plan(plan: dict, known_channels: List[str]) -> List[dict]:
+def lint_plan(plan: dict, known_channels: List[str], allow_numbers: frozenset = frozenset()) -> List[dict]:
     out = []
     known = {c.lower() for c in known_channels}
     for i, a in enumerate(plan.get("actions") or []):
         if a.get("tool") == "send_message":
-            for f in lint_text((a.get("subject") or "") + "\n" + (a.get("body") or "")):
+            for f in lint_text((a.get("subject") or "") + "\n" + (a.get("body") or ""), allow_numbers):
                 out.append({"action_index": i, **f})
             ch = (a.get("channel") or "").strip()
             if not ch:

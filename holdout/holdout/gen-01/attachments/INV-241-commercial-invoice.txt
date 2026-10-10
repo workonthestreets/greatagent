@@ -1,0 +1,13 @@
+COMMERCIAL INVOICE  INV-241
+Exporter: Greywick Homewares, Larkfield warehouse
+Importer of record: Quenby Lane Interiors Ltd (QLI-88310), Saltreach
+Order: QL-7730    Shipment: DL-241    Date: 2026-03-12
+Incoterm: DAP Saltreach
+
+Line  SKU        Description                              HS       Qty  Unit   Total
+1     GW-CN-03   Stoneware candle jar, 300 ml             6912.00  48   3.20   153.60
+2     GW-TR-07   Woven seagrass tray, medium              4602.19  24   5.75   138.00
+3     GW-WM-12   Ceramic tealight wax warmer, sage        6913.90  36   6.40   230.40
+                                                                 TOTAL     522.00
+Country of origin: as per lines (all Larkfield region)
+Declared by: Greywick Homewares Export documentation

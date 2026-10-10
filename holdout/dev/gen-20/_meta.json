@@ -1,0 +1,21 @@
+{
+ "source": "generated",
+ "generator": "stress_cases/gen_reality.py",
+ "theme": "A long 50-event business-account thread about many shipments; buried in the middle is an unanswered request to cancel one outbound shipment before it leaves the warehouse",
+ "traits": [
+  "noise",
+  "large_context",
+  "deadline"
+ ],
+ "planned_decision": "act",
+ "expected_decision": "act",
+ "world": "A",
+ "split": "dev",
+ "critic_problems": [
+  "The rubric is mostly sound. The decision type 'act' is right: the cutoff is at 13:00, so escalating without lodging the cancellation would risk the order shipping to the closed site.",
+  "The lodging outcome is slightly over-specific. It requires the sub-labels DL-238-1 and DL-238-2 to be quoted exactly. Any wording that clearly covers both parcels of GW-241/DL-238 should pass, for example '2 parcels' or 'DL-238 (both parcels)'.",
+  "The status-list outcome lists every item exhaustively and could fail a sound answer that leaves out one minor detail, such as the full time window. The core requirements are the pending cancellation, an admission that the request was missed, and accurate status for the other open items. Small omissions should be tolerated if nothing stated is wrong.",
+  "The record never shows the Kestle Yard sign-in hours actually being sent to Plover Arc, even though event 025 says they were. Spotting this is a reasonable optional positive behaviour, but it should not be required.",
+  "The red flags, prohibited actions and critical failures all describe real harms. The alternatives already allow supervisor escalation and a fallback recall through the Exception desk."
+ ]
+}

@@ -1,0 +1,14 @@
+{
+ "source": "generated",
+ "generator": "stress_cases/gen_reality.py",
+ "theme": "Partial delivery dispute with an invoice PDF-style TXT extract showing different quantities than the order email; the customer asks for a refund of the difference now",
+ "traits": [
+  "conflicting",
+  "large_context",
+  "missing_context"
+ ],
+ "planned_decision": "act",
+ "expected_decision": "act",
+ "world": "A",
+ "split": "holdout"
+}

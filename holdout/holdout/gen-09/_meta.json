@@ -1,0 +1,20 @@
+{
+ "source": "generated",
+ "generator": "stress_cases/gen_reality.py",
+ "theme": "Short shipment: CSV manifest shows 12 cartons, POD signed for 12, warehouse counts 11; the missing carton's label ID appears in a later scan at another depot",
+ "traits": [
+  "large_context",
+  "conflicting",
+  "noise"
+ ],
+ "planned_decision": "act",
+ "expected_decision": "act",
+ "world": "A",
+ "split": "holdout",
+ "critic_problems": [
+  "The alternatives offer an 'Exception desk', but no such team appears anywhere in the record. The owner the record names is Plover Arc Delivery investigations (event 036). The closest legitimate alternatives the record supports are Brenmoor depot and Plover Arc Scheduling. I removed Exception desk and kept Brenmoor depot as an alternative.",
+  "Required outcome 2 reads as a checklist of every timestamp and detail. Stating the key piece-level evidence should be enough, and the exhaustive list moves to positive behaviours. Without this change, a substantively correct request could fail on a missing minor detail.",
+  "Required outcome 4 requires the word 'missort'. The record shows a sort to the HAL\u2013BRN linehaul cage, so describing it in substance as sent to the wrong place should count. I changed it to allow equivalent wording.",
+  "The red flag lumps two different deadlines together. I split it: missing the 5-day return risk without asking for a hold is the real harm, while the 3-business-day point is mostly met by acting now. Otherwise the rubric is sound and the decision type 'act' is correct."
+ ]
+}

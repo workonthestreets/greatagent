@@ -1,0 +1,8 @@
+PROOF OF DELIVERY EXTRACT — Plover Arc Logistics
+Consignment: DL-219   Order ref: TG-241
+Delivered: 2026-03-17 10:42 UTC   Route: HV-14   Driver: T. Brack
+Address: Unit 4, Fennick Row Trade Park
+Signatory: J. Marrow
+Pieces recorded: 12   Entry method: MANUAL COUNT ENTRY (handset scan incomplete: 11 piece scans)
+Signatory remark: STC
+Condition: no damage noted

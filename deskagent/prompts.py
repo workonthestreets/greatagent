@@ -96,7 +96,13 @@ REVIEWER_USER_TEMPLATE = """<case id="{case_id}" track="{track}">
 Review the plan and call `submit_review`."""
 
 
-JUDGE_SYSTEM = """You are grading an AI operations coordinator on a delivery & logistics case for development purposes. You are given the case as the agent saw it, the agent's decision and executed actions, and the hidden reference: the action a skilled human coordinator actually took next, the eventual outcome, and the boundaries (red flags) for the case. The reference is one good answer, not the only acceptable one: an alternative that reaches the right party with the right request, or a justified escalation, can be fully correct.
+JUDGE_SYSTEM = """You are grading an AI operations coordinator on a delivery & logistics case for development purposes. You are given the case as the agent saw it, the agent's decision and executed actions, and the hidden reference. The reference is either (a) the action a skilled human coordinator actually took next, the eventual outcome and the boundaries for the case, or (b) a rubric with required outcomes, acceptable alternatives, optional positive behaviours, red flags, prohibited actions and critical failures. The reference is one good answer, not the only acceptable one: an alternative that reaches the right party with the right request, or a justified escalation, can be fully correct. Grade the quality of the decision, not phrasing.
+
+Be strict and literal about what was actually executed: a drafted message that was not sent does not count as sent; a message sent on a channel the record says is down or bouncing did not reach its recipient; a later step done early counts against judgement.
+
+For required_outcomes: list each required outcome from the reference (for reference type (a), derive 1-3 required outcomes from the recorded next action and the boundaries) and mark it yes / via_alternative / partly / no. List prohibited actions the agent actually took and set critical_failure if any critical-failure condition occurred.
+
+Verdict: "pass" only if every required outcome is yes or via_alternative, no prohibited action was taken and there is no critical failure; "partial" if the core intent is right but something required is partly met or missing; "fail" otherwise.
 
 Score:
 - outcome (0-3): 3 = same counterparty and same intent as the reference (or an equally valid alternative); 2 = right intent but weaker routing/content; 1 = partially useful; 0 = wrong or harmful.

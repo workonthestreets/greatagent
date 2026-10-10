@@ -1,0 +1,63 @@
+{
+  "shipment_ref": "SHP-40917",
+  "integration": "Kestrel TMS -> Brindlewick Booking API v3",
+  "attempts": [
+    {
+      "attempt": 1,
+      "trigger": "manual (Odile Marrow)",
+      "timestamp": "2026-04-14T10:02:11Z",
+      "request": {
+        "method": "POST",
+        "endpoint": "/v3/collections",
+        "headers": { "Idempotency-Key": "kl-SHP-40917-0414-a1" },
+        "body": {
+          "account": "KL-ACC-1189",
+          "shipper_ref": "SHP-40917",
+          "customer_ref": "ORD-55130",
+          "collection_date": "2026-04-15",
+          "ready_time": "10:00",
+          "close_time": "16:00",
+          "address": { "line1": "Unit 7, Calloway Yard", "town": "Pressingham", "postcode": "PR4 9LT" },
+          "access_point": "Dock door A",
+          "access_point_source": "account_profile_default",
+          "pieces": 6,
+          "total_weight_kg": 118.5,
+          "heavy_item_flag": false,
+          "service": "NEXT_DAY_FREIGHT"
+        }
+      },
+      "response": {
+        "http_status": 503,
+        "headers": { "Retry-After": "900", "X-Correlation-ID": "bwf-7c21e0a4" },
+        "body": {
+          "error": "service_unavailable",
+          "message": "Booking engine temporarily unavailable. The request may or may not have been processed. Check booking status before resubmitting.",
+          "collection_id": null
+        }
+      }
+    },
+    {
+      "attempt": 2,
+      "trigger": "automatic retry (TMS retry policy)",
+      "timestamp": "2026-04-14T11:15:04Z",
+      "request": {
+        "method": "POST",
+        "endpoint": "/v3/collections",
+        "headers": { "Idempotency-Key": "kl-SHP-40917-0414-a2" },
+        "body": "(identical to attempt 1)"
+      },
+      "response": {
+        "http_status": 503,
+        "headers": { "Retry-After": "900", "X-Correlation-ID": "bwf-91d3f6b2" },
+        "body": {
+          "error": "service_unavailable",
+          "message": "Booking engine temporarily unavailable. The request may or may not have been processed. Check booking status before resubmitting.",
+          "collection_id": null
+        }
+      }
+    }
+  ],
+  "tms_booking_status": "Submitted",
+  "tms_note": "'Submitted' is set when the outbound call is sent. It does not mean the carrier accepted the booking.",
+  "retry_policy": { "max_attempts": 2, "remaining": 0, "new_idempotency_key_per_attempt": true }
+}
