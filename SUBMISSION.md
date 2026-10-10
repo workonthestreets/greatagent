@@ -7,8 +7,8 @@
 - **Commit at 16:30 code freeze:** TODO
 - **Reality Test results:** `ANSWERS/` (one folder per case: `ANSWER.md`, `REASONING.md`, `trace.json`; run summary in `ANSWERS/SUMMARY.md`, `ANSWERS/run_manifest.json`)
 - **Demo video:** `demo/demo.mp4`
-- **LinkedIn post:** TODO
-- **X post:** TODO
+- **LinkedIn post:** https://www.linkedin.com/feed/update/urn:li:activity:7514700946199863297/
+- **X post:** https://x.com/KashifNazirGB/status/2108935273866313921
 - **Voice line (live):** https://voice-production-ef21.up.railway.app (ElevenLabs agent "Delivery desk - DEMO"; see `voice/README.md`)
 
 ## Agent update: the wait test (10 Oct 2026)
