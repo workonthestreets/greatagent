@@ -1,0 +1,21 @@
+{
+ "source": "generated",
+ "generator": "stress_cases/gen_reality.py",
+ "theme": "Pallet delivery: dock appointment booking request rejected by the consignee's portal (slot full); driver already dispatched for tomorrow",
+ "traits": [
+  "failed_action",
+  "deadline",
+  "noise"
+ ],
+ "planned_decision": "act",
+ "expected_decision": "act",
+ "world": "B",
+ "split": "dev",
+ "critic_problems": [
+  "Required outcome 1 makes the Inbound Exceptions request mandatory, but acceptable alternative 3 allows skipping it and re-planning straight to Thursday. A response the rubric calls acceptable would fail a required outcome. Outcome 1 needs to apply only when the desk pursues Wednesday.",
+  "Required outcome 1 also demands 1,197 kg and the non-stackable flag. The Yardline exception note only requires the rejected request ID, PO, unit count and carrier. Weight and stackability should be optional extras, and the optional behaviours already list them.",
+  "Required outcome 4 requires telling Tamsin that an exception was requested. That conflicts with alternative 3, so the shipper update should report whichever route was actually taken.",
+  "Alternative 4 (keep the Wednesday plan provisionally until 17:00) leaves the Thursday fallback unbooked and gives dispatch no default instruction. The reply to dispatch must include a firm default: re-plan to Thursday unless a valid Wednesday reference is sent before 17:00. Otherwise the free re-plan window can be lost.",
+  "The 08:00\u201309:00 D2 Thursday slot comes from a 10:41 snapshot and may already be gone. Any Thursday 2026-04-16 portal slot arriving before 12:00 should be accepted. If none is left, the desk should check with Tamsin rather than book a later slot."
+ ]
+}

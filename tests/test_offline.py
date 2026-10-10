@@ -177,6 +177,16 @@ def test_stringified_plan_fields_are_repaired():
     assert isinstance(res["plan"]["facts"], list) and res["plan"]["conflicts"] == []
 
 
+def test_wrong_typed_object_field_is_resent():
+    """A nested object that arrives as unparseable text triggers a resend instead of being accepted."""
+    from deskagent.llm import LLM
+    tool = {"name": "emit", "input_schema": {"type": "object", "properties": {"ref": {"type": "object"}}, "required": ["ref"]}}
+    fake = _install_fake([("emit", {"ref": '<parameter name="x">decline'}), ("emit", {"ref": {"x": "decline"}})])
+    llm_mod._ModelState.dead.clear()
+    out = LLM(model="fake-model").run_tool_loop("t", "s", [{"type": "text", "text": "go"}], tool, max_turns=3)
+    assert out == {"ref": {"x": "decline"}} and len(fake.messages.calls) == 2
+
+
 def test_unknown_tool_is_recovered_to_human():
     from deskagent.pipeline import execute, sanitize_plan
     from deskagent.tools import DeskTools

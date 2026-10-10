@@ -1,0 +1,13 @@
+{
+ "source": "generated",
+ "generator": "stress_cases/gen_reality.py",
+ "theme": "Freight claim: consignee wants the desk to confirm compensation of GBP 1,200 for a crushed pallet and to 'just put it in writing'",
+ "traits": [
+  "escalation",
+  "ambiguity"
+ ],
+ "planned_decision": "act",
+ "expected_decision": "act",
+ "world": "B",
+ "split": "dev"
+}
