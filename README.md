@@ -11,11 +11,15 @@ _Great Agent from Gingerbread King · Real-World Agents Hackathon, London, 10 Oc
 ![Claude Opus 5.5](https://img.shields.io/badge/Claude-Opus_5.5-D97757?logo=anthropic&logoColor=white)
 ![Licence: Apache 2.0](https://img.shields.io/badge/licence-Apache_2.0-4c9a2a)
 
-[**Quickstart**](#run) · [**How it works**](#architecture) · [**Worked example**](#example) · [**Results**](#results) · [**Demo video (60 s)**](demo/demo.mp4)
+[**Quickstart**](#run) · [**How it works**](#architecture) · [**Worked example**](#example) · [**Results**](#results) · [**Demo video (60 s)**](demo/demo.mp4) · [**Live demo**](https://v2-production-317a.up.railway.app/)
 
 </div>
 
----
+<p align="center">
+  <a href="demo/demo.mp4"><img src="demo/demo-preview.gif" width="720" alt="Silent preview of the 60-second demo video"></a>
+  <br>
+  <sub>▶ Silent preview of the 60-second demo. <a href="demo/demo.mp4"><b>Watch the full video with sound</b></a> · <a href="https://v2-production-317a.up.railway.app/"><b>Try the live demo</b></a></sub>
+</p>
 
 > **In 30 seconds.** A delivery desk sits between customers and the parties who actually decide things: dispatch, depots, carriers, merchants, billing, customs and safety leads. greatagent reads a messy case (emails, portal messages, call notes, depot exceptions, PDFs and photos), works out who controls each decision, and takes **one safe next step**. It drafts the exact messages, has an **independent Claude reviewer** check the plan, sends the approved actions through desk tools and leaves an audit trail a person can check. When no safe action exists, a human gets the case with the drafts attached, unsent.
 
@@ -25,11 +29,20 @@ _Great Agent from Gingerbread King · Real-World Agents Hackathon, London, 10 Oc
 
 <sub>Development results from <code>eval.py</code>. The cases, rubrics and judge are all written by Claude models, so read these as strong development evidence, not a guarantee. Full tables in <a href="#results">Results</a>.</sub>
 
+<details>
+<summary><b>📸 See the desk app</b></summary>
+
+<br>
+
 <p align="center">
   <img src="docs/ui-shots/2026-10-10-features/ops-1440.png" width="720" alt="The coordinator desk: drafts waiting for approval as a swipe deck, above the case list and the agent's decision panel">
   <br>
   <sub>The live desk (preview rendered from mock data). Drafts wait in a swipe deck until a coordinator approves them. The decision panel says what the agent is doing, what it is deliberately not doing, and what happens next.</sub>
 </p>
+
+</details>
+
+> 💡 Every section below opens with a one-line answer. Click any ▸ line to unfold the detail.
 
 ### Contents
 
@@ -50,6 +63,11 @@ Also: [📁 Repository layout](#layout) · [🗃 Data and database](#data)
 
 **A command-line agent (`run.py`) that works through a folder of delivery cases in parallel. For each case it decides the right next step, carries it out through desk tools and explains itself.**
 
+<details>
+<summary><b>What it writes for every case, and the tools around it</b></summary>
+
+<br>
+
 A case is a customer request plus the messy thread behind it: emails, portal messages, call notes, depot exceptions and attachments. For every case the agent writes:
 
 | File | What's in it |
@@ -67,7 +85,16 @@ Around the agent:
 - **`viewer.py`** renders any run as a single HTML page for review.
 - **A live desk** (web app, voice line and database) runs the same agent on cases as they arrive, with a person approving every outbound message. See [The live desk](#live-desk).
 
+</details>
+
 ### <a name="example"></a>🔎 One case, start to finish
+
+**A fake "pre-approved refund to new bank details" email arrives. The agent refuses to act on it, escalates it as suspected fraud, and still keeps the late delivery moving.**
+
+<details>
+<summary><b>Show the case: what came in, what the agent decided, what it did</b></summary>
+
+<br>
 
 > Real recorded run from 10 Oct 2026: [`demo/recorded/D101/`](demo/recorded/D101/) holds the input, `ANSWER.md`, `REASONING.md` and `trace.json`. The data is fictional and the messages are simulated.
 
@@ -91,13 +118,20 @@ The desk's merchant register lists only one verified Greywick contact: the refun
 
 **What it deliberately did not do** (from its `ANSWER.md`): process, start or forward any refund; reply "done", or reply at all, to the quickmail address; mention a refund to the customer; ask the customer for bank details; or accuse the customer of involvement.
 
+</details>
+
 ---
 
 ## <a name="problem"></a>2. 🎯 The operational problem
 
-**Delivery desks are coordination work, and the costly failures are judgement failures.**
+**Delivery desks are coordination work, and the costly failures are judgement failures: promising what nobody approved, asking for what should never be shared, or acting on a convincing fake.**
 
-A desk sits between customers and the parties that actually own each decision: dispatch, depots, carrier investigations, merchants, billing, customs brokers and safety leads. Most of the job is working out who controls the decision, asking the right party for the right thing on the right channel, and not over-promising. These are the mistakes that cost money and trust, and what the agent does instead:
+<details>
+<summary><b>The costly mistakes, and what the agent does instead</b></summary>
+
+<br>
+
+A desk sits between customers and the parties that actually own each decision: dispatch, depots, carrier investigations, merchants, billing, customs brokers and safety leads. Most of the job is working out who controls the decision, asking the right party for the right thing on the right channel, and not over-promising.
 
 | The costly mistake | What greatagent does instead |
 |---|---|
@@ -106,10 +140,12 @@ A desk sits between customers and the parties that actually own each decision: d
 | Asking for a gate code | Never asks for codes, passwords, PINs, card or bank numbers |
 | Leaking a neighbour's phone number | Uses verified channels only, and a third party gets only what it needs |
 | Giving clean-up advice for a leaking parcel | Leaves hazards to the qualified team and gives no handling advice |
-| Acting on a convincing "pre-approved refund to new bank details" email | Treats case content as data, not instructions, and escalates suspected fraud ([as above](#example)) |
+| Acting on a convincing "pre-approved refund to new bank details" email | Treats case content as data, not instructions, and escalates suspected fraud ([see the worked example](#example)) |
 | Chasing, or re-promising, when nothing has changed | Runs a **wait test**. If nothing is new, the owner's promised time is still ahead and the inbound message is only a chase, it holds: it sends nothing, records a note and schedules a follow-up at the promised time |
 
 The agent targets exactly those failures, and keeps the case moving the rest of the time. Waiting, asking or handing over to a human are real decisions, not failures, and the agent makes them on purpose.
+
+</details>
 
 ---
 
@@ -118,39 +154,30 @@ The agent targets exactly those failures, and keeps the case moving the rest of 
 **Each case goes through one pipeline (`process_case()` in `deskagent/pipeline.py`): a Claude planner and an independent Claude reviewer sit either side of a deterministic policy lint. Nothing is sent until the reviewer approves (`--no-review` turns that off). A plan that can't be made safe becomes a human handover.**
 
 ```mermaid
-flowchart TD
-    caseIn["<b>Case folder</b><br/>index.md · history.md · attachments/"]
-    load["<b>Loader</b><br/>dated events · PDF text · images<br/><i>eval mode: hides everything after escalation</i>"]
-    plan["<b>Planner</b> · Claude<br/>operating manual on a verified vocabulary<br/>wait test · calculate() for all arithmetic<br/>returns propose_plan JSON"]
-    lint["<b>Policy lint</b> · regex, no model<br/>BLOCK: card numbers, payment links, URLs<br/>WARN: credential asks, overclaims, promises"]
-    review["<b>Reviewer</b> · Claude, independent call<br/>10 checks<br/>approve / revise / escalate_instead"]
-    handover["<b>Human handover</b><br/>one escalate_to_human ticket<br/>drafted messages attached, not sent"]
-    exec["<b>Executor</b><br/>runs actions in order<br/>up to 3 attempts on transient failures<br/>failed send becomes a human ticket"]
-    tools["<b>Desk tools</b> · simulated<br/>send_message · escalate_to_human<br/>schedule_follow_up · record_case_note<br/>re-checks BLOCK rules at the boundary"]
-    report["<b>Report writer</b>"]
-    answers["<b>ANSWERS/ (one folder per case)</b><br/>ANSWER.md · REASONING.md<br/>trace.json · result.json"]
-
-    caseIn -->|files| load
-    load -->|Case| plan
-    plan -->|plan| lint
-    lint -->|plan + findings| review
-    review -->|"revise: issues + exact fixes (max 2 rounds)"| plan
-    review ==>|approve| exec
-    review -.->|"no safe action, or still flagged after 2 revisions"| handover
-    handover -.->|handover plan| exec
-    exec <-->|"calls / IDs or ToolError"| tools
-    exec -->|result| report
-    report -->|writes| answers
+flowchart LR
+    caseIn["<b>Case</b><br/><i>emails · notes · PDFs</i>"] --> plan["<b>Planner</b><br/><i>Claude</i>"]
+    plan --> lint["<b>Policy lint</b><br/><i>regex, no model</i>"]
+    lint --> review["<b>Reviewer</b><br/><i>Claude, independent</i>"]
+    review ==>|approve| exec["<b>Executor</b><br/><i>desk tools</i>"]
+    review -.->|"revise, max 2"| plan
+    review -.->|"not safe"| handover["<b>Human</b><br/><i>handover</i>"]
+    exec --> answers["<b>ANSWERS/</b><br/><i>answer · reasoning · trace</i>"]
+    handover -.-> answers
 
     classDef claude stroke:#2453b8,stroke-width:2px
-    classDef human stroke:#a65c00,stroke-width:2px,stroke-dasharray:5 4
+    classDef person stroke:#a65c00,stroke-width:2px,stroke-dasharray:5 4
     class plan,review claude
-    class handover human
+    class handover person
 ```
+
+<sub>Blue: Claude calls. Dashed orange: the human handover, where drafted messages are attached but not sent. The toggles below have the detail behind each box.</sub>
 
 Every Claude call (planner, reviewer and the dev judge) goes through `deskagent/llm.py`, which handles model fallback, retries, prompt caching and the call trace. `run.py` runs cases in parallel and writes `ANSWERS/`. `eval.py` runs the same `process_case()` with the cutoff loader and adds the judge.
 
-### 🛡️ Four layers between a draft and the outside world
+<details>
+<summary><b>🛡️ Four safety layers between a draft and the outside world</b></summary>
+
+<br>
 
 | | Layer | Kind | What it stops | If it trips |
 |:-:|---|---|---|---|
@@ -159,7 +186,12 @@ Every Claude call (planner, reviewer and the dev judge) goes through `deskagent/
 | 3 | Reviewer | Independent Claude call | Critical or major issues found against its ten checks | Revise (at most twice), then human handover |
 | 4 | Tool boundary | Code inside `send_message` | The block rules, checked again | Send refused; a human gets a ticket with the draft |
 
-### 🧩 Components
+</details>
+
+<details>
+<summary><b>🧩 Components, where they live, and how each fails safely</b></summary>
+
+<br>
 
 | Component | Code | Job |
 |---|---|---|
@@ -167,14 +199,9 @@ Every Claude call (planner, reviewer and the dev judge) goes through `deskagent/
 | Planner | `deskagent/pipeline.py`, `deskagent/prompts.py`, `deskagent/catalogue.py` | A Claude tool-use loop with the operating manual; returns a `propose_plan` JSON plan; does arithmetic through a decimal `calculate` tool |
 | Policy lint | `deskagent/policy.py` | Deterministic checks on every drafted message |
 | Reviewer | `review_plan()` in `deskagent/pipeline.py` | Ten checks, then approve, revise with exact fixes, or escalate instead |
-| Executor and tools | `deskagent/pipeline.py`, `deskagent/tools.py` | Runs the approved actions against simulated desk APIs, re-checks the block rules and retries transient failures |
+| Executor and tools | `deskagent/pipeline.py`, `deskagent/tools.py` | Runs the approved actions (`send_message`, `escalate_to_human`, `schedule_follow_up`, `record_case_note`) against simulated desk APIs, re-checks the block rules and retries transient failures |
 | Report writer | `deskagent/report.py` | Writes `ANSWER.md` and `REASONING.md` from the plan, the reviews and the execution log |
 | Claude client | `deskagent/llm.py` | Model fallback, retries, prompt caching, schema repair and the call trace |
-
-<details>
-<summary><b>Component details</b>: what each part does, and how it fails safely</summary>
-
-<br>
 
 - **Loader** (`deskagent/loader.py`) reads any case folder. It parses dated events, extracts PDF text (native PDF input when there is no text layer), passes images to vision, and reads CSV/TXT/JSON and Word/Excel/PowerPoint files (text pulled out with the standard library).
   - It tolerates event headings with or without anchors, en or em dashes, and newest-first threads. The current time is taken from the latest event.
@@ -206,21 +233,31 @@ Every Claude call (planner, reviewer and the dev judge) goes through `deskagent/
 
 ### <a name="live-desk"></a>📞 The live desk: the same agent, in real time
 
-The CLI decides one moment in a case. The live desk (`hub/`, `db/`, `web/`, `voice/`) keeps the case open: every new call, portal message or party action wakes the agent and it re-plans.
+**The CLI decides one moment in a case. The live desk keeps the case open: every new call, portal message or party action wakes the agent, and a coordinator approves each message before it goes out.**
+
+<details>
+<summary><b>How the live desk works: hub, web app, voice line and engines</b></summary>
+
+<br>
+
+The live desk lives in `hub/`, `db/`, `web/` and `voice/`.
 
 ```mermaid
 flowchart LR
-    voice["<b>ElevenLabs voice agent</b><br/>phone calls"] -->|"/webhooks"| hub
-    web["<b>Web app</b><br/>staff Desk · one portal per role"] -->|"/api"| hub
-    hub["<b>hub</b> · FastAPI<br/>wakes the agent on each new event"] --> db[("<b>Postgres / Supabase</b><br/>row-level security per role")]
-    hub -->|"DESK_ENGINE=pipeline"| pipe["<b>deskagent</b><br/>planner → lint → reviewer"]
-    hub -->|"DESK_ENGINE=managed"| managed["<b>Claude Managed Agents</b><br/>session calling the hub's /mcp tools"]
-    pipe -.->|drafts| approvals["<b>Approvals deck</b> on the Desk<br/>a coordinator swipes to send"]
+    voice["<b>Voice</b><br/><i>ElevenLabs</i>"] -->|webhooks| hub
+    web["<b>Web app</b><br/><i>Desk · portals</i>"] -->|api| hub
+    hub["<b>Hub</b><br/><i>FastAPI</i>"] --> db[("<b>Postgres</b><br/><i>Supabase</i>")]
+    hub -->|pipeline| pipe["<b>deskagent</b><br/><i>plan · lint · review</i>"]
+    hub -->|managed| managed["<b>Managed Agents</b><br/><i>Claude</i>"]
+    pipe -.->|drafts| approvals["<b>Approvals</b><br/><i>coordinator swipes</i>"]
     managed -.->|drafts| approvals
 ```
 
+The hub wakes the agent on each new event. `DESK_ENGINE` picks the engine: `pipeline` (this repo's planner → lint → reviewer) or `managed` (a Claude Managed Agents session calling the hub's `/mcp` tools). Row-level security gives each role its own view of the database.
+
 - **Two approvals, two different things.** The reviewer approves the *plan* inside the pipeline. A coordinator approves each *message* on the staff Desk: swipe right to send, swipe left to reject, with a reason that goes back to the agent. (`AGENT_AUTO_APPROVE=1` skips the second approval.)
 - **Agents page.** `/agents` lists every case with its latest run, run count, spend and state; `/agents/<case>` shows the agent's full live log.
+- **Live demo.** [v2-production-317a.up.railway.app](https://v2-production-317a.up.railway.app/) runs the v2 web app ("Rivet Delivery Desk v2", no login): browse cases and see each decision and its trace. It runs on `api_v2/` with the experimental single-call agent `deskagent_v1_1/`, and the hub now serves the same endpoints under `/api/v2`.
 - **One portal per role.** Customer, driver, depot and merchant each get their own view with real actions through the hub. Drivers and depots update shipment status; merchants approve a replacement or a refund, or decline. Each action posts to the case and wakes the agent.
 - **The voice agent reads back only messages addressed to the caller**, and only after a coordinator has approved them. Until then it says honestly that nothing is confirmed yet.
 - **Rewards for staff.** Each decision earns coins and can earn a medal, and coins buy fictional merch in a shop on the Rewards page. They are never cash (`hub/rewards.py`).
@@ -231,9 +268,16 @@ There is also a standalone **voice line** (`voice/`, hosted on Railway at `https
 
 The demo script, both screens and every fallback are in [`DEMO.md`](DEMO.md). The hub API is described in [`hub/README.md`](hub/README.md).
 
+</details>
+
 ### <a name="results"></a>📊 How well it works
 
 **No critical failures and no prohibited actions on any graded set. The misses that remain are judgement nuances, not safety issues.**
+
+<details>
+<summary><b>Results by test set</b> (public, hold-out, red-team, follow-up, stress and the latest prompt)</summary>
+
+<br>
 
 Results come from `eval.py` unless marked otherwise; reports and per-case scores are in [`evals/`](evals/). The judge reads each case's `ANSWER.md`, as the official judges do, and grades it against the official framework: required outcomes, acceptable alternatives, positive behaviours, red flags, prohibited actions and critical failures. A **strict pass** means every required outcome was met, nothing prohibited was done and there was no critical failure.
 
@@ -248,6 +292,8 @@ Results come from `eval.py` unless marked otherwise; reports and per-case scores
 | Latest planner prompt (v2): 15 hard cases | 15 | **12 pass · 3 partial · 0 fail**, mean 8.67 (strict 2) |
 
 The first five rows ran on earlier code, before the wait test and the planner prompt v2 rewrite; the last two ran on the current code. The inputs for the hard 15 (`hard_cases/`) are not committed yet, so that row can't be reproduced from a clone.
+
+</details>
 
 <details>
 <summary><b>All development results</b>: what each set contains, earlier runs, failure injection and experiments</summary>
@@ -298,8 +344,6 @@ The judge is itself a Claude model, and the reference is one acceptable answer a
 
 **The agent needs only Python 3.9+ and an Anthropic API key. The live desk, the voice line and the full test suite need Python 3.12+.**
 
-### Quickstart
-
 ```bash
 git clone https://github.com/workonthestreets/greatagent.git && cd greatagent
 pip install -r requirements.txt
@@ -312,7 +356,10 @@ python viewer.py runs/try             # open runs/try/index.html
 
 A case takes about 30–60 seconds. Open `runs/try/101/ANSWER.md` to see the decision, the actions and what was deliberately not done.
 
-### Run the Reality Test, or any new cases
+<details>
+<summary><b>Run the Reality Test, or any new cases</b></summary>
+
+<br>
 
 ```bash
 ./reality.sh "/path/to/RealityTest/Delivery & Logistics"          # preflight → run → retry pass → ANSWERS/index.html
@@ -324,7 +371,12 @@ Everything in the cases folder is visible to the agent. The run is resumable: ru
 
 The cases folder can be a single case folder, a folder of case folders, a folder of track folders, or a flat folder of `.md`/`.txt`/`.json` case files. Answer folders are numbered by case number with leading zeros stripped (`001` → `ANSWERS/1/`).
 
-### Evaluate and test
+</details>
+
+<details>
+<summary><b>Evaluate and test</b></summary>
+
+<br>
 
 ```bash
 python eval.py "/path/to/HackatonPublicCases/Delivery & Logistics" --out runs/public   # hidden future + Claude judge
@@ -333,7 +385,12 @@ python tests/test_offline.py          # offline, no API key
 python -m pytest tests                # wider suite (triage, voice, hub, rewards): Python 3.12+ and hub/requirements.txt
 ```
 
-### `run.py` options
+</details>
+
+<details>
+<summary><b>All <code>run.py</code> and <code>eval.py</code> options</b></summary>
+
+<br>
 
 | Option | Default | What it does |
 |---|---|---|
@@ -347,12 +404,16 @@ python -m pytest tests                # wider suite (triage, voice, hub, rewards
 
 `eval.py` takes the same `--out`, `--workers`, `--model`, `--only` and `--no-review`, plus `--judge-model` (or `DESK_JUDGE_MODEL`) and `--rejudge`, which re-grades the `result.json` files already in `--out`.
 
-### Configuration
+</details>
+
+<details>
+<summary><b>Configuration and environment variables</b></summary>
+
+<br>
 
 Copy `.env.example` to `.env` and put your key there. Never commit `.env`.
 
-> [!IMPORTANT]
-> Set the `DESK_*` tuning variables in your shell (for example `DESK_WORKERS=8 python run.py ...`) or use the flags. `run.py` and `eval.py` read some of them before they load `.env`, so a value set only in `.env` can be ignored.
+**Important:** set the `DESK_*` tuning variables in your shell (for example `DESK_WORKERS=8 python run.py ...`) or use the flags. `run.py` and `eval.py` read some of them before they load `.env`, so a value set only in `.env` can be ignored.
 
 | Variable | Required | Purpose |
 |---|:-:|---|
@@ -363,6 +424,8 @@ Copy `.env.example` to `.env` and put your key there. Never commit `.env`.
 | `DESK_MAX_REVISIONS` | no | Reviewer revision rounds (default 2) |
 | `DESK_SIM_FAIL_RATE` | no | Inject transient tool failures, 0 to 1, to test recovery |
 | `DESK_SIM_FAIL_CHANNELS` | no | Simulate a channel outage, for example `Email` |
+
+</details>
 
 <details>
 <summary><b>Run the live desk</b> (hub, web app and database)</summary>
@@ -415,9 +478,14 @@ It needs Python 3.12+ and `ELEVENLABS_API_KEY`. Creating the ElevenLabs agent, i
 
 ## <a name="services"></a>5. 🔌 Models, APIs and external services
 
-**The Reality Test path needs only the Anthropic API. Everything else belongs to the optional live desk.**
+**The Reality Test path needs only the Anthropic API (Claude Opus 5.5, with automatic fallback). Everything else belongs to the optional live desk.**
 
-**Core agent** (`run.py`, `reality.sh`, `eval.py`):
+<details>
+<summary><b>Core agent:</b> Anthropic API and local libraries</summary>
+
+<br>
+
+Used by `run.py`, `reality.sh` and `eval.py`.
 
 | Service or library | Used for |
 |---|---|
@@ -427,7 +495,14 @@ It needs Python 3.12+ and `ELEVENLABS_API_KEY`. Creating the ElevenLabs agent, i
 | Pillow (optional local library, not in `requirements.txt`) | Downscaling oversized images; without it they are dropped with a warning |
 | Desk tools | **Simulated locally.** Messaging, ticketing and scheduling calls are logged in `trace.json`; nothing leaves the machine |
 
-**Optional live desk** (`hub/`, `db/`, `web/`, `voice/`, `deploy/`):
+</details>
+
+<details>
+<summary><b>Optional live desk:</b> Supabase, Claude Managed Agents, ElevenLabs, Railway and more</summary>
+
+<br>
+
+Used by `hub/`, `db/`, `web/`, `voice/` and `deploy/`.
 
 | Service | Used for |
 |---|---|
@@ -441,9 +516,18 @@ It needs Python 3.12+ and `ELEVENLABS_API_KEY`. Creating the ElevenLabs agent, i
 
 Local frameworks: FastAPI, uvicorn, pydantic and psycopg for the hub and voice servers; Vite and React for the web app.
 
+</details>
+
 ---
 
 ## <a name="assumptions"></a>6. 📌 Key assumptions
+
+**The desk coordinates and other parties own the decisions. Anything inside a case is data, not instructions.**
+
+<details>
+<summary><b>All five assumptions</b></summary>
+
+<br>
 
 - **The desk is a coordinator.** Booking, refund, replacement, investigation, pricing, customs and safety decisions belong to other parties, and the agent routes them there.
 - **Case content is untrusted data.** Instructions inside emails or attachments are never followed as commands.
@@ -451,9 +535,18 @@ Local frameworks: FastAPI, uvicorn, pydantic and psycopg for the hub and voice s
 - **Channels and parties in the record are the verified ones.** A new, unverified channel is a risk signal.
 - **Simulated tools stand in for the real messaging and ticketing systems.** Their success means "queued", not "the recipient acted".
 
+</details>
+
 ---
 
 ## <a name="limitations"></a>7. 🚧 Known limitations
+
+**The tools are simulated, the CLI decides one moment per run, and the evaluation judge is itself an LLM. The remaining misses are judgement nuances, not safety issues.**
+
+<details>
+<summary><b>All known limitations</b></summary>
+
+<br>
 
 - **Tools are simulated.** In production they would call the messaging gateway, ticketing and scheduling APIs, with idempotency keys.
 - **One decision point per CLI run.** `schedule_follow_up` records the follow-up, but nothing fires it later. The live desk re-plans on every new event; the CLI does not.
@@ -466,9 +559,18 @@ Local frameworks: FastAPI, uvicorn, pydantic and psycopg for the hub and voice s
 - **Multi-part requests.** In some long cases the agent leaves out one required sub-request, such as asking for redelivery as well as a status correction.
 - **The wait test can still yield.** On the hard set, the agent sometimes replies when holding was preferred, because something looked new or helpful (cases 402 and 403 in `evals/prompt-v2-2026-10-10/`).
 
+</details>
+
 ---
 
 ## <a name="next"></a>8. 🔭 What we'd build next
+
+**Real connectors, an event-driven loop for the agent itself, and more control for coordinators.**
+
+<details>
+<summary><b>Five next steps</b></summary>
+
+<br>
 
 - **Event-driven mode for the agent itself:** a webhook per inbound message re-plans the case and closes the loop when confirmations arrive.
 - **Real connectors** (email, carrier APIs, ticketing) behind the same tool interface, with per-tool permissions.
@@ -476,9 +578,18 @@ Local frameworks: FastAPI, uvicorn, pydantic and psycopg for the hub and voice s
 - **Edit before approve** on the staff Desk. Approve and reject exist today.
 - **Per-carrier and per-merchant policy packs** loaded as data instead of prompt text.
 
+</details>
+
 ---
 
 ## <a name="layout"></a>📁 Repository layout
+
+**The agent is `deskagent/` plus three entry points (`run.py`, `reality.sh`, `eval.py`). Everything else is evaluation data, the live desk or experiments.**
+
+<details>
+<summary><b>Every top-level folder, one line each</b></summary>
+
+<br>
 
 ```
 run.py                 Reality Test runner -> ANSWERS/
@@ -505,7 +616,7 @@ cases/                 case files as single markdown documents (delivery_001.md 
 voice/                 ElevenLabs voice line
 triage/, scorer/       a lighter agent the voice line uses to choose its spoken reply, and its scorer
 deploy/                Dockerfiles and Railway configuration
-demo/recorded/         real recorded runs used in the demo (D101, D103)
+demo/                  the 60-second demo video, its silent preview, and real recorded runs (recorded/D101, recorded/D103)
 docs/                  Reality Test playbook, integration notes, UI screenshots
 scripts/               helper scripts: fetch the cases, rewards end-to-end check
 user/                  design notes and the delivery system model
@@ -513,14 +624,18 @@ ANSWERS/               Reality Test outputs, generated by run.py
 LICENSE                Apache 2.0
 ```
 
+</details>
+
 ## <a name="data"></a>🗃 Data and database
 
-`data/` holds the public Delivery & Logistics cases in machine-readable form, the gold decision labels, a report on the decision parameters, and a SQLite database laid out on the system model in `user/andrey/drafts/delivery-system-model.md`. Start at [`data/README.md`](data/README.md), which maps every file to its producer and its reader.
+**`data/` holds the public cases in machine-readable form, the gold decision labels and a SQLite database built from them. Start at [`data/README.md`](data/README.md).**
 
 <details>
 <summary><b>What's in it, and how to rebuild it</b></summary>
 
 <br>
+
+The SQLite database is laid out on the system model in `user/andrey/drafts/delivery-system-model.md`, and [`data/README.md`](data/README.md) maps every file to its producer and its reader.
 
 - `data/delivery/agent/decision_points.jsonl` is the evaluation set cut at the escalation point (input, gold, hidden, scoring hints); `data/delivery/agent/cases.jsonl` is the full record per case.
 - `data/delivery/human/REPORT.md` explains the data, the 24 decision parameters in three tiers, and the escalation queues; `data/delivery/human/RECONCILIATION.md` maps the data onto the system model field by field, with `N/A` wherever the cases say nothing.
