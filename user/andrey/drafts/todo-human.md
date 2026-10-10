@@ -59,7 +59,11 @@ Managed Agents and ElevenLabs both call the hub from the internet.
 - [ ] Account, then `npm i -g vercel` and `vercel login`. Otherwise the web app runs locally on `localhost:3000`.
 - [ ] After deploying, add the Vercel URL to Supabase redirect URLs (step 3).
 
-## 8. Local tooling
+## 8. Web app env
+
+- [ ] `cp web/.env.example web/.env` and fill `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (same values as above), `VITE_HUB_URL` (`http://localhost:8000` locally, or the tunnel URL when the app runs on Vercel).
+
+## 9. Local tooling
 
 - [ ] Already there: Python 3.14, Node 24, uv, Docker.
 - [ ] `brew install cloudflared` (step 4).
@@ -71,3 +75,5 @@ Managed Agents and ElevenLabs both call the hub from the internet.
 2. Step 4 → the agent can actually call our tools.
 3. Steps 3 and 6 → login and voice.
 4. Step 7 → only if we demo from a public URL.
+
+Then follow `hub/README.md` → First run.
