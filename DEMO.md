@@ -16,9 +16,11 @@ Either way, outbound messages wait in the **Approvals** queue (`AGENT_APPROVAL_T
 Follow `hub/README.md` (Supabase project, `.env`, migrate, seed), then:
 
 ```bash
-# .env additions for the demo
-DESK_ENGINE=pipeline                 # or managed
-DEMO_CUSTOMER_PHONE=+447700900103    # set before db.seed; maps the caller to the demo customer
+# .env additions for the demo (no comments on value lines: the loader keeps everything after '=')
+# engine: pipeline or managed
+DESK_ENGINE=pipeline
+# set before db.seed; maps the caller to the demo customer
+DEMO_CUSTOMER_PHONE=+447700900103
 HUB_PUBLIC_URL=https://<id>.ngrok-free.app
 
 .venv/bin/uvicorn hub.app:app --port 8000      # terminal 1

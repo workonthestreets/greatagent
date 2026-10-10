@@ -45,7 +45,7 @@ def d103(now: datetime, customer: str) -> dict:
         "source": (first, "customer"), "cutoff": cutoff,
         "context": "Home delivery DL-103 is booked for this afternoon.",
         "initial_request": f"I won't be home {slot} today. Please move my delivery to tomorrow morning.",
-        "shipment": {"id": "DL-103", "status": "booked", "eta": f"booked today {slot} UTC", "recipient": customer, "merchant": DISPATCH},
+        "shipment": {"id": "DL-103", "status": "booked", "eta": f"today {slot} UTC", "recipient": customer, "merchant": DISPATCH},
         "events": [
             (now - timedelta(minutes=60), "Email", DISPATCH, DESK,
              f"DL-103 is booked today {slot} UTC. Rescheduling options: {tomorrow} 09:00-12:00 or {tomorrow} 13:00-16:00. "
@@ -69,7 +69,7 @@ def d101(now: datetime) -> dict:
         "source": ("Tomas Reel", "customer"), "cutoff": None,
         "context": "Parcel DL-101 is late after a depot backlog.",
         "initial_request": "My parcel is three days late, where is it? I need it this week.",
-        "shipment": {"id": "DL-101", "status": "delayed", "eta": "no new date confirmed", "recipient": customer,
+        "shipment": {"id": "DL-101", "status": "delayed", "eta": None, "recipient": customer,
                      "merchant": "Greywick Homewares"},
         "events": [
             (now - timedelta(minutes=80), "Email", "Tracking support, Plover Arc Logistics", DESK,
