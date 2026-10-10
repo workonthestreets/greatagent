@@ -142,11 +142,13 @@ def main(argv: list[str] | None = None) -> int:
     # the one-shot demo agent and the live-assist agent are separate ElevenLabs agents, each with
     # its own tool, so provisioning one never re-points the other
     if args.assist:
-        tool_key, agent_key, name = "assist_tool_id", "assist_agent_id", "delivery-desk-assist"
+        tool_key, agent_key, name = "assist_tool_id", "assist_agent_id", "Delivery desk - LIVE ASSIST"
+        greeting = "Delivery support, live assist line. How can I help?"
         cfg = {"tool_config": turn_tool_config(args.public_url, ids["secret_id"])}
         prompt, path = ASSIST_PROMPT, "/voice/turn"
     else:
-        tool_key, agent_key, name = "tool_id", "agent_id", "delivery-desk"
+        tool_key, agent_key, name = "tool_id", "agent_id", "Delivery desk - DEMO"
+        greeting = "Delivery support, how can I help?"
         cfg = {"tool_config": tool_config(args.public_url, ids["secret_id"])}
         prompt, path = PROMPT, "/voice/tool"
     if tool_key in ids:
@@ -154,7 +156,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         ids[tool_key] = call("POST", "/tools", key, cfg)["id"]
     agent = {"name": name, "conversation_config": {"agent": {
-        "first_message": "Delivery support, how can I help?", "language": "en",
+        "first_message": greeting, "language": "en",
         "prompt": {"prompt": prompt, "llm": VOICE_LLM, "temperature": 0, "tool_ids": [ids[tool_key]]}}}}
     if agent_key in ids:
         call("PATCH", f"/agents/{ids[agent_key]}", key, agent)
