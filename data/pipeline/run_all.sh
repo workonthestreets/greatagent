@@ -30,6 +30,6 @@ fi
 # 4. Database on Andrey's system model, its DDL and the reconciliation document
 STRESS_ARG=""; [ -f "$D/inputs/stress_raw.jsonl" ] && STRESS_ARG="--stress $D/inputs/stress_raw.jsonl"
 $PY "$HERE/build_db.py" --cases "$D/agent/cases.jsonl" --facts "$HERE/facts_delivery.py" --out "$D/database/delivery.sqlite" \
-    --schema-out "$D/database/schema.sql" --recon-out "$D/human/RECONCILIATION.md" $STRESS_ARG
+    --schema-out "$D/database/schema.sql" --recon-out "$D/human/RECONCILIATION.md" --stress-labels "$HERE/labels_stress.csv" $STRESS_ARG
 
 echo "done: $(wc -l < "$D/agent/cases.jsonl") delivery cases, $(wc -l < "$D/agent/events.jsonl") events, database at $D/database/delivery.sqlite"

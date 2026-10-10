@@ -22,7 +22,8 @@ data/
     normalize_delivery.py   delivery layer: actors, references, visibility split, gold labels, statistics, queues
     build_db.py             the database on Andrey's system model
     facts_delivery.py       hand-curated order, shipment and parcel facts per case
-    gold_labels_delivery.csv  hand-labelled decision parameters for the 50 public cases (the ground truth)
+    gold_labels_delivery.csv  hand-labelled decision parameters for the 50 public cases (the ground truth), incl. complexity level
+    labels_stress.csv       complexity level and Roman's stress theme for the 20 stress cases
     case.schema.json        JSON Schema for one record of agent/cases.jsonl
   delivery/
     inputs/                 what the pipeline reads: raw_cases.jsonl, stress_raw.jsonl, attachments_text/
@@ -77,4 +78,5 @@ Give the agent only `input` (file: `delivery/agent/decision_points.jsonl`) (case
 `action_class`: ask_customer, ask_counterparty, request_operator_action, request_options_for_customer, request_physical_trace, request_record_or_statement, request_review_or_investigation, request_authorisation_or_decision, escalate_safety.
 `queue`: awaiting_customer, awaiting_counterparty, urgent_cutoff, carrier_ops, carrier_trace, investigations, safety, merchant_authorisation, billing_review.
 `urgency`: none, deadline_bound, deadline_today, immediate (only for cutoffs that make the state irreversible).
-`human_gate`: none, soft, hard. Full definitions and measured coverage: `delivery/catalogue/parameters.json`.
+`human_gate`: none, soft, hard.
+`complexity_level`: 1 to 7, Andrey's easy-to-hard ladder (system model, section 6): simple status, shipment data correction, multi-parcel orders, evidence and downstream decisions, conflicting reports, safety and regulatory holds, reconciliation across related shipments. Stress cases carry Roman's `stress_theme` as well; labels in `pipeline/labels_stress.csv`. Full definitions and measured coverage: `delivery/catalogue/parameters.json`.

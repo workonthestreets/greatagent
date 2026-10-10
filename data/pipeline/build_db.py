@@ -214,10 +214,15 @@ def main():
     ap.add_argument('--facts', required=True)
     ap.add_argument('--out', required=True)
     ap.add_argument('--stress', default=None, help='raw parser output for unlabelled cases (loaded with N/A labels)')
+    ap.add_argument('--stress-labels', default=None, help='CSV with complexity_level, complexity_name, stress_theme per stress case')
     ap.add_argument('--schema-out', default=None)
     ap.add_argument('--recon-out', default=None)
     args = ap.parse_args()
     facts = load_module(args.facts, 'facts').CASE_FACTS
+    import csv as _csv
+    stress_labels = {}
+    if args.stress_labels and os.path.exists(args.stress_labels):
+        stress_labels = {r['case_id']: r for r in _csv.DictReader(open(args.stress_labels, encoding='utf-8'))}
 
     actors, actor_ids = {}, {}
 
@@ -284,7 +289,8 @@ def main():
             'segment': p['segment'], 'requester_type': p['requester_type'], 'shipment_stage': p['shipment_stage'], 'owner_org_type': p['owner_org_type'],
             'customer_input_required': 1 if p['customer_input_required'] else 0, 'risk_flags': na(p['risk_flags']), 'money_involved': 1 if p['money_involved'] else 0,
             'amount_gbp_known': na(p['amount_gbp_known']), 'verification_state': p['verification_state'], 'evidence_conflict': 1 if p['evidence_conflict'] else 0,
-            'refs_at_escalation': na(r['at_escalation']['refs']), 'n_messages': len(msgs), 'source_dir': m.get('source_dir', NA)})
+            'refs_at_escalation': na(r['at_escalation']['refs']), 'n_messages': len(msgs), 'source_dir': m.get('source_dir', NA),
+            'complexity_level': na(p.get('complexity_level')), 'complexity_name': na(p.get('complexity_name')), 'stress_theme': NA, 'label_source': 'recorded_action (event 003) + hand labels'})
         if gold_msg:
             rows['tasks'].append({'task_id': f'{cid}-T01', 'case_id': cid, 'task_type': d['action_class'], 'description': gold_msg['body'],
                                   'assignee': na(d['recipient_raw']), 'assignee_org_type': na(rec.get('org_type')), 'channel': na(gold_msg['channel']),
@@ -356,7 +362,9 @@ def main():
                 'segment': NA, 'requester_type': NA, 'shipment_stage': NA, 'owner_org_type': NA, 'customer_input_required': NA, 'risk_flags': NA, 'money_involved': NA,
                 'amount_gbp_known': NA, 'verification_state': NA, 'evidence_conflict': NA,
                 'refs_at_escalation': na(sorted({x for mm in msgs if mm['visible_at_escalation'] for x in (mm['refs'].split('|') if mm['refs'] != NA else [])})),
-                'n_messages': len(msgs), 'source_dir': r['source_dir']})
+                'n_messages': len(msgs), 'source_dir': r['source_dir'],
+                'complexity_level': na(stress_labels.get(cid, {}).get('complexity_level')), 'complexity_name': na(stress_labels.get(cid, {}).get('complexity_name')),
+                'stress_theme': na(stress_labels.get(cid, {}).get('stress_theme')), 'label_source': na(stress_labels.get(cid, {}).get('label_source'))})
             if gold:
                 rows['tasks'].append({'task_id': f'{cid}-T01', 'case_id': cid, 'task_type': NA, 'description': gold['body'], 'assignee': rows['cases'][-1]['owner'],
                                       'assignee_org_type': actors[gold['to_actor_ids'].split('|')[0]]['org_type'] if gold['to_actor_ids'] != NA else NA,
@@ -423,6 +431,7 @@ def main():
         ('CASE', 'deadline', 'SLA or promised update', 'cutoff in events 001-002 or the next-update time a team gave', 'cases', 'deadline', 'N/A when no clock is stated', 'no SLA exists in the data'),
         ('CASE', 'resolution', 'address corrected, replacement approved ...', 'index Outcome', 'cases', 'resolution', 'N/A for stress cases', ''),
         ('CASE', 'priority', 'case priority', 'not in the data', 'cases', 'priority', 'N/A always', 'urgency label stored separately'),
+        ('CASE', 'complexity level (draft section 6, easy-to-hard)', 'Level 1 simple status to 7 reconciliation across shipments', "hand-assigned per case from the draft's definitions; stress cases also carry Roman's stress theme", 'cases', 'complexity_level', 'always present', 'levels 1-7 cover 50/50 public cases; 4 stress cases map only loosely (fraud, noisy inbox, duplicate request, customer reversal)'),
         ('TASK', 'task', 'concrete action created by a case', 'the recorded agent action (event 003) with assignee, channel and confirming message', 'tasks', 'status', 'completed_at N/A when no confirming message exists', ''),
         ('ACTOR', 'actor', 'who raises cases and records events', 'every From/To label, canonicalized', 'actors', 'org_type', 'org N/A for people without an organisation', ''),
         ('DASHBOARD', 'Shipment, Order, Current milestone, Exception, Next action, Owner, ETA', 'shipment-level table', 'view v_shipment_dashboard', 'shipments', 'milestone_final', 'Order and ETA show N/A when unknown', ''),
@@ -445,7 +454,7 @@ def main():
         'shipments': 'CREATE TABLE shipments (shipment_id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(case_id), order_id TEXT NOT NULL, carrier_id TEXT NOT NULL, kind TEXT NOT NULL, milestone_at_escalation TEXT NOT NULL, milestone_final TEXT NOT NULL, exception TEXT NOT NULL, destination TEXT NOT NULL, promised_at TEXT NOT NULL, model_gap TEXT NOT NULL, shipper TEXT NOT NULL, consignee TEXT NOT NULL, note TEXT NOT NULL)',
         'parcels': 'CREATE TABLE parcels (parcel_id TEXT PRIMARY KEY, shipment_id TEXT NOT NULL REFERENCES shipments(shipment_id), barcode TEXT NOT NULL, parcel_status TEXT NOT NULL, case_id TEXT NOT NULL REFERENCES cases(case_id), note TEXT NOT NULL)',
         'events': 'CREATE TABLE events (event_id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(case_id), shipment_id TEXT NOT NULL, event_type TEXT NOT NULL, location TEXT NOT NULL, occurred_at TEXT NOT NULL, time_precision TEXT NOT NULL, is_planned INTEGER NOT NULL, source_system TEXT NOT NULL, source_message_id TEXT NOT NULL REFERENCES messages(message_id), visible_at_escalation INTEGER NOT NULL, text TEXT NOT NULL, extraction TEXT NOT NULL)',
-        'cases': 'CREATE TABLE cases (case_id TEXT PRIMARY KEY, source_set TEXT NOT NULL, labelled INTEGER NOT NULL, title TEXT NOT NULL, created_at TEXT NOT NULL, escalated_at TEXT NOT NULL, updated_at TEXT NOT NULL, completed_at TEXT NOT NULL, case_type TEXT NOT NULL, case_category TEXT NOT NULL, raised_by TEXT NOT NULL, raised_by_type TEXT NOT NULL, raised_by_actor_id TEXT NOT NULL, channel TEXT NOT NULL, channel_class TEXT NOT NULL, linked_object_id TEXT NOT NULL, linked_object_type TEXT NOT NULL, request_or_claim TEXT NOT NULL, requested_action_by_raiser TEXT NOT NULL, recorded_next_action TEXT NOT NULL, recorded_action_message_id TEXT NOT NULL, case_state_at_escalation TEXT NOT NULL, case_state_final TEXT NOT NULL, operational_effect TEXT NOT NULL, priority TEXT NOT NULL, urgency TEXT NOT NULL, cutoff_utc TEXT NOT NULL, deadline TEXT NOT NULL, owner TEXT NOT NULL, owner_group TEXT NOT NULL, owner_function TEXT NOT NULL, owner_actor_id TEXT NOT NULL, gold_channel TEXT NOT NULL, action_class TEXT NOT NULL, proof_standard TEXT NOT NULL, queue TEXT NOT NULL, human_gate TEXT NOT NULL, resolution TEXT NOT NULL, boundaries TEXT NOT NULL, context_summary TEXT NOT NULL, grading_reference TEXT NOT NULL, segment TEXT NOT NULL, requester_type TEXT NOT NULL, shipment_stage TEXT NOT NULL, owner_org_type TEXT NOT NULL, customer_input_required TEXT NOT NULL, risk_flags TEXT NOT NULL, money_involved TEXT NOT NULL, amount_gbp_known TEXT NOT NULL, verification_state TEXT NOT NULL, evidence_conflict TEXT NOT NULL, refs_at_escalation TEXT NOT NULL, n_messages INTEGER NOT NULL, source_dir TEXT NOT NULL)',
+        'cases': 'CREATE TABLE cases (case_id TEXT PRIMARY KEY, source_set TEXT NOT NULL, labelled INTEGER NOT NULL, title TEXT NOT NULL, created_at TEXT NOT NULL, escalated_at TEXT NOT NULL, updated_at TEXT NOT NULL, completed_at TEXT NOT NULL, case_type TEXT NOT NULL, case_category TEXT NOT NULL, raised_by TEXT NOT NULL, raised_by_type TEXT NOT NULL, raised_by_actor_id TEXT NOT NULL, channel TEXT NOT NULL, channel_class TEXT NOT NULL, linked_object_id TEXT NOT NULL, linked_object_type TEXT NOT NULL, request_or_claim TEXT NOT NULL, requested_action_by_raiser TEXT NOT NULL, recorded_next_action TEXT NOT NULL, recorded_action_message_id TEXT NOT NULL, case_state_at_escalation TEXT NOT NULL, case_state_final TEXT NOT NULL, operational_effect TEXT NOT NULL, priority TEXT NOT NULL, urgency TEXT NOT NULL, cutoff_utc TEXT NOT NULL, deadline TEXT NOT NULL, owner TEXT NOT NULL, owner_group TEXT NOT NULL, owner_function TEXT NOT NULL, owner_actor_id TEXT NOT NULL, gold_channel TEXT NOT NULL, action_class TEXT NOT NULL, proof_standard TEXT NOT NULL, queue TEXT NOT NULL, human_gate TEXT NOT NULL, resolution TEXT NOT NULL, boundaries TEXT NOT NULL, context_summary TEXT NOT NULL, grading_reference TEXT NOT NULL, segment TEXT NOT NULL, requester_type TEXT NOT NULL, shipment_stage TEXT NOT NULL, owner_org_type TEXT NOT NULL, customer_input_required TEXT NOT NULL, risk_flags TEXT NOT NULL, money_involved TEXT NOT NULL, amount_gbp_known TEXT NOT NULL, verification_state TEXT NOT NULL, evidence_conflict TEXT NOT NULL, refs_at_escalation TEXT NOT NULL, n_messages INTEGER NOT NULL, source_dir TEXT NOT NULL, complexity_level TEXT NOT NULL, complexity_name TEXT NOT NULL, stress_theme TEXT NOT NULL, label_source TEXT NOT NULL)',
         'tasks': 'CREATE TABLE tasks (task_id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(case_id), task_type TEXT NOT NULL, description TEXT NOT NULL, assignee TEXT NOT NULL, assignee_org_type TEXT NOT NULL, channel TEXT NOT NULL, created_at TEXT NOT NULL, completed_at TEXT NOT NULL, status TEXT NOT NULL, source_message_id TEXT NOT NULL, is_gold_action INTEGER NOT NULL, confirmation_message_id TEXT NOT NULL)',
         'evidence': 'CREATE TABLE evidence (evidence_id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(case_id), shipment_id TEXT NOT NULL, evidence_type TEXT NOT NULL, reference TEXT NOT NULL, description TEXT NOT NULL, source TEXT NOT NULL, file_name TEXT NOT NULL, first_seen_message_id TEXT NOT NULL, visible_at_escalation INTEGER NOT NULL)',
         'messages': 'CREATE TABLE messages (message_id TEXT PRIMARY KEY, case_id TEXT NOT NULL REFERENCES cases(case_id), seq INTEGER NOT NULL, timestamp TEXT NOT NULL, stage TEXT NOT NULL, channel TEXT NOT NULL, from_actor_id TEXT NOT NULL REFERENCES actors(actor_id), from_raw TEXT NOT NULL, from_org_type TEXT NOT NULL, to_actor_ids TEXT NOT NULL, direction TEXT NOT NULL, visible_at_escalation INTEGER NOT NULL, body TEXT NOT NULL, refs TEXT NOT NULL, amounts_gbp TEXT NOT NULL)',
@@ -471,7 +480,8 @@ SELECT s.shipment_id AS shipment_id, s.shipment_id AS shipment, s.order_id AS "o
        CASE WHEN s.milestone_final IN ('Delivered', 'Collected', 'Lost') THEN 'N/A' ELSE c.owner_group END AS owner,
        c.owner_group AS owner_at_escalation, c.owner AS owner_team_at_escalation,
        CASE WHEN s.milestone_final IN ('Delivered', 'Collected', 'Lost') THEN 'N/A (completed)' ELSE s.promised_at END AS eta,
-       s.promised_at AS promised_window, c.case_state_final AS case_state, s.case_id AS case_id, c.queue AS queue, c.human_gate AS human_gate, c.deadline AS deadline
+       s.promised_at AS promised_window, c.case_state_final AS case_state, s.case_id AS case_id, c.queue AS queue, c.human_gate AS human_gate, c.deadline AS deadline,
+       c.complexity_level AS complexity_level, c.complexity_name AS complexity_name, c.stress_theme AS stress_theme
 FROM shipments s LEFT JOIN cases c ON c.case_id = s.case_id;
 CREATE VIEW v_case_timeline AS
 SELECT case_id, timestamp AS at, 'message' AS kind, message_id AS id, stage AS type, from_raw AS source, body AS text, visible_at_escalation FROM messages

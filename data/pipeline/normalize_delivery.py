@@ -117,6 +117,8 @@ def load_labels(path):
             row['risk_flags'] = [f for f in row['risk_flags'].split('|') if f]
             row['amount_gbp_known'] = float(row['amount_gbp_known']) if row['amount_gbp_known'] else None
             row['cutoff_utc'] = row['cutoff_utc'] or None
+            row['complexity_level'] = int(row.get('complexity_level') or 0) or None
+            row['complexity_name'] = row.get('complexity_name') or None
             out[row['case_id']] = row
     return out
 
@@ -226,7 +228,8 @@ def normalize_case(raw, lab):
                 'customer_input_required': lab['customer_input_required'], 'urgency': lab['urgency'],
                 'cutoff_utc': lab['cutoff_utc'], 'risk_flags': lab['risk_flags'], 'money_involved': lab['money_involved'],
                 'amount_gbp_known': lab['amount_gbp_known'], 'verification_state': lab['verification_state'],
-                'evidence_conflict': lab['evidence_conflict']}},
+                'evidence_conflict': lab['evidence_conflict'], 'complexity_level': lab['complexity_level'],
+                'complexity_name': lab['complexity_name']}},
         'decision': {
             'next_action_text': next_action.get('text', ''), 'recipient_raw': recipient_raw, 'recipient': recipient,
             'recipient_function': lab['recipient_function'], 'channel': next_action.get('channel'),
@@ -311,6 +314,7 @@ PARAM_CATALOGUE = [
     ('amount_gbp_known', 'max', 'input', 'events 001-002', 'number', 'Amount or authority limit visible at escalation.'),
     ('boundaries', 'max', 'output', 'gold: index Boundaries', 'text', 'What the final reply must say is NOT established.'),
     ('queue', 'max', 'output', 'labelled', 'enum', 'Operational queue the case enters after the agent action.'),
+    ('complexity_level', 'max', 'input', "hand-assigned from Andrey's easy-to-hard ladder (system model, section 6)", 'enum 1-7', 'Level 1 simple status, 2 shipment data correction, 3 multi-parcel orders, 4 evidence and downstream decisions, 5 conflicting reports, 6 safety and regulatory holds, 7 reconciliation across related shipments.'),
     ('human_gate', 'max', 'output', 'labelled', 'enum', 'hard = the message commits or credits money with an amount, concerns safety or a delivered-not-received/loss dispute, or relies on a signing authority; soft = third-party privacy or a disputed record framed neutrally; none = routine relay, option request or customer question. Low inter-annotator reliability (kappa 0.35); treat as a policy knob.'),
 ]
 
@@ -330,7 +334,8 @@ def param_value(rec, name):
         'constraint_sentences': len(rec['at_escalation']['constraint_sentences']) > 0,
         'customer_availability': len(rec['at_escalation']['customer_availability']) > 0,
         'cutoff_utc': p['cutoff_utc'] or '(none)', 'amount_gbp_known': p['amount_gbp_known'] if p['amount_gbp_known'] is not None else '(none)',
-        'boundaries': bool(rec['disclosed_after_escalation']['boundaries']), 'queue': dcn['queue'], 'human_gate': dcn['human_gate']}
+        'boundaries': bool(rec['disclosed_after_escalation']['boundaries']), 'queue': dcn['queue'], 'human_gate': dcn['human_gate'],
+        'complexity_level': f"{p['complexity_level']} {p['complexity_name']}"}
     return table[name]
 
 
@@ -477,7 +482,7 @@ def main():
             'owner_org_type', 'escalation_channel', 'context_author', 'customer_input_required', 'urgency', 'cutoff_utc', 'risk_flags',
             'money_involved', 'amount_gbp_known', 'verification_state', 'evidence_conflict', 'gold_recipient', 'gold_recipient_org_type',
             'recipient_function', 'gold_channel', 'action_class', 'proof_standard', 'queue', 'human_gate', 'refs_at_escalation',
-            'amounts_at_escalation', 'dates_at_escalation', 'n_events', 'attachments', 'next_action_text', 'outcome', 'boundaries', 'notes']
+            'amounts_at_escalation', 'dates_at_escalation', 'n_events', 'attachments', 'next_action_text', 'outcome', 'boundaries', 'notes', 'complexity_level', 'complexity_name']
     with open(outp(out_dir, 'cases.csv'), 'w', encoding='utf-8', newline='') as fh:
         w = csv.writer(fh); w.writerow(cols)
         for r in recs:
@@ -491,7 +496,7 @@ def main():
                         dcn['proof_standard'], dcn['queue'], dcn['human_gate'], ' '.join(r['at_escalation']['refs']),
                         ' '.join(str(a) for a in r['at_escalation']['amounts_gbp']), ' '.join(r['at_escalation']['dates_mentioned']),
                         r['meta']['n_events'], ' '.join(a['name'] for a in r['attachments']), dcn['next_action_text'],
-                        r['disclosed_after_escalation']['outcome'], r['disclosed_after_escalation']['boundaries'], dcn['notes']])
+                        r['disclosed_after_escalation']['outcome'], r['disclosed_after_escalation']['boundaries'], dcn['notes'], p['complexity_level'], p['complexity_name']])
     with open(outp(out_dir, 'events.csv'), 'w', encoding='utf-8', newline='') as fh:
         w = csv.writer(fh); w.writerow(['case_id', 'event_id', 'timestamp', 'minutes_since_created', 'stage', 'channel', 'from', 'from_org_type', 'to', 'to_org_types', 'direction', 'visible_at_escalation', 'refs', 'amounts_gbp', 'body'])
         for r in recs:
@@ -513,7 +518,7 @@ def main():
             fh.write(f"- **Context author:** {(r['parties']['context_author'] or {}).get('raw')}\n")
             fh.write(f"- **Params:** segment=`{p['segment']}` issue=`{p['issue_type']}` stage=`{p['shipment_stage']}` owner=`{p['owner_org_type']}` input_required=`{p['customer_input_required']}` urgency=`{p['urgency']}`"
                      + (f" cutoff=`{p['cutoff_utc']}`" if p['cutoff_utc'] else '') + f" risk=`{'|'.join(p['risk_flags']) or '-'}` money=`{p['money_involved']}`"
-                     + (f" amount=`GBP {p['amount_gbp_known']:.2f}`" if p['amount_gbp_known'] is not None else '') + f" verification=`{p['verification_state']}` conflict=`{p['evidence_conflict']}`\n")
+                     + (f" amount=`GBP {p['amount_gbp_known']:.2f}`" if p['amount_gbp_known'] is not None else '') + f" verification=`{p['verification_state']}` conflict=`{p['evidence_conflict']}` complexity=`L{p['complexity_level']} {p['complexity_name']}`\n")
             fh.write(f"- **Visible refs:** {', '.join(r['at_escalation']['refs']) or '-'} · **amounts:** {', '.join('GBP %.2f' % a for a in r['at_escalation']['amounts_gbp']) or '-'} · **dates:** {', '.join(r['at_escalation']['dates_mentioned']) or '-'}\n")
             if r['at_escalation']['constraint_sentences']:
                 fh.write(f"- **Constraints in visible text:** " + ' / '.join(r['at_escalation']['constraint_sentences'][:4]) + '\n')
@@ -544,7 +549,8 @@ def main():
                        'recipient_function': sorted({r['decision']['recipient_function'] for r in recs}),
                        'action_class': ['ask_customer', 'ask_counterparty', 'request_operator_action', 'request_options_for_customer', 'request_physical_trace', 'request_record_or_statement', 'request_review_or_investigation', 'request_authorisation_or_decision', 'escalate_safety'],
                        'proof_standard': sorted({r['decision']['proof_standard'] for r in recs}),
-                       'queue': list(QUEUES.keys()), 'human_gate': ['none', 'soft', 'hard']}}, fh, indent=2, ensure_ascii=False)
+                       'queue': list(QUEUES.keys()), 'human_gate': ['none', 'soft', 'hard'],
+                       'complexity_level': ['1 Simple status', '2 Shipment data correction', '3 Multi-parcel orders', '4 Evidence and downstream decisions', '5 Conflicting reports', '6 Safety and regulatory holds', '7 Reconciliation across related shipments']}}, fh, indent=2, ensure_ascii=False)
 
     # routing table + graph spec
     graph = {

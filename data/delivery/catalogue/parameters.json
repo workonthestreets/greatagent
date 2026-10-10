@@ -7,7 +7,7 @@
   "counts": {
     "min": 7,
     "standard": 8,
-    "max": 9
+    "max": 10
   },
   "parameters": [
     {
@@ -740,6 +740,45 @@
       ]
     },
     {
+      "name": "complexity_level",
+      "tier": "max",
+      "role": "input",
+      "source": "hand-assigned from Andrey's easy-to-hard ladder (system model, section 6)",
+      "type": "enum 1-7",
+      "definition": "Level 1 simple status, 2 shipment data correction, 3 multi-parcel orders, 4 evidence and downstream decisions, 5 conflicting reports, 6 safety and regulatory holds, 7 reconciliation across related shipments.",
+      "coverage": 50,
+      "coverage_pct": 100.0,
+      "n_distinct": 7,
+      "entropy_bits": 2.369,
+      "variability_index": 0.42,
+      "top_values": [
+        [
+          "1 Simple status",
+          16
+        ],
+        [
+          "2 Shipment data correction",
+          11
+        ],
+        [
+          "4 Evidence and downstream decisions",
+          11
+        ],
+        [
+          "6 Safety and regulatory holds",
+          7
+        ],
+        [
+          "5 Conflicting reports",
+          2
+        ],
+        [
+          "3 Multi-parcel orders",
+          2
+        ]
+      ]
+    },
+    {
       "name": "human_gate",
       "tier": "max",
       "role": "output",
@@ -902,6 +941,15 @@
       "none",
       "soft",
       "hard"
+    ],
+    "complexity_level": [
+      "1 Simple status",
+      "2 Shipment data correction",
+      "3 Multi-parcel orders",
+      "4 Evidence and downstream decisions",
+      "5 Conflicting reports",
+      "6 Safety and regulatory holds",
+      "7 Reconciliation across related shipments"
     ]
   }
 }

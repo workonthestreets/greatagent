@@ -527,6 +527,21 @@
         },
         "evidence_conflict": {
           "type": "boolean"
+        },
+        "complexity_level": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 7,
+          "description": "Andrey's easy-to-hard ladder, system model section 6"
+        },
+        "complexity_name": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     }

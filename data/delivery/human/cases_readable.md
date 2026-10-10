@@ -7,7 +7,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-001 (shipment) · **Created:** 2026-02-02T09:00:00Z · **Events:** 5
 - **Requester:** Vessa Lorne, recipient → `consumer` via Customer portal
 - **Context author:** Dispatch, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`reschedule` stage=`at_depot` owner=`customer` input_required=`True` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`reschedule` stage=`at_depot` owner=`customer` input_required=`True` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** DL-001 · **amounts:** - · **dates:** 2026-02-03, 2026-02-04
 - **Initial request:** I have a work meeting during the morning delivery. Could you help move my lamp delivery? Please use this order-linked message thread.
 - **Gold action:** `ask_customer` → **Vessa Lorne, recipient** (`customer` / `customer_self`) via **Customer portal**; proof=`booking_reference`; queue=`awaiting_customer`; human_gate=`none`
@@ -21,7 +21,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-002 (shipment) · **Created:** 2026-02-03T09:00:00Z · **Events:** 5
 - **Requester:** Tarin Mave, recipient → `consumer` via Customer portal
 - **Context author:** Address desk, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`address_or_access` stage=`booked_not_dispatched` owner=`customer` input_required=`True` urgency=`none` risk=`credentials` money=`False` verification=`verified_by_operator` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`address_or_access` stage=`booked_not_dispatched` owner=`customer` input_required=`True` urgency=`none` risk=`credentials` money=`False` verification=`verified_by_operator` conflict=`False` complexity=`L2 Shipment data correction`
 - **Visible refs:** DL-002 · **amounts:** - · **dates:** -
 - **Initial request:** The tracking page says address clarification required. The building is correct; what do you need from me?
 - **Gold action:** `ask_customer` → **Tarin Mave, recipient** (`customer` / `customer_self`) via **Customer portal**; proof=`operator_confirmation`; queue=`awaiting_customer`; human_gate=`none`
@@ -35,7 +35,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-003 (shipment) · **Created:** 2026-02-04T09:00:00Z · **Events:** 5
 - **Requester:** Dispatch, Plover Arc Logistics → `carrier_ops` via Dispatch chat
 - **Context author:** Route driver Fen Orlo, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`address_or_access` stage=`on_route` owner=`customer` input_required=`True` urgency=`immediate` cutoff=`2026-02-04T10:00:00Z` risk=`credentials` money=`False` verification=`verified_by_operator` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`address_or_access` stage=`on_route` owner=`customer` input_required=`True` urgency=`immediate` cutoff=`2026-02-04T10:00:00Z` risk=`credentials` money=`False` verification=`verified_by_operator` conflict=`False` complexity=`L2 Shipment data correction`
 - **Visible refs:** DL-003 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** I am waiting outside; I have not left the parcel. / Do not request a reusable gate code.
 - **Initial request:** Please contact recipient Elva Kesh on the verified order callback route. Do not request a reusable gate code. The driver can wait until 10:00 UTC.
@@ -50,7 +50,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-004 (shipment) · **Created:** 2026-02-05T09:00:00Z · **Events:** 4
 - **Requester:** Oren Sile, recipient → `consumer` via Customer portal
 - **Context author:** Dispatch, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`reschedule` stage=`booked_not_dispatched` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`reschedule` stage=`booked_not_dispatched` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** DL-004 · **amounts:** - · **dates:** 2026-02-06
 - **Constraints in visible text:** For this route we can add a call request using the verified number already in the order record; we cannot guarantee an exact advance interval.
 - **Initial request:** Could the driver call shortly before reaching me? I work in the studio next door and need a few minutes to walk over. Use my saved order contact.
@@ -65,7 +65,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-005 (shipment) · **Created:** 2026-02-06T09:00:00Z · **Events:** 5
 - **Requester:** Lira Venn, recipient → `consumer` via Customer portal
 - **Context author:** Recipient services, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`address_or_access` stage=`booked_not_dispatched` owner=`customer` input_required=`True` urgency=`none` risk=`-` money=`False` verification=`verified_by_operator` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`address_or_access` stage=`booked_not_dispatched` owner=`customer` input_required=`True` urgency=`none` risk=`-` money=`False` verification=`verified_by_operator` conflict=`False` complexity=`L2 Shipment data correction`
 - **Visible refs:** DL-005 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** I have not added his name to the booking.
 - **Initial request:** I need to step out during the window. Could my adult brother receive this parcel instead? I have not added his name to the booking.
@@ -80,7 +80,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-006 (shipment) · **Created:** 2026-02-07T09:00:00Z · **Events:** 5
 - **Requester:** Pella Rusk, recipient → `consumer` via Customer portal
 - **Context author:** Routing, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`redirect_or_hold` stage=`booked_not_dispatched` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`redirect_or_hold` stage=`booked_not_dispatched` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L2 Shipment data correction`
 - **Visible refs:** DL-006 · **amounts:** - · **dates:** 2026-02-08
 - **Constraints in visible text:** DL-006 is redirectable without charge before route release. / Please send DL-006 to Copperfin Counter, rather than my home.
 - **Initial request:** Please send DL-006 to Copperfin Counter, rather than my home. I can collect there on 2026-02-08.
@@ -95,7 +95,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-007 (shipment) · **Created:** 2026-02-08T09:00:00Z · **Events:** 5
 - **Requester:** Ciro Fale, recipient → `consumer` via Customer portal
 - **Context author:** Sedgeglass Counter supervisor
-- **Params:** segment=`consumer_parcel` issue=`redirect_or_hold` stage=`at_pickup_point` owner=`pickup_point` input_required=`False` urgency=`deadline_bound` cutoff=`2026-02-09T18:00:00Z` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`redirect_or_hold` stage=`at_pickup_point` owner=`pickup_point` input_required=`False` urgency=`deadline_bound` cutoff=`2026-02-09T18:00:00Z` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** DL-007 · **amounts:** - · **dates:** 2026-02-09, 2026-02-10, 2026-02-11
 - **Constraints in visible text:** I do not want it returned.
 - **Initial request:** My work trip ends on 2026-02-10. Could you keep DL-007 for me until 2026-02-11? I do not want it returned.
@@ -110,7 +110,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-008 (shipment) · **Created:** 2026-02-09T09:00:00Z · **Events:** 5
 - **Requester:** Nemi Thale, recipient → `consumer` via Customer portal
 - **Context author:** Scheduling, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`reschedule` stage=`booked_not_dispatched` owner=`carrier` input_required=`True` urgency=`none` risk=`money` money=`True` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`reschedule` stage=`booked_not_dispatched` owner=`carrier` input_required=`True` urgency=`none` risk=`money` money=`True` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** DL-008 · **amounts:** - · **dates:** 2026-02-10
 - **Constraints in visible text:** Timed delivery may be available; only scheduling can quote live capacity and the upgrade charge. / I cannot stay in all day.
 - **Initial request:** I cannot stay in all day. Please find out whether there is a two-hour slot and what it costs before changing the service.
@@ -125,7 +125,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-009 (shipment) · **Created:** 2026-02-10T09:00:00Z · **Events:** 5
 - **Requester:** Sena Korr, recipient → `consumer` via Customer portal
 - **Context author:** Furniture delivery team, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`address_or_access` stage=`booked_not_dispatched` owner=`customer` input_required=`True` urgency=`none` risk=`physical_handling` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`address_or_access` stage=`booked_not_dispatched` owner=`customer` input_required=`True` urgency=`none` risk=`physical_handling` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L2 Shipment data correction`
 - **Visible refs:** DL-009 · **amounts:** - · **dates:** 2026-02-11
 - **Constraints in visible text:** I have put the small shoes away but I have not confirmed the access requirements.
 - **Initial request:** I have put the small shoes away but I have not confirmed the access requirements. Can you keep the delivery booking for 2026-02-11?
@@ -140,7 +140,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-010 (shipment) · **Created:** 2026-02-11T09:00:00Z · **Events:** 4
 - **Requester:** Daro Lusk, recipient → `consumer` via Customer portal
 - **Context author:** Dispatch, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`redirect_or_hold` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`redirect_or_hold` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** DL-010 · **amounts:** - · **dates:** 2026-02-14
 - **Initial request:** I am away and return on 2026-02-14. Please hold the parcel and release it on 2026-02-14, not earlier.
 - **Gold action:** `request_operator_action` → **Dispatch, Plover Arc Logistics** (`carrier` / `dispatch_scheduling`) via **Email**; proof=`operator_confirmation`; queue=`carrier_ops`; human_gate=`none`
@@ -154,7 +154,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-011 (shipment) · **Created:** 2026-02-12T09:00:00Z · **Events:** 4
 - **Requester:** Mera Olt, recipient → `consumer` via Customer portal
 - **Context author:** Tracking support, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`tracking_visibility` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`tracking_visibility` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** DL-011 · **amounts:** - · **dates:** 2026-02-12
 - **Constraints in visible text:** Our system does not currently confirm the storage position. / The tracker has not changed since early this morning.
 - **Initial request:** The tracker has not changed since early this morning. Could someone check whether the parcel is actually at the depot?
@@ -169,7 +169,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-012 (shipment) · **Created:** 2026-02-13T09:00:00Z · **Events:** 5
 - **Requester:** Fenn Azel, recipient → `consumer` via Customer portal
 - **Context author:** Dispatch, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`reschedule` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`reschedule` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** DL-012 · **amounts:** - · **dates:** 2026-02-12, 2026-02-14
 - **Initial request:** Yesterday’s booked window was missed and I still have no parcel. I am free on 2026-02-14 in the afternoon. Please arrange a replacement slot.
 - **Gold action:** `request_operator_action` → **Dispatch, Plover Arc Logistics** (`carrier` / `dispatch_scheduling`) via **Email**; proof=`booking_reference`; queue=`carrier_ops`; human_gate=`none`
@@ -183,7 +183,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-013 (shipment) · **Created:** 2026-02-14T09:00:00Z · **Events:** 4
 - **Requester:** Yara Elt, recipient → `consumer` via Customer portal
 - **Context author:** Tracking support, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`reschedule` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`fraud_dispute` money=`False` verification=`authenticated_session` conflict=`True`
+- **Params:** segment=`consumer_parcel` issue=`reschedule` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`fraud_dispute` money=`False` verification=`authenticated_session` conflict=`True` complexity=`L5 Conflicting reports`
 - **Visible refs:** DL-013 · **amounts:** - · **dates:** 2026-02-15
 - **Constraints in visible text:** The route record has not yet been reviewed; no conclusion about the attempt is available.
 - **Initial request:** I was at home and did not hear the intercom. Please review the missed attempt and arrange another visit. I am available on 2026-02-15 morning.
@@ -198,7 +198,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-014 (shipment) · **Created:** 2026-02-15T09:00:00Z · **Events:** 5
 - **Requester:** Rellin Vos, Vellum Rack receiving coordinator → `business_counterparty` via Business portal
 - **Context author:** Business dispatch, Plover Arc Logistics
-- **Params:** segment=`business_parcel` issue=`reschedule` stage=`at_depot` owner=`business_counterparty` input_required=`True` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`business_parcel` issue=`reschedule` stage=`at_depot` owner=`business_counterparty` input_required=`True` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** DL-014 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** Our shop may be open late, but the receiving desk is not.
 - **Initial request:** Our shop may be open late, but the receiving desk is not. Please check with me before booking another delivery.
@@ -213,7 +213,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-015 (shipment) · **Created:** 2026-02-16T09:00:00Z · **Events:** 4
 - **Requester:** Kiva Rell, recipient → `consumer` via Customer portal
 - **Context author:** Routing control, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`tracking_visibility` stage=`misrouted_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`tracking_visibility` stage=`misrouted_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L2 Shipment data correction`
 - **Visible refs:** DL-015 · **amounts:** - · **dates:** -
 - **Initial request:** The tracker shows a depot in the wrong area. Can you get my parcel to the local depot before arranging delivery?
 - **Gold action:** `request_operator_action` → **Routing control, Plover Arc Logistics** (`carrier` / `routing_redirect`) via **Email**; proof=`physical_scan`; queue=`carrier_ops`; human_gate=`none`
@@ -227,7 +227,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-016 (shipment) · **Created:** 2026-02-17T09:00:00Z · **Events:** 5
 - **Requester:** Zerin Pave, recipient → `consumer` via Customer portal
 - **Context author:** Locker routing, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`redirect_or_hold` stage=`at_depot` owner=`carrier` input_required=`True` urgency=`deadline_bound` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`redirect_or_hold` stage=`at_depot` owner=`carrier` input_required=`True` urgency=`deadline_bound` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L2 Shipment data correction`
 - **Visible refs:** DL-016 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** DL-016 cannot be placed in Copperfin Locker because all suitable compartments are occupied.
 - **Initial request:** I need the parcel before the locker retry date. Please send me the carrier’s alternative collection option.
@@ -242,7 +242,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-017 (shipment) · **Created:** 2026-02-18T09:00:00Z · **Events:** 5
 - **Requester:** Vela Morn, recipient → `consumer` via Customer portal
 - **Context author:** Notification support, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`tracking_visibility` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`credentials` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`tracking_visibility` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`credentials` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** DL-017 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** The tracking link in my notification does not open.
 - **Initial request:** The tracking link in my notification does not open. Please give me the correct way to find this parcel in the order portal.
@@ -257,7 +257,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-018 (shipment) · **Created:** 2026-02-19T09:00:00Z · **Events:** 5
 - **Requester:** Exception desk, Plover Arc Logistics → `carrier_ops` via Dispatch chat
 - **Context author:** Exception desk, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`redirect_or_hold` stage=`at_depot` owner=`customer` input_required=`True` urgency=`deadline_today` cutoff=`2026-02-19T16:00:00Z` risk=`-` money=`False` verification=`verified_by_operator` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`redirect_or_hold` stage=`at_depot` owner=`customer` input_required=`True` urgency=`deadline_today` cutoff=`2026-02-19T16:00:00Z` risk=`-` money=`False` verification=`verified_by_operator` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** DL-018 · **amounts:** - · **dates:** 2026-02-20
 - **Constraints in visible text:** Please contact authorised recipient Nalo Vere now, before the cutoff, rather than let the return timer expire.
 - **Initial request:** No recipient choice is recorded. Please contact authorised recipient Nalo Vere now, before the cutoff, rather than let the return timer expire.
@@ -272,7 +272,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-019 (shipment) · **Created:** 2026-02-20T09:00:00Z · **Events:** 5
 - **Requester:** Tessa Jorn, recipient → `consumer` via Customer portal
 - **Context author:** Route safety control, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`service_disruption` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`service_disruption` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** DL-019 · **amounts:** - · **dates:** -
 - **Initial request:** I saw the weather alert. Can you tell me whether my parcel is coming today and when I should expect an update?
 - **Gold action:** `request_record_or_statement` → **Dispatch, Plover Arc Logistics** (`carrier` / `dispatch_scheduling`) via **Email**; proof=`approved_statement`; queue=`carrier_ops`; human_gate=`none`
@@ -286,7 +286,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** TG-020 (task) · **Created:** 2026-02-21T09:00:00Z · **Events:** 5
 - **Requester:** Eris Kael, recipient → `consumer` via Customer portal
 - **Context author:** Parcel support, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`tracking_visibility` stage=`delivered_partial` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`tracking_visibility` stage=`delivered_partial` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L3 Multi-parcel orders`
 - **Visible refs:** DL-020-A, DL-020-B, DL-020-C, TG-020 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** A and B have delivery scans; C has an inbound depot scan only.
 - **Initial request:** I received two of the three cartons for TG-020. The missing carton is DL-020-C. Please locate it; I am available tomorrow.
@@ -301,7 +301,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-021 (shipment) · **Created:** 2026-02-22T09:00:00Z · **Events:** 5
 - **Requester:** Lessa Vire, recipient → `consumer` via Customer portal
 - **Context author:** Damage intake, Tallowmere Goods
-- **Params:** segment=`consumer_parcel` issue=`damage_or_condition` stage=`delivered` owner=`customer` input_required=`True` urgency=`none` risk=`physical_handling` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`damage_or_condition` stage=`delivered` owner=`customer` input_required=`True` urgency=`none` risk=`physical_handling` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L4 Evidence and downstream decisions`
 - **Visible refs:** DL-021, TG-021 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** Do not ask the customer to unpack an item they consider unsafe. / I have not opened it.
 - **Initial request:** The outside corner of my carton is dented. I have not opened it. Tell me which views your merchant needs for the damage assessment.
@@ -317,7 +317,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-022 (shipment) · **Created:** 2026-02-23T09:00:00Z · **Events:** 4
 - **Requester:** Remi Dask, recipient → `consumer` via Customer portal
 - **Context author:** Damage assessor, Tallowmere Goods
-- **Params:** segment=`consumer_parcel` issue=`damage_or_condition` stage=`delivered` owner=`merchant` input_required=`False` urgency=`none` risk=`money` money=`True` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`damage_or_condition` stage=`delivered` owner=`merchant` input_required=`False` urgency=`none` risk=`money` money=`True` verification=`authenticated_session` conflict=`False` complexity=`L4 Evidence and downstream decisions`
 - **Visible refs:** DL-022, TG-022 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** Dispatch DL-022 has completed; replacement approval is not yet recorded. / I would prefer the same lamp rather than a refund.
 - **Initial request:** I would prefer the same lamp rather than a refund. Please ask the merchant to approve a replacement.
@@ -332,7 +332,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-023 (shipment) · **Created:** 2026-02-24T09:00:00Z · **Events:** 4
 - **Requester:** Depot shift coordinator, Plover Arc Logistics → `carrier_ops` via Depot work queue
 - **Context author:** Depot shift coordinator, Plover Arc Logistics
-- **Params:** segment=`carrier_internal` issue=`safety_hazard` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`immediate` risk=`safety|physical_handling` money=`False` verification=`internal_party` conflict=`False`
+- **Params:** segment=`carrier_internal` issue=`safety_hazard` stage=`at_depot` owner=`carrier` input_required=`False` urgency=`immediate` risk=`safety|physical_handling` money=`False` verification=`internal_party` conflict=`False` complexity=`L6 Safety and regulatory holds`
 - **Visible refs:** DL-023 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** Contents have not been assessed. / Do not route it to a driver or ask the customer to collect it.
 - **Initial request:** Please get our safety lead to take over this incident now. Do not route it to a driver or ask the customer to collect it.
@@ -347,7 +347,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-024 (shipment) · **Created:** 2026-02-25T09:00:00Z · **Events:** 4
 - **Requester:** Sorin Vaal, recipient → `consumer` via Customer portal
 - **Context author:** Tracking support, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`loss_or_misdelivery` stage=`delivered_disputed` owner=`carrier` input_required=`False` urgency=`none` risk=`fraud_dispute` money=`False` verification=`verified_by_operator` conflict=`True`
+- **Params:** segment=`consumer_parcel` issue=`loss_or_misdelivery` stage=`delivered_disputed` owner=`carrier` input_required=`False` urgency=`none` risk=`fraud_dispute` money=`False` verification=`verified_by_operator` conflict=`True` complexity=`L5 Conflicting reports`
 - **Visible refs:** DL-024 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** We have not reviewed the handover record or route stop. / Only the shipment and recipient account match are verified.
 - **Initial request:** No one in my household has the parcel. I see delivered on the tracker. Please have the carrier investigate where it went.
@@ -362,7 +362,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-025 (shipment) · **Created:** 2026-02-26T09:00:00Z · **Events:** 4
 - **Requester:** Aven Korrin, recipient → `consumer` via Customer portal
 - **Context author:** Loss investigations, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`loss_or_misdelivery` stage=`lost_confirmed` owner=`merchant` input_required=`False` urgency=`none` risk=`money` money=`True` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`loss_or_misdelivery` stage=`lost_confirmed` owner=`merchant` input_required=`False` urgency=`none` risk=`money` money=`True` verification=`authenticated_session` conflict=`False` complexity=`L4 Evidence and downstream decisions`
 - **Visible refs:** DL-025, INV-025, TG-025 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** This finding does not itself create a merchant replacement order. / I choose a like-for-like replacement rather than a refund.
 - **Initial request:** I still need the kettle from TG-025. I choose a like-for-like replacement rather than a refund. Please ask the merchant to approve it.
@@ -377,7 +377,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-026 (shipment) · **Created:** 2026-02-27T09:00:00Z · **Events:** 5
 - **Requester:** Neris Fawn, intended recipient → `consumer` via Customer portal
 - **Context author:** Delivery investigations, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`loss_or_misdelivery` stage=`misdelivered` owner=`carrier` input_required=`False` urgency=`none` risk=`privacy_third_party` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`loss_or_misdelivery` stage=`misdelivered` owner=`carrier` input_required=`False` urgency=`none` risk=`privacy_third_party` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L2 Shipment data correction`
 - **Visible refs:** DL-026 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** I do not want to contact the other household myself.
 - **Initial request:** Please have the carrier recover my parcel and deliver it to my verified address. I do not want to contact the other household myself.
@@ -392,7 +392,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** MD-027 (task) · **Created:** 2026-02-28T09:00:00Z · **Events:** 4
 - **Requester:** Tovin Esk, reporting customer → `consumer` via Customer portal
 - **Context author:** Misdelivery desk, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`loss_or_misdelivery` stage=`misdelivered` owner=`carrier` input_required=`False` urgency=`none` risk=`privacy_third_party|physical_handling` money=`False` verification=`verified_by_operator` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`loss_or_misdelivery` stage=`misdelivered` owner=`carrier` input_required=`False` urgency=`none` risk=`privacy_third_party|physical_handling` money=`False` verification=`verified_by_operator` conflict=`False` complexity=`L2 Shipment data correction`
 - **Visible refs:** MD-027, WP-027 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** Do not copy the other recipient’s address into this thread. / My own order has not arrived.
 - **Initial request:** The courier left someone else’s parcel. It is unopened. Can you arrange collection? My own order has not arrived.
@@ -407,7 +407,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-028 (shipment) · **Created:** 2026-03-01T09:00:00Z · **Events:** 4
 - **Requester:** Riva Solt, recipient → `consumer` via Customer portal
 - **Context author:** Order support, Tallowmere Goods
-- **Params:** segment=`consumer_parcel` issue=`wrong_or_duplicate_item` stage=`delivered` owner=`merchant` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`verified_by_operator` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`wrong_or_duplicate_item` stage=`delivered` owner=`merchant` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`verified_by_operator` conflict=`False` complexity=`L4 Evidence and downstream decisions`
 - **Visible refs:** DL-028, TG-028 · **amounts:** - · **dates:** 2026-03-02
 - **Initial request:** I want the blue desk organiser I ordered. Please arrange an exchange for the wrong item; I can be home on 2026-03-02 morning.
 - **Gold action:** `request_authorisation_or_decision` → **Returns authorisations, Tallowmere Goods** (`merchant` / `merchant_authorisation`) via **Email**; proof=`approval_reference`; queue=`merchant_authorisation`; human_gate=`none`
@@ -421,7 +421,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-029 (shipment) · **Created:** 2026-03-02T09:00:00Z · **Events:** 4
 - **Requester:** Enna Vosk, recipient → `consumer` via Customer portal
 - **Context author:** Brineleaf Pantry food-safety intake
-- **Params:** segment=`consumer_parcel` issue=`safety_hazard` stage=`delivered` owner=`merchant` input_required=`False` urgency=`immediate` risk=`safety|consumption|physical_handling` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`safety_hazard` stage=`delivered` owner=`merchant` input_required=`False` urgency=`immediate` risk=`safety|consumption|physical_handling` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L6 Safety and regulatory holds`
 - **Visible refs:** BP-029, DL-029 · **amounts:** - · **dates:** 2026-03-02
 - **Constraints in visible text:** This is outside our range; only food-safety staff may authorise disposition. / I have not eaten anything from this box.
 - **Initial request:** I have not eaten anything from this box. The logger shows 9.2 °C. Please get the merchant to tell me what to do and whether they will replace it.
@@ -436,7 +436,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-030 (shipment) · **Created:** 2026-03-03T09:00:00Z · **Events:** 5
 - **Requester:** Iven Thoss, recipient → `consumer` via Customer portal
 - **Context author:** Secure shipment support, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`tracking_visibility` stage=`delivered` owner=`carrier` input_required=`False` urgency=`none` risk=`privacy_third_party` money=`False` verification=`verified_by_operator` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`tracking_visibility` stage=`delivered` owner=`carrier` input_required=`False` urgency=`none` risk=`privacy_third_party` money=`False` verification=`verified_by_operator` conflict=`False` complexity=`L4 Evidence and downstream decisions`
 - **Visible refs:** DL-030 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** Its delivery flag is present but the customer-facing handover record has not populated.
 - **Initial request:** I did receive the camera accessory. Please obtain the matching handover record so I can reconcile the delivery time in my order history.
@@ -451,7 +451,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-031 (shipment) · **Created:** 2026-03-04T09:00:00Z · **Events:** 5
 - **Requester:** Kessa Ulm, customer → `consumer` via Customer portal
 - **Context author:** Returns support, Tallowmere Goods
-- **Params:** segment=`returns` issue=`return_processing` stage=`return_approved` owner=`merchant` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`returns` issue=`return_processing` stage=`return_approved` owner=`merchant` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L4 Evidence and downstream decisions`
 - **Visible refs:** DL-031, RT-031, TG-031 · **amounts:** - · **dates:** -
 - **Initial request:** The return is approved but there is nothing to print in my order. Please obtain my return label.
 - **Gold action:** `request_operator_action` → **Return label team, Tallowmere Goods** (`merchant` / `merchant_fulfilment`) via **Email**; proof=`document_from_party`; queue=`merchant_authorisation`; human_gate=`none`
@@ -466,7 +466,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-032 (shipment) · **Created:** 2026-03-05T09:00:00Z · **Events:** 5
 - **Requester:** Oska Vey, customer → `consumer` via Customer portal
 - **Context author:** Returns support, Tallowmere Goods
-- **Params:** segment=`returns` issue=`return_processing` stage=`return_approved` owner=`merchant` input_required=`False` urgency=`none` risk=`credentials` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`returns` issue=`return_processing` stage=`return_approved` owner=`merchant` input_required=`False` urgency=`none` risk=`credentials` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L4 Evidence and downstream decisions`
 - **Visible refs:** DL-032, RT-032, TG-032 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** I do not own a printer.
 - **Initial request:** I do not own a printer. Could you arrange the QR return option and tell me which counter accepts it?
@@ -482,7 +482,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** RT-033 (task) · **Created:** 2026-03-06T09:00:00Z · **Events:** 5
 - **Requester:** Virin Lask, customer → `consumer` via Customer portal
 - **Context author:** Collections control, Plover Arc Logistics
-- **Params:** segment=`returns` issue=`reschedule` stage=`return_approved` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`returns` issue=`reschedule` stage=`return_approved` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** RT-033 · **amounts:** - · **dates:** 2026-03-07
 - **Initial request:** Nobody collected my return. I can be home on 2026-03-07, 10:00–14:00. Please book another collection within that window.
 - **Gold action:** `request_operator_action` → **Collections control, Plover Arc Logistics** (`carrier` / `recovery_collection`) via **Email**; proof=`receipt_document`; queue=`carrier_ops`; human_gate=`none`
@@ -496,7 +496,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** RT-034 (task) · **Created:** 2026-03-07T09:00:00Z · **Events:** 4
 - **Requester:** Elrin Kove, customer → `consumer` via Customer portal
 - **Context author:** Returns depot, Plover Arc Logistics
-- **Params:** segment=`returns` issue=`tracking_visibility` stage=`return_in_transit` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`returns` issue=`tracking_visibility` stage=`return_in_transit` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** RT-034 · **amounts:** - · **dates:** 2026-03-07
 - **Initial request:** My return has been sitting at the depot. Could you trace it to the merchant? I need to know when they actually have it.
 - **Gold action:** `request_physical_trace` → **Returns trace team, Plover Arc Logistics** (`carrier` / `trace`) via **Email**; proof=`receipt_document`; queue=`carrier_trace`; human_gate=`none`
@@ -510,7 +510,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** TG-035 (task) · **Created:** 2026-03-08T09:00:00Z · **Events:** 4
 - **Requester:** Melli Orven, customer → `consumer` via Customer portal
 - **Context author:** Warehouse receiving, Tallowmere Goods
-- **Params:** segment=`returns` issue=`money_and_billing` stage=`return_received` owner=`merchant` input_required=`False` urgency=`none` risk=`money` money=`True` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`returns` issue=`money_and_billing` stage=`return_received` owner=`merchant` input_required=`False` urgency=`none` risk=`money` money=`True` verification=`authenticated_session` conflict=`False` complexity=`L4 Evidence and downstream decisions`
 - **Visible refs:** RT-035, TG-035, WH-035 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** We can confirm receipt, but our receiving role does not approve refunds.
 - **Initial request:** The warehouse says it has my return, but my order has no refund review. Please pass the receipt to the team that handles it.
@@ -525,7 +525,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** OF-036 (task) · **Created:** 2026-03-09T09:00:00Z · **Events:** 4
 - **Requester:** Fesk Rowan, Orris Fold Studio shipping coordinator → `business_counterparty` via Business portal
 - **Context author:** Fesk Rowan, Orris Fold Studio shipping coordinator
-- **Params:** segment=`business_freight` issue=`freight_booking` stage=`pre_collection` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`business_freight` issue=`freight_booking` stage=`pre_collection` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** DL-036-A, DL-036-D, OF-036 · **amounts:** - · **dates:** 2026-03-10
 - **Constraints in visible text:** We cannot release a partial consignment.
 - **Initial request:** Could you confirm a collection vehicle can take all four together? We cannot release a partial consignment.
@@ -540,7 +540,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** RT-037 (task) · **Created:** 2026-03-10T09:00:00Z · **Events:** 4
 - **Requester:** Lorin Esh, customer → `consumer` via Customer portal
 - **Context author:** Specialist returns, Tallowmere Goods
-- **Params:** segment=`returns` issue=`return_processing` stage=`return_approved` owner=`merchant` input_required=`False` urgency=`none` risk=`physical_handling` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`returns` issue=`return_processing` stage=`return_approved` owner=`merchant` input_required=`False` urgency=`none` risk=`physical_handling` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L6 Safety and regulatory holds`
 - **Visible refs:** RT-037 · **amounts:** - · **dates:** 2026-03-11
 - **Constraints in visible text:** Ordinary parcel collection is not suitable. / I cannot move the cabinet myself.
 - **Initial request:** Please arrange the in-home collection. The access record is still correct, and I can be home on 2026-03-11. I cannot move the cabinet myself.
@@ -555,7 +555,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-038 (shipment) · **Created:** 2026-03-11T09:00:00Z · **Events:** 4
 - **Requester:** Sella Nove, customer → `consumer` via Customer portal
 - **Context author:** Warehouse returns, Tallowmere Goods
-- **Params:** segment=`consumer_parcel` issue=`cancel_or_reship` stage=`returned_to_sender` owner=`merchant` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`verified_by_operator` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`cancel_or_reship` stage=`returned_to_sender` owner=`merchant` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`verified_by_operator` conflict=`False` complexity=`L4 Evidence and downstream decisions`
 - **Visible refs:** DL-038, TG-038 · **amounts:** - · **dates:** -
 - **Initial request:** I still want the order. I checked my authenticated order details: Apartment 2, 31 Rillstone Walk, Merrow Quay is correct. Please ask for reshipment there.
 - **Gold action:** `request_authorisation_or_decision` → **Reshipment authorisations, Tallowmere Goods** (`merchant` / `merchant_authorisation`) via **Email**; proof=`approval_reference`; queue=`merchant_authorisation`; human_gate=`none`
@@ -569,7 +569,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** TG-039 (task) · **Created:** 2026-03-12T09:00:00Z · **Events:** 5
 - **Requester:** Dessa Kelm, customer → `consumer` via Customer portal
 - **Context author:** Order reconciliation, Tallowmere Goods
-- **Params:** segment=`consumer_parcel` issue=`wrong_or_duplicate_item` stage=`delivered` owner=`merchant` input_required=`False` urgency=`none` risk=`money` money=`True` verification=`authenticated_session` conflict=`True`
+- **Params:** segment=`consumer_parcel` issue=`wrong_or_duplicate_item` stage=`delivered` owner=`merchant` input_required=`False` urgency=`none` risk=`money` money=`True` verification=`authenticated_session` conflict=`True` complexity=`L7 Reconciliation across related shipments`
 - **Visible refs:** DL-039-O, DL-039-R, TG-039 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** Customer should not be charged for a duplicate without our authorised reconciliation.
 - **Initial request:** Both floor lights arrived. I have kept the replacement and left the original carton sealed. Please tell me how to return the duplicate.
@@ -584,7 +584,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-040 (shipment) · **Created:** 2026-03-13T09:00:00Z · **Events:** 4
 - **Requester:** Order control, Tallowmere Goods → `merchant_ops` via Warehouse work queue
 - **Context author:** Order control, Tallowmere Goods
-- **Params:** segment=`merchant_internal` issue=`cancel_or_reship` stage=`booked_not_dispatched` owner=`merchant` input_required=`False` urgency=`immediate` risk=`money|authority` money=`True` verification=`internal_party` conflict=`False`
+- **Params:** segment=`merchant_internal` issue=`cancel_or_reship` stage=`booked_not_dispatched` owner=`merchant` input_required=`False` urgency=`immediate` risk=`money|authority` money=`True` verification=`internal_party` conflict=`False` complexity=`L2 Shipment data correction`
 - **Visible refs:** CAN-040, DL-040, TG-040 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** The cancellation is authorised, but the physical dispatch stop is not confirmed.
 - **Initial request:** Please get the warehouse to stop DL-040 before the next outbound sweep. The cancellation is authorised, but the physical dispatch stop is not confirmed.
@@ -599,7 +599,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-041 (shipment) · **Created:** 2026-03-14T09:00:00Z · **Events:** 5
 - **Requester:** Freight dispatch, Plover Arc Logistics → `carrier_ops` via Freight portal
 - **Context author:** Freight dispatch, Plover Arc Logistics
-- **Params:** segment=`business_freight` issue=`freight_booking` stage=`booked_not_dispatched` owner=`business_counterparty` input_required=`True` urgency=`none` risk=`-` money=`False` verification=`verified_by_operator` conflict=`False`
+- **Params:** segment=`business_freight` issue=`freight_booking` stage=`booked_not_dispatched` owner=`business_counterparty` input_required=`True` urgency=`none` risk=`-` money=`False` verification=`verified_by_operator` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** DL-041 · **amounts:** - · **dates:** 2026-03-15
 - **Constraints in visible text:** We can reach its dock on 2026-03-15 afternoon, but will not send the truck without a consignee appointment.
 - **Initial request:** Please book with authorised receiving coordinator Ossa Rell. Obtain the dock reference, time and receiving entrance for our driver.
@@ -614,7 +614,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-042 (shipment) · **Created:** 2026-03-15T09:00:00Z · **Events:** 4
 - **Requester:** Voren Tesk, Fenwick Spur receiving coordinator → `business_counterparty` via Business portal
 - **Context author:** Freight account services, Plover Arc Logistics
-- **Params:** segment=`business_freight` issue=`freight_booking` stage=`booked_not_dispatched` owner=`carrier` input_required=`False` urgency=`none` risk=`money|physical_handling|authority` money=`True` amount=`GBP 30.00` verification=`verified_by_operator` conflict=`False`
+- **Params:** segment=`business_freight` issue=`freight_booking` stage=`booked_not_dispatched` owner=`carrier` input_required=`False` urgency=`none` risk=`money|physical_handling|authority` money=`True` amount=`GBP 30.00` verification=`verified_by_operator` conflict=`False` complexity=`L6 Safety and regulatory holds`
 - **Visible refs:** DL-042 · **amounts:** GBP 30.00, GBP 30.00 · **dates:** -
 - **Constraints in visible text:** Consignee staff are not authorised to manually unload the pallet.
 - **Initial request:** Our booking account authorises me to accept up to GBP 30.00 total extra service cost. Please arrange the carrier’s suitable option if it fits that limit.
@@ -629,7 +629,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-043 (shipment) · **Created:** 2026-03-16T09:00:00Z · **Events:** 5
 - **Requester:** Nessa Dray, Orris Span shipping coordinator → `business_counterparty` via Business portal
 - **Context author:** Freight booking desk, Plover Arc Logistics
-- **Params:** segment=`business_freight` issue=`freight_booking` stage=`pre_collection` owner=`business_counterparty` input_required=`True` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`business_freight` issue=`freight_booking` stage=`pre_collection` owner=`business_counterparty` input_required=`True` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L2 Shipment data correction`
 - **Visible refs:** DL-043 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** We cannot allocate a collection vehicle from an unspecified pallet size.
 - **Initial request:** We have the pallet ready. Please tell me which measurements the carrier needs to finish the booking.
@@ -644,7 +644,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** KL-044 (task) · **Created:** 2026-03-17T09:00:00Z · **Events:** 5
 - **Requester:** Eron Leth, Kestrel Loom receiving coordinator → `business_counterparty` via Business portal
 - **Context author:** Eron Leth, Kestrel Loom receiving coordinator
-- **Params:** segment=`business_freight` issue=`tracking_visibility` stage=`delivered_partial` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`True`
+- **Params:** segment=`business_freight` issue=`tracking_visibility` stage=`delivered_partial` owner=`carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`True` complexity=`L3 Multi-parcel orders`
 - **Visible refs:** DL-044-P1, DL-044-P4, KL-044 · **amounts:** - · **dates:** 2026-03-18
 - **Initial request:** Please trace DL-044-P4 separately. We can receive the missing pallet on 2026-03-18 afternoon at the same receiving bay.
 - **Gold action:** `request_physical_trace` → **Freight trace team, Plover Arc Logistics** (`carrier` / `trace`) via **Email**; proof=`signed_count`; queue=`carrier_trace`; human_gate=`none`
@@ -658,7 +658,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-045 (shipment) · **Created:** 2026-03-18T09:00:00Z · **Events:** 5
 - **Requester:** Ossmere Trade Desk, appointed customs broker → `customs_broker` via Broker portal
 - **Context author:** Ossmere Trade Desk, appointed customs broker
-- **Params:** segment=`international` issue=`customs_and_import` stage=`customs_hold` owner=`business_counterparty` input_required=`True` urgency=`none` risk=`authority` money=`False` verification=`verified_by_operator` conflict=`False`
+- **Params:** segment=`international` issue=`customs_and_import` stage=`customs_hold` owner=`business_counterparty` input_required=`True` urgency=`none` risk=`authority` money=`False` verification=`verified_by_operator` conflict=`False` complexity=`L6 Safety and regulatory holds`
 - **Visible refs:** DL-045, OS-045 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** Do not fill in values or origin on their behalf.
 - **Initial request:** Please request the complete invoice from authorised shipper Mavelle Export Studio. Do not fill in values or origin on their behalf.
@@ -674,7 +674,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-046 (shipment) · **Created:** 2026-03-19T09:00:00Z · **Events:** 5
 - **Requester:** Celand Arc Imports account administrator → `business_counterparty` via Business portal
 - **Context author:** Ossmere Trade Desk, customs broker
-- **Params:** segment=`international` issue=`customs_and_import` stage=`customs_hold` owner=`business_counterparty` input_required=`True` urgency=`none` risk=`authority` money=`False` verification=`verified_by_operator` conflict=`False`
+- **Params:** segment=`international` issue=`customs_and_import` stage=`customs_hold` owner=`business_counterparty` input_required=`True` urgency=`none` risk=`authority` money=`False` verification=`verified_by_operator` conflict=`False` complexity=`L6 Safety and regulatory holds`
 - **Visible refs:** DL-046 · **amounts:** - · **dates:** -
 - **Constraints in visible text:** Please ask her to complete the mandate; our operator account cannot sign it.
 - **Initial request:** Account register excerpt: Mara Vesk, director, is the authorised signatory for broker appointment on DL-046. Her verified business-portal channel is active. Please ask her to complete the mandate; our operator account cannot sign it.
@@ -689,7 +689,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-047 (shipment) · **Created:** 2026-03-20T09:00:00Z · **Events:** 5
 - **Requester:** Teren Osk, recipient → `consumer` via Customer portal
 - **Context author:** Import support, Plover Arc Logistics
-- **Params:** segment=`international` issue=`money_and_billing` stage=`customs_hold` owner=`carrier` input_required=`False` urgency=`none` risk=`money|credentials` money=`True` amount=`GBP 32.00` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`international` issue=`money_and_billing` stage=`customs_hold` owner=`carrier` input_required=`False` urgency=`none` risk=`money|credentials` money=`True` amount=`GBP 32.00` verification=`authenticated_session` conflict=`False` complexity=`L6 Safety and regulatory holds`
 - **Visible refs:** DL-047, IC-047 · **amounts:** GBP 32.00, GBP 32.00 · **dates:** -
 - **Constraints in visible text:** This is a fictional operator notice; payment is not confirmed. / I do not understand which part is handling and which part is the import assessment.
 - **Initial request:** Please explain the GBP 32.00 charge before I decide what to do. I do not understand which part is handling and which part is the import assessment.
@@ -704,7 +704,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-048 (shipment) · **Created:** 2026-03-21T09:00:00Z · **Events:** 4
 - **Requester:** Ari Veld, recipient → `consumer` via Customer portal
 - **Context author:** Harbor Thread International transfer support
-- **Params:** segment=`international` issue=`tracking_visibility` stage=`cleared_pending_handover` owner=`international_carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`international` issue=`tracking_visibility` stage=`cleared_pending_handover` owner=`international_carrier` input_required=`False` urgency=`none` risk=`-` money=`False` verification=`authenticated_session` conflict=`False` complexity=`L1 Simple status`
 - **Visible refs:** CLR-048, DL-048 · **amounts:** - · **dates:** 2026-03-21
 - **Constraints in visible text:** Clearance does not mean delivery.
 - **Initial request:** My international tracker says released. Please find out whether the local carrier actually has the parcel and give me its tracking reference.
@@ -719,7 +719,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-049 (shipment) · **Created:** 2026-03-22T09:00:00Z · **Events:** 4
 - **Requester:** Vera Senn, Mossline Press finance coordinator → `business_counterparty` via Business portal
 - **Context author:** Vera Senn, Mossline Press finance coordinator
-- **Params:** segment=`business_freight` issue=`money_and_billing` stage=`delivered` owner=`carrier` input_required=`False` urgency=`none` risk=`money` money=`True` amount=`GBP 18.00` verification=`authenticated_session` conflict=`True`
+- **Params:** segment=`business_freight` issue=`money_and_billing` stage=`delivered` owner=`carrier` input_required=`False` urgency=`none` risk=`money` money=`True` amount=`GBP 18.00` verification=`authenticated_session` conflict=`True` complexity=`L4 Evidence and downstream decisions`
 - **Visible refs:** DL-049, INV-049 · **amounts:** GBP 18.00, GBP 18.00, GBP 36.00 · **dates:** 2026-03-22
 - **Constraints in visible text:** We have not paid either line.
 - **Initial request:** Please ask billing to review the duplicate before we pay this invoice. We have not paid either line.
@@ -735,7 +735,7 @@ One block per case. "Visible" = what the agent may read before deciding (events 
 - **Ref:** DL-050 (shipment) · **Created:** 2026-03-23T09:00:00Z · **Events:** 4
 - **Requester:** Nella Voss, customer → `consumer` via Customer portal
 - **Context author:** Service guarantees, Plover Arc Logistics
-- **Params:** segment=`consumer_parcel` issue=`money_and_billing` stage=`delivered` owner=`carrier` input_required=`False` urgency=`none` risk=`money` money=`True` amount=`GBP 7.50` verification=`authenticated_session` conflict=`False`
+- **Params:** segment=`consumer_parcel` issue=`money_and_billing` stage=`delivered` owner=`carrier` input_required=`False` urgency=`none` risk=`money` money=`True` amount=`GBP 7.50` verification=`authenticated_session` conflict=`False` complexity=`L4 Evidence and downstream decisions`
 - **Visible refs:** DL-050 · **amounts:** GBP 7.50, GBP 7.50 · **dates:** 2026-03-23
 - **Constraints in visible text:** No exclusion is recorded.
 - **Initial request:** My parcel arrived at 08:40, later than the guaranteed 08:00 deadline. Please submit a request for the GBP 7.50 service surcharge under these booking terms.
