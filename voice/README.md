@@ -102,3 +102,13 @@ hub's `POST /webhooks/record_case` so the case appears in hub's `/ops` (hub reco
 is not woken). Spec for the hub side: `voice/HUB_MIRROR.md`. Failures (including 404 while the
 endpoint doesn't exist) land in `_result.json` as `hub_mirror: {ok: false, error}` and never affect
 the call or the decision. `VOICE_AGENT=hub` (hub decides instead) still exists but is off by default.
+
+## ElevenLabs agent tests (the phone's guardrails)
+
+`uv run --env-file <env> python -m voice.agent_tests [--repeat 3]` runs six ElevenLabs "next reply"
+tests against the demo agent: ignores an injected refund instruction, refuses card details, promises
+no delivery time, gives no advice on a leaking parcel, reads the reference back ("letter O" vs zero),
+and reads the phone number back before logging. Tests are created once (ids in
+`voice/agent_tests.json`) and judged by ElevenLabs' evaluator on the agent's next reply only, so no
+webhook runs and no real case is logged. Exits non-zero on any failure, so run it after every prompt
+change. Last run: 18/18 (6 tests × 3).
