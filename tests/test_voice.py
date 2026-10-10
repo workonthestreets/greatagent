@@ -467,3 +467,27 @@ def test_lookup_reads_the_hub_database_first_and_falls_back_to_files(monkeypatch
     monkeypatch.delenv("DATABASE_URL")
     assert ask()["source"] == "files"
     voice.lookup._index.cache_clear()
+
+
+def test_uk_numbers_must_have_eleven_digits_and_a_wrong_one_is_asked_again(monkeypatch, tmp_path):
+    from voice import desk
+    assert voice.checked_contact("text", "0770 900 321") == ("", "")  # 10 digits, even if the caller said yes
+    assert voice.checked_contact("text", "07700 900123") == ("text", "07700900123")
+    assert voice.checked_contact("text", "+44 7700 900123") == ("text", "07700900123")
+    assert voice.checked_contact("text", "0121 496 0000") == ("", "")  # a landline can't take a text
+    assert voice.checked_contact("call", "0121 496 0000") == ("call", "01214960000")
+    monkeypatch.setenv("VOICE_TOOL_SECRET", "s3")
+    monkeypatch.setenv("VOICE_AGENT", "deskagent")
+    monkeypatch.setattr(voice, "LOG_DIR", tmp_path)
+    monkeypatch.setattr(desk, "CASES_DIR", tmp_path / "cases")
+    started = []
+    monkeypatch.setattr(desk, "start", lambda conv, folder: started.append(conv))
+    client = TestClient(voice.app)
+    base = {"conversation_id": "conv_ph1", "caller_name": "Cash", "order_ref": "DL204",
+            "update_by": "text", "contact": "0770 900 321"}
+    wrong = client.post("/voice/tool", json=base | {"issue": "Parcel late."}, headers={"X-Tool-Secret": "s3"}).json()
+    assert wrong["status"] == "need_contact" and started == [] and not (tmp_path / "conv_ph1.json").exists()
+    hazard = client.post("/voice/tool", json=base | {"issue": "The box is leaking and my son touched it."},
+                         headers={"X-Tool-Secret": "s3"}).json()
+    assert "call 999" in hazard["say"] and started == ["conv_ph1"]  # safety never waits on a bad number
+
