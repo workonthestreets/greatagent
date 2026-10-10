@@ -184,7 +184,7 @@ def test_deskagent_runs_are_capped_but_cases_still_saved(monkeypatch, tmp_path):
         assert reply["status"] == "logged"
     desk._threads["conv_one1"].join(5)
     assert runs == ["conv_one1"]
-    capped = json.loads((tmp_path / "cases" / "conv-two2" / "result.json").read_text())
+    capped = json.loads((tmp_path / "cases" / "conv-two2" / "_result.json").read_text())
     assert capped["status"] == "capped" and (tmp_path / "cases" / "conv-two2" / "index.md").exists()
     assert client.get("/health").json() == {"ok": True, "agent": "deskagent"}
 
@@ -210,3 +210,28 @@ def test_second_problem_in_one_call_is_a_new_case_and_hazard_words_get_999(monke
     assert started == ["conv_w23j", "conv_w23j-2"]
     assert "call 999" in hazard["say"] and hazard["say"] != first["say"]
 
+
+
+def test_shipment_lookup_adds_only_pre_escalation_context(monkeypatch, tmp_path):
+    from voice import desk, lookup
+    case = tmp_path / "data" / "025"
+    case.mkdir(parents=True)
+    (case / "index.md").write_text(
+        "# Case 025: Lost parcel\n\n## Case details\n- **Status:** Completed\n- **Primary shipment:** DL-025\n"
+        "- **Coordinator:** Desk\n\n## Initial request\nPlease ask the merchant.\n\n"
+        "## Next action at escalation\nSECRET-LABEL\n")
+    (case / "history.md").write_text(
+        '# h\n\n<a id="event-001"></a>\n## t — event 001\n- **Stage:** Context\n\nCarrier confirms loss.\n\n'
+        '<a id="event-002"></a>\n## t — event 002\n- **Stage:** Escalation\n\nRecipient wants a replacement.\n\n'
+        '<a id="event-003"></a>\n## t — event 003\n- **Stage:** Agent action\n\nSECRET-LATER\n')
+    monkeypatch.setattr(lookup, "DATA", tmp_path / "data")
+    lookup._index.cache_clear()
+    assert lookup.find_shipment("dl 025") == lookup.find_shipment("DL025") == case
+    monkeypatch.setattr(desk, "CASES_DIR", tmp_path / "cases")
+    folder = desk.write_case_folder("conv_x", "Ana", "DL025", "Any news on my kettle?", "", "")
+    built = (folder / "index.md").read_text() + (folder / "history.md").read_text()
+    assert "Carrier confirms loss" in built and "Any news on my kettle?" in built
+    assert "SECRET" not in built and "Completed" not in built and "event 003" in built  # the call is event 003
+    assert desk.lookup_info(folder) == {"matched": True, "source_case": "025", "primary": "DL-025",
+                                        "events_used": 2}
+    lookup._index.cache_clear()

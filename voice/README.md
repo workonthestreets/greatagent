@@ -67,9 +67,15 @@ agent cannot be made to ask for one. `/voice/tool` now asks from the same whitel
 `VOICE_AGENT=deskagent` (default): `/voice/tool` writes the call as a case folder under
 `runs/voice/cases/<conversation>/` and replies at once with a template ("logged as case 5417…").
 The team's deskagent then runs `load_case` + `process_case` (reviewer on) in the background,
-about 40 s; its decision lands in `result.json`, `answer/<id>/ANSWER.md`, and the outbox
+about 40 s; its decision lands in `_result.json`, `answer/<id>/ANSWER.md`, and the outbox
 (Mailpit with `SEND_EMAIL=1`). `POST /voice/update {conversation_id}` speaks a template summary.
 Before the merge with main, point `DESKAGENT_PATH` at a checkout of main
 (`git worktree add --detach ../greatagent-main origin/main`). `VOICE_AGENT=triage` restores
 the older inline path.
 
+
+**Shipment lookup.** When the caller's reference matches a known shipment (`voice/lookup.py`,
+case folders under `VOICE_SHIPMENT_DATA`, default the public Delivery cases), the case deskagent
+sees starts with the desk's own record up to the escalation — Case details and the events staged
+Context/Escalation, never later events or labels — and the call is appended as the latest event.
+In production this would query the shipment database (e.g. the data branch's SQLite) instead.

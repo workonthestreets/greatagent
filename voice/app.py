@@ -294,11 +294,13 @@ def capture_for_desk(report: CallReport) -> dict:
     folder = desk.write_case_folder(report.conversation_id, report.caller_name, report.order_ref,
                                     report.issue, how, stored)
     case = desk.short_id(report.conversation_id)
+    found = desk.lookup_info(folder)
+    seen = f"I can see shipment {found['primary']}. " if found.get("matched") and found.get("primary") else ""
     if is_hazard(report.issue):
         say = (f"Thank you. If anyone feels unwell, call 999 now. I've logged this as urgent case {case} "
                f"for our delivery desk, and they'll contact you; I can't give a time or outcome yet.")
     else:
-        say = (f"Thank you. I've logged this as case {case} for our delivery desk. "
+        say = (f"Thank you. {seen}I've logged this as case {case} for our delivery desk. "
                f"{update_line(report.update_by, report.contact)}; I can't promise a time or outcome yet.")
     _log(report.conversation_id, "", {"agent": "deskagent", "case_dir": str(folder), "say": say, "issue": report.issue,
                                       "contact": {"update_by": how, "contact": stored}})
