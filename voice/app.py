@@ -115,7 +115,7 @@ def spoken(d: dict, update_by: str = "", contact: str = "") -> str:
         return (f"Thank you. I can't settle this on the call, so I've passed it to {who} to check. "
                 f"They'll contact you; I can't give a time or outcome yet.")
     if d.get("party") == "customer":
-        return f"Thank you. To move this on we need {d.get('missing') or 'a little more detail'}. Could you give me that now?"
+        return ASKS[ask_key(d)]
     who = d.get("org") or ROLE_WORDS.get(d.get("party", ""), "our delivery team")
     return (f"Thank you. I'm asking {who} to look into this. {update_line(update_by, contact)}; "
             f"I can't promise a time or outcome yet.")
@@ -131,6 +131,7 @@ ASKS = {
     "confirm_ref": "Sorry, could you confirm those details for me once more?",
     "contact": "What's the best email address or phone number for updates?",
     "slot": "Which day or time would suit you best for delivery?",
+    "receiver": "Who should we authorise to receive the parcel, and is there a name we should give the driver?",
     "access": "Is there anything we should know for getting the parcel to you, "
               "like a safe place or a neighbour?",
     "photo": "If you're able to, could you take a photo of it for our team?",
@@ -138,11 +139,12 @@ ASKS = {
 }
 
 _ASK_RULES = [  # first keyword hit in `missing` picks the template; no hit -> generic
-    ("confirm_ref", r"confirm|which|correct|wrong"),
-    ("ref", r"reference|tracking|order|consignment|parcel (number|id)"),
+    ("confirm_ref", r"confirm (the |those |your )?(ref|number|details)|which (ref|number)|correct|wrong"),
+    ("ref", r"reference|tracking|order number|consignment|parcel (number|id)"),
+    ("receiver", r"nominee|nominat|authoris|household|on (your|their) behalf|someone else|alternative recipient|receive (it|the parcel)"),
     ("contact", r"contact|email|phone|reach you|updates?"),
-    ("slot", r"slot|deliver|when|day|time|date|reschedul|rebook|availab"),
-    ("access", r"access|safe place|neighbou?r|gate|door|entry|buzz|flat|floor|leave"),
+    ("slot", r"slot|time window|which day|what day|what time|when (you|they)|date|reschedul|rebook|availab"),
+    ("access", r"access|safe place|neighbou?r|gate|door|entry|buzz|flat|floor|apartment|unit number|leave"),
     ("photo", r"photo|picture|image|evidence"),
 ]
 

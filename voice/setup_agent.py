@@ -63,12 +63,12 @@ ASSIST_PROMPT = (
 )
 
 
-def call(method: str, path: str, key: str, body: dict | None = None) -> dict:
+def call(method: str, path: str, key: str, body: dict | None = None, timeout: int = 30) -> dict:
     req = urllib.request.Request(f"{API}{path}", method=method, headers={
         "xi-api-key": key, "content-type": "application/json"},
         data=json.dumps(body).encode() if body is not None else None)
     try:
-        with urllib.request.urlopen(req, timeout=30) as r:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read() or b"{}")
     except urllib.error.HTTPError as e:
         sys.exit(f"{method} {path} failed: {e.code} {e.read().decode()[:600]}")

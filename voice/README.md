@@ -2,7 +2,8 @@
 
 A caller reports a delivery problem. The ElevenLabs agent collects the details and calls
 `POST /voice/tool` mid-call. We run the same `triage.decide` as every other case and reply
-with a fixed spoken template, so the call can't promise money, a time or an outcome. The
+with a fixed spoken template (a customer question comes from the same ASKS whitelist), so the
+call can't promise money, a time or an outcome. The
 decision and the transcript are logged in `runs/voice/`.
 
 ## Run
@@ -58,4 +59,5 @@ The reply is always a fixed template:
 The whitelist is the safety property: the question is picked by matching keywords in the
 decision's `missing` field against fixed keys — unmatched text falls back to the generic ask and
 is never spoken. Credentials have no key (no PIN, CVV or password template exists), so the voice
-agent cannot be made to ask for one. `/voice/tool` and the 60-second demo flow are unchanged.
+agent cannot be made to ask for one. `/voice/tool` now asks from the same whitelist; the
+60-second demo flow is unchanged.

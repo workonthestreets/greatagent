@@ -116,3 +116,15 @@ def test_turn_timeout_gives_safe_close(monkeypatch, tmp_path):
     out = _turn(client, "t6", "hello?").json()
     assert out["status"] == "end_call" and "logged" in out["say"]
     time.sleep(0.3)  # let the over-budget decide finish while LOG_DIR still points at tmp_path
+
+
+def test_tool_asks_only_from_whitelist(monkeypatch, tmp_path):
+    monkeypatch.setenv("VOICE_TOOL_SECRET", "s3")
+    monkeypatch.setattr(voice, "LOG_DIR", tmp_path)
+    client = TestClient(voice.app)
+    for missing, key in [("the brother's full name, so the delivery can be authorised to him as an alternative recipient", "receiver"),
+                         ("the specific address detail the carrier needs clarified (e.g. unit, floor or access information)", "access"),
+                         ("the CVV from your payment card so the refund can be processed", "generic")]:
+        monkeypatch.setattr(voice, "decide", lambda case, m=missing: {"action": "ask", "party": "customer", "missing": m, "escalate": False})
+        say = client.post("/voice/tool", json={"conversation_id": f"w-{key}", "issue": "x"}, headers={"X-Tool-Secret": "s3"}).json()["say"]
+        assert say == voice.ASKS[key] and "CVV" not in say and "brother" not in say
