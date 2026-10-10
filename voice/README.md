@@ -6,6 +6,24 @@ with a fixed spoken template (a customer question comes from the same ASKS white
 call can't promise money, a time or an outcome. The
 decision and the transcript are logged in `runs/voice/`.
 
+## Run the voice line on your own accounts
+
+1. Clone the repo and `pip install -r requirements.txt` (Python 3.12).
+2. Create `.env` (never commit it): `ANTHROPIC_API_KEY` (or `APP_ANTHROPIC_API_KEY`), `ELEVENLABS_API_KEY`
+   (ElevenAgents write access) and `VOICE_TOOL_SECRET` = any long random string (`openssl rand -hex 32`).
+3. Start the service: `uvicorn voice.app:app --port 8010` with the `.env` loaded, then expose it with
+   `cloudflared tunnel --url http://localhost:8010`. Or deploy it on Railway: `deploy/README.md`.
+4. Create your agent, its three tools and the tool secret on your ElevenLabs account:
+   `python -m voice.setup_agent --public-url <your url> --fresh --ids voice/agent_ids.local.json`
+   (that ids file is gitignored; rerun with the same `--ids` and without `--fresh` after a URL change).
+5. Optional: ElevenLabs workspace settings, post-call webhook → `<your url>/voice/post-call`, and put its
+   secret in `ELEVENLABS_WEBHOOK_SECRET` to keep transcripts.
+6. Open the printed agent link and press "Test AI agent". Give a name, a reference, the problem and a
+   phone number, and say yes to each read-back.
+7. Check it: `GET <your url>/health`; agent guardrail tests: `python -m voice.agent_tests` (they call
+   your real webhooks, so expect test cases).
+8. If the stored ids belong to someone else, setup_agent notices (404/403) and creates new ones instead of failing.
+
 ## Run
 
 ```bash
@@ -17,7 +35,7 @@ cloudflared tunnel --url http://localhost:8000     # public https URL for Eleven
 Set `SEND_EMAIL=1` with Mailpit running (`mailpit`; inbox at http://localhost:8025) to show
 the agent's email arriving. Without it, emails are only written to disk.
 
-## ElevenLabs setup (dashboard, then pull into the repo)
+## Alternative: ElevenLabs setup by hand (dashboard, then pull into the repo)
 
 1. Create an agent: "Delivery desk". System prompt: collect the caller's name, order or
    tracking reference and what went wrong; call `report_delivery_issue` once; read its `say`

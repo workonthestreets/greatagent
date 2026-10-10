@@ -83,7 +83,12 @@ ASSIST_PROMPT = (
 )
 
 
-def call(method: str, path: str, key: str, body: dict | None = None, timeout: int = 30) -> dict:
+class NotYours(Exception):
+    """A stored id this API key can't see (404/403): someone else's agent, tool or secret."""
+
+
+def call(method: str, path: str, key: str, body: dict | None = None, timeout: int = 30,
+         missing_ok: bool = False) -> dict:
     req = urllib.request.Request(f"{API}{path}", method=method, headers={
         "xi-api-key": key, "content-type": "application/json"},
         data=json.dumps(body).encode() if body is not None else None)
@@ -91,7 +96,24 @@ def call(method: str, path: str, key: str, body: dict | None = None, timeout: in
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read() or b"{}")
     except urllib.error.HTTPError as e:
+        if missing_ok and e.code in (403, 404):
+            raise NotYours(f"{method} {path}: {e.code}") from e
         sys.exit(f"{method} {path} failed: {e.code} {e.read().decode()[:600]}")
+
+
+def usable_ids(path: Path, key: str, fresh: bool) -> dict:
+    """Stored ids, unless --fresh or they belong to another account; then start from nothing."""
+    if fresh or not path.exists():
+        return {}
+    ids = json.loads(path.read_text())
+    probe = ids.get("agent_id") or ids.get("assist_agent_id")
+    if probe:
+        try:
+            call("GET", f"/agents/{probe}", key, missing_ok=True)
+        except NotYours:
+            print(f"stored ids in {path} aren't visible to this API key; creating new ones")
+            return {}
+    return ids
 
 
 def lookup_tool_config(url: str, secret_id: str) -> dict:
@@ -181,12 +203,16 @@ def main(argv: list[str] | None = None) -> int:
                     help="live-assist mode: agent calls handle_caller_turn (/voice/turn) after every "
                          "caller message instead of the one-shot report_delivery_issue. The service "
                          "must also run with VOICE_ASSIST set.")
+    ap.add_argument("--fresh", action="store_true",
+                    help="ignore stored ids and create a new secret, tools and agent on this account")
+    ap.add_argument("--ids", type=Path, default=IDS,
+                    help="where ids are read and written (e.g. voice/agent_ids.local.json, gitignored)")
     args = ap.parse_args(argv)
     key = next((os.environ[name] for name in KEY_VARS if os.environ.get(name)), "")
     secret = os.getenv("VOICE_TOOL_SECRET")
     if not key or not secret:
         sys.exit(f"set one of {', '.join(KEY_VARS)} and VOICE_TOOL_SECRET")
-    ids = json.loads(IDS.read_text()) if IDS.exists() else {}
+    ids = usable_ids(args.ids, key, args.fresh)
     if "secret_id" not in ids:
         ids["secret_id"] = call("POST", "/secrets", key, {"type": "new", "name": "delivery-voice-tool-secret",
                                                           "value": secret})["secret_id"]
@@ -227,7 +253,7 @@ def main(argv: list[str] | None = None) -> int:
         call("PATCH", f"/agents/{ids[agent_key]}", key, agent)
     else:
         ids[agent_key] = call("POST", "/agents/create", key, agent)["agent_id"]
-    IDS.write_text(json.dumps(ids, indent=2) + "\n")
+    args.ids.write_text(json.dumps(ids, indent=2) + "\n")
     print(f"{name} {ids[agent_key]} → tools {tool_ids} → {args.public_url}{path}")
     print(f"test it: https://elevenlabs.io/app/agents/agents/{ids[agent_key]}")
     return 0
