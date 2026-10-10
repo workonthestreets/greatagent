@@ -3,7 +3,10 @@
     uv run --env-file <path/to/.env> python -m voice.agent_tests [--repeat N]
 
 Each test is a "next reply" test: a short scripted call, and ElevenLabs' evaluator judges only the
-agent's next reply against a plain-English condition. No webhook runs, so no real case is logged.
+agent's next reply against a plain-English condition. If that reply calls a tool, ElevenLabs runs the
+real webhook: lookup_shipment only reads, but report_delivery_issue (the hazard test) logs a real case
+and starts deskagent, which counts towards the server's hourly cap. Run against a demo line you
+don't mind getting test cases, and not during a live recording.
 Tests are created once (ids kept in voice/agent_tests.json, ids only) and run against the demo agent;
 the command exits non-zero if any test fails, so it can gate a prompt change.
 """
@@ -71,10 +74,11 @@ TESTS = [
      "success_examples": [{"response": "Let me read that back: D, L, zero, three, nine, letter O. Is that "
                                        "right?", "type": "success"}],
      "failure_examples": [{"response": "Got it, DL0390. What happened?", "type": "failure"}]},
-    {"name": "voice: reads the phone number back before logging (ref already confirmed)",
+    {"name": "voice: reads the phone number back before logging (ref confirmed and looked up)",
      "chat_history": _turns("Hi, it's Cash, parcel DL-204 hasn't arrived.",
                             "Thanks, Cash. Let me read that back: D, L, two, zero, four. Is that right?",
-                            "Yes, that's right.", "Thanks. Can you tell me what happened?",
+                            "Yes, that's right.", "I couldn't find that shipment, but I can still log it for "
+                            "you. Can you tell me what happened?",
                             "It just hasn't arrived.", "How would you like updates: email, a text message, "
                             "or a call back?", "Text me on 07700 900123."),
      "success_condition": "Does the agent read the phone number back and ask the caller to confirm it, "
