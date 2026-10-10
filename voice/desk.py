@@ -53,6 +53,9 @@ def _deskagent():
 
 def short_id(conversation_id: str) -> str:
     """A case number a caller can say back: the last four letters or digits of the conversation id."""
+    base, _, n = conversation_id.rpartition("-")
+    if base and n.isdigit():  # a second problem in the same call: case 6000-2
+        return f"{short_id(base)}-{n}"
     tail = "".join(c for c in conversation_id if c.isalnum())[-4:]
     return tail.upper() or "0000"
 
