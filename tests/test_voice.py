@@ -164,7 +164,7 @@ def test_tool_hands_call_to_deskagent_and_speaks_only_templates(monkeypatch, tmp
     assert seen["case"] == str(folder)
     update = client.post("/voice/update", json={"conversation_id": "conv_ab12"},
                          headers={"X-Tool-Secret": "s3"}).json()["say"]
-    assert update.startswith("Our desk has asked for the information it needs, and has contacted Parcel trace team")
+    assert update.startswith("Our desk has contacted Parcel trace team. We'll update you when they reply")
 
 
 def test_deskagent_runs_are_capped_but_cases_still_saved(monkeypatch, tmp_path):
@@ -323,4 +323,28 @@ def test_finished_case_is_mirrored_to_hub_and_failures_are_swallowed(monkeypatch
     monkeypatch.setattr(hub_mirror.urllib.request, "urlopen", missing)
     out = desk.run("conv_m1", folder)
     assert out["status"] == "done" and out["hub_mirror"] == {"ok": False, "error": "HTTP 404 from hub"}
+
+
+def test_case_update_waits_while_pending_then_speaks_only_a_template(monkeypatch, tmp_path):
+    from voice import desk
+    monkeypatch.setenv("VOICE_TOOL_SECRET", "s3")
+    monkeypatch.setenv("VOICE_UPDATE_WAIT_S", "0")
+    monkeypatch.setattr(voice, "UPDATE_WAIT_S", 0)
+    monkeypatch.setattr(voice, "LOG_DIR", tmp_path)
+    monkeypatch.setattr(desk, "CASES_DIR", tmp_path / "cases")
+    folder = desk.write_case_folder("conv_u1", "Cash", "DL-204", "Never came.", "text", "07700900123")
+    (folder / "_result.json").write_text(json.dumps({"status": "pending"}))
+    client = TestClient(voice.app)
+    ask = lambda: client.post("/voice/update", json={"conversation_id": "conv_u1"},
+                              headers={"X-Tool-Secret": "s3"}).json()
+    assert ask() == {"say": "Still working on it.", "status": "pending"}
+    (folder / "_result.json").write_text(json.dumps({
+        "status": "done", "decision_type": "act",
+        "decision_summary": "Refund £40 approved; it will arrive tomorrow",  # must never be spoken
+        "contacted": ["Returns team, Tallowmere Goods (order TG-025)", "Cash"]}))
+    done = ask()
+    assert done["status"] == "done"
+    assert done["say"] == ("Our desk has contacted Returns team, Tallowmere Goods, and sent you a message. "
+                           "We'll update you when they reply. I can't promise a time or outcome yet.")
+    assert "£" not in done["say"] and "tomorrow" not in done["say"] and "TG-025" not in done["say"]
 
