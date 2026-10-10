@@ -1,0 +1,83 @@
+{
+  "situation": "AWB 999-4812 0377 (2 pcs / 412 kg, hive heaters and honey-extraction gear, Izmir to GDN) is in Aerovanta bonded shed B under CUSTOMS HOLD pending a veterinary inspectorate sign-off. Duty is paid. The inspector is at shed B today, 9 Oct, between 13:30 and 15:00 CEST. The protocol usually reaches the broker by 16:30, and release takes about 30 minutes more if the result is clean. The desk promised Mr Nowak the outcome and delivery plan by 17:00 CEST today. At 13:48 Mr Nowak wrote, angry, demanding an exact truck arrival hour at his farm in Straszyn before 14:00 today, or a freight refund. He mentions a lawyer, the airline director and Google reviews. It is now 13:52 CEST.",
+  "direct_answer": "Mr Nowak, nobody can give an exact truck hour at 14:00 today, and we will not invent one. Release depends on the veterinary inspector's written protocol, and nothing can be loaded before it exists. Here is what is confirmed. The inspector is at shed B now, between 13:30 and 15:00 today. His written protocol usually reaches your broker by about 16:30. If the result is clean, the release stamp takes about 30 minutes, so the earliest the cargo could be released is around 17:00 today. After that, the delivery time to Straszyn still has to be booked. We will send you the result and the delivery plan by 17:00 today, as promised. Your request about the freight charge will be passed to the team that decides on charges. We cannot promise a refund ourselves.",
+  "facts": [
+    "VERIFIED (Aerovanta, 07 Oct 15:47): landed 06 Oct 22:10, 2 pcs / 412 kg, bonded shed B, status CUSTOMS HOLD, declared 'used apiary equipment'; release needs customs plus veterinary inspectorate sign-off; no storage charge before 12 Oct.",
+    "VERIFIED (Ewa Sawicka, broker, 08 Oct 10:05): entry lodged, duty PLN 1,312.40 paid from deposit; vet inspector assigned; she cannot give a release time until the inspector writes the protocol.",
+    "VERIFIED (Ewa Sawicka, 09 Oct 08:55): inspector at shed B 13:30-15:00 CEST today; protocol normally by 16:30; if clean, about 30 min to stamp release, then Aerovanta can load; she will forward everything on arrival.",
+    "DESK COMMITMENT (08 Oct 10:41): outcome and delivery plan to the customer by Fri 9 Oct 17:00 CEST.",
+    "CLAIM (customer, 09 Oct 13:48): expected Monday delivery; losing money; transport already paid; demands exact truck hour before 14:00 or a freight refund; mentions lawyer, airline director, Google reviews.",
+    "Delivery address stated by the customer: farm in Straszyn. No onward truck or delivery slot is booked anywhere in the record."
+  ],
+  "conflicts": [
+    "The customer wants an exact truck hour by 14:00, but the authoritative party (the broker) says no release time exists until the vet protocol is issued (expected by about 16:30). The demand cannot be met truthfully. This is a timing conflict, not a factual dispute.",
+    "The customer says the cargo was 'supposed to come Monday'. The record has no promised delivery date from any party, only the landing on Tue 06 Oct 22:10. This is not resolved here."
+  ],
+  "missing_information": [
+    "Vet inspection result and written protocol (expected about 16:30 today, via Ewa Sawicka).",
+    "Who arranges and books the onward truck from GDN shed B to Straszyn, and its earliest slot. This is not in the record.",
+    "Whom the freight charge was paid to and which team decides on freight refunds or credits. This is not in the record."
+  ],
+  "risk_flags": [
+    "Angry customer with a 14:00 deadline. Staying silent until 17:00 would escalate the situation further.",
+    "Threat of legal action, a complaint to the airline director and public reviews. The human coordinator should be aware.",
+    "Refund demand for freight. The desk has no authority to grant one, so it must not be promised.",
+    "Risk of over-promising: we must not give an arrival hour or same-day delivery that is not booked or confirmed.",
+    "Storage charges may start from 12 Oct if release slips. Per Aerovanta, there is no storage charge before 12 Oct."
+  ],
+  "authority_map": {
+    "Veterinary release / inspection outcome": "Veterinary inspectorate (via the broker Ewa Sawicka, Baltic Clear Customs)",
+    "Customs release stamp": "Baltic Clear Customs (Ewa Sawicka)",
+    "Loading out of bonded shed B": "Aerovanta Cargo GDN import handling",
+    "Onward delivery truck and arrival time to Straszyn": "Not named in record; the desk coordinator (Tomasz Wrobel) must identify and book once release is confirmed",
+    "Freight refund / compensation": "The authorised billing team of whichever party invoiced the freight; not named in record. The desk cannot decide",
+    "Response to legal threat / complaint handling": "Desk human coordinator Tomasz Wrobel"
+  },
+  "decision_type": "act",
+  "decision_summary": "Before 14:00, send Mr Nowak an honest, specific reply. It gives the confirmed timeline: inspector at shed B 13:30-15:00, protocol usually by 16:30, about 30 minutes to release if clean, so earliest release around 17:00. It explains that no exact truck hour can be given yet, confirms the 17:00 update, and says the freight refund request is being passed to the team that decides on charges, with no promise. In parallel, send an internal note to coordinator Tomasz Wrobel about the legal/review threat, the refund demand and the unbooked onward truck.",
+  "rationale": "The customer set a 14:00 deadline, and it is now 13:52. Waiting for the 17:00 promised update would ignore an explicit, time-bound request from an escalating customer, so a reply now is needed. Its content must be true: the broker has said no release time exists until the protocol is issued. So the desk cannot give an exact truck hour. It can give concrete times instead of 'we are working'. Timeline arithmetic: the inspection window ends at 15:00 at the latest. The protocol is usually in by 16:30, and 16:30 + 30 min = 17:00 is the earliest release if the result is clean. Onward transport to Straszyn is not booked, so even same-day delivery cannot be promised. The refund decision belongs to a billing team that is not named in the record, so we only acknowledge and route it. The threats are frustration rather than a safety issue. They do not block a factual reply, but the human coordinator must see them and own any refund or complaint routing. That is why the internal note goes to him rather than a full escalate_to_human that would leave the customer without an answer before 14:00. Ewa has already promised to forward the protocol on arrival, so chasing her now would be premature.",
+  "alternatives_rejected": [
+    "hold_no_action until 17:00: rejected. The customer explicitly asked for an answer before 14:00, and silence would worsen the escalation.",
+    "Giving an estimated truck arrival hour: rejected. It would be invented. No release exists and no truck or slot is booked.",
+    "Promising or refusing a freight refund: rejected. That is outside the desk's authority and the deciding team is not in the record.",
+    "Chasing Ewa Sawicka or the inspector now: rejected. The inspection is in progress (13:30-15:00) and she has committed to forward the protocol on arrival.",
+    "Full escalate_to_human with no customer reply: rejected. It would miss the customer's 14:00 deadline. The coordinator is informed in parallel instead.",
+    "Debating whether the vet check is necessary: rejected. It is a regulatory requirement stated by the carrier and the broker."
+  ],
+  "actions": [
+    {
+      "type": "send_message",
+      "channel": "email",
+      "to": "Zbigniew Nowak <z.nowak@pasieka-nowak.example>",
+      "subject": "RE: UNACCEPTABLE !!! - AWB 999-4812 0377 - status at 13:55 today",
+      "body": "Dear Mr Nowak,\n\nThank you for your message. I understand how important these heaters are before winter. Here are the facts as of now, without any guessing.\n\nWhat is happening today, Friday 9 October (Polish time):\n- The veterinary inspector is at the airline's shed B at Gdansk airport between 13:30 and 15:00, checking your 2 pallets (AWB 999-4812 0377) right now.\n- His written result normally reaches your customs broker by about 16:30.\n- If the result is clean, the broker needs about 30 minutes to stamp the release. The earliest your cargo can be released is therefore around 17:00 today.\n- Customs duty is already paid. There is no storage charge before 12 October.\n\nWhy I cannot give you an exact truck hour now: nobody, including the airline, the broker or us, is allowed to load the cargo until the inspector's written result exists. A delivery time to Straszyn can only be booked after release. If I gave you an hour now, I would be guessing, and I do not want to mislead you.\n\nWhat I will do: as promised, I will email you the inspection result and the delivery plan today by 17:00. If the result arrives earlier, you will hear from me earlier.\n\nAbout the freight charge: I have passed your request to the team that decides on charges. I cannot promise a refund myself, but you will receive their answer.\n\nKind regards,\nTomasz Wrobel\nBluecrane Freight Desk"
+    },
+    {
+      "type": "internal_note",
+      "channel": "internal",
+      "to": "Tomasz Wrobel (coordinator on shift)",
+      "body": "Case 401 / AWB 999-4812 0377. Customer Z. Nowak emailed at 13:48 demanding an exact truck hour by 14:00 or a freight refund. He mentions a lawyer, the airline director and Google reviews. A factual holding reply has been sent with the confirmed timeline (inspection 13:30-15:00, protocol usually by 16:30, about 30 min release if clean, so earliest release around 17:00) and the existing 17:00 update commitment. No hour, refund or compensation was promised. Decisions needed from you: (1) Route the freight refund request to the billing team that invoiced the freight. That team is not named in the record. (2) Identify who books the onward truck from GDN shed B to Straszyn and line it up so the 17:00 delivery plan can be met once Ewa forwards the protocol. (3) Decide whether the legal and review threat needs supervisor or complaints handling. Watch for: the protocol from Ewa Sawicka, usually by 16:30. If nothing has arrived by 16:30, ask her for status before the 17:00 customer update. Storage charges may apply from 12 Oct."
+    }
+  ],
+  "not_doing": [
+    "Not giving any truck arrival hour or same-day delivery promise, because none is booked or confirmed.",
+    "Not approving, refusing or pricing a freight refund or compensation. That decision belongs to the authorised billing team.",
+    "Not chasing the inspector or the broker during the inspection window. Ewa has committed to forward the protocol on arrival.",
+    "Not arguing about whether the veterinary check is justified, and not predicting its outcome.",
+    "Not booking onward transport before release is confirmed.",
+    "Not responding to the lawyer or review threats with any admission of fault or concession."
+  ],
+  "closes_when": "This step closes when the customer has a truthful status reply before 14:00 and the coordinator owns the refund routing and the onward-truck booking. The case moves on when Ewa forwards the vet protocol and release, at which point the delivery plan is sent by 17:00 CEST.",
+  "follow_up": "16:30 CEST today: if Ewa Sawicka has not forwarded the protocol, ask her for status. By 17:00 CEST today: send Mr Nowak the inspection outcome and the delivery plan, or an honest status if the protocol is still outstanding. Track the 12 Oct storage-charge start date.",
+  "confidence": 0.8,
+  "human_handover_notes": "The customer is threatening legal action and public reviews and demands a freight refund. The desk has no authority over refunds and the billing owner is not named. The onward delivery truck to Straszyn is not booked and its owner is not in the record. Tomasz needs to route the refund request, line up the onward transport for after release, and decide on complaint handling.",
+  "wait_check": {
+    "is_waiting_on_party": true,
+    "waiting_for": "The vet inspection protocol from the inspectorate via Ewa Sawicka, usually by 16:30 CEST, and the release stamp about 30 min after a clean result.",
+    "promised_by": "2026-10-09 16:30 CEST (protocol, usual), with the desk's own customer commitment at 17:00 CEST",
+    "deadline_passed": false,
+    "new_trigger_since_promise": "Yes. At 13:48 the customer sent an escalated email with an explicit deadline of 14:00, which falls before the 17:00 update.",
+    "verdict": "do_not_wait",
+    "reason": "Waiting on the broker for the protocol is correct, so the plan does not chase her. But the customer's new, time-bound demand (before 14:00) needs a reply now, earlier than the 17:00 promised update. The action is a truthful holding reply, not a chase of the waited-on party."
+  }
+}

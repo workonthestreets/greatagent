@@ -1,0 +1,119 @@
+{
+  "name": "Meridian",
+  "description": "An editorial design system for frontier AI and model infrastructure, pairing warm paper surfaces and high-contrast serif display type with clean grotesque UI and a single pastel spectrum moment.",
+  "theme": "light",
+  "stylingMode": "css",
+  "concept": "Meridian frames technical infrastructure as an editorial object. A warm paper background and thin architectural guide rules hold a strict content column; a serif display face carries the voice with one italic emphasis word per headline while a neutral grotesque runs the interface. Ink-black pill buttons and circular icon actions punctuate the calm, and a single deliberate pastel spectrum band with a halftone dot matrix supplies the only color event on the page, with charcoal cards overlapping it for depth.",
+  "palette": [
+    {
+      "name": "Paper",
+      "value": "#F3F1E9",
+      "role": "Main page background"
+    },
+    {
+      "name": "Ink",
+      "value": "#141412",
+      "role": "Primary text, headlines, and solid buttons"
+    },
+    {
+      "name": "Muted",
+      "value": "#6E6A5F",
+      "role": "Secondary text and supporting copy"
+    },
+    {
+      "name": "Charcoal",
+      "value": "#1B1A16",
+      "role": "Dark card and inverted surfaces"
+    },
+    {
+      "name": "Hairline",
+      "value": "#E1DDD1",
+      "role": "Borders and architectural guide rules"
+    },
+    {
+      "name": "Spectrum Rose",
+      "value": "#F3C9D8",
+      "role": "Signature pastel mesh accent"
+    },
+    {
+      "name": "Spectrum Mint",
+      "value": "#C8E6C4",
+      "role": "Signature pastel mesh accent"
+    },
+    {
+      "name": "Spectrum Sky",
+      "value": "#BCD9EF",
+      "role": "Signature pastel mesh accent"
+    }
+  ],
+  "fonts": [
+    {
+      "name": "Fraunces",
+      "provider": "Google Fonts",
+      "usage": "Display headlines and italic emphasis",
+      "cssImport": "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&display=swap"
+    },
+    {
+      "name": "Inter",
+      "provider": "Google Fonts",
+      "usage": "Body text, navigation, labels, and interface controls",
+      "cssImport": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+    }
+  ],
+  "iconPack": {
+    "name": "Lucide",
+    "url": "https://lucide.dev/",
+    "license": "ISC",
+    "usage": "Used for interface, action, and feature icons at small utility sizes with currentColor.",
+    "examples": [
+      {
+        "name": "Search",
+        "svg": "<!-- @license lucide-static v1.14.0 - ISC --> <svg class=\"lucide lucide-search\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" > <path d=\"m21 21-4.34-4.34\" /> <circle cx=\"11\" cy=\"11\" r=\"8\" /> </svg>"
+      },
+      {
+        "name": "Sun",
+        "svg": "<!-- @license lucide-static v1.14.0 - ISC --> <svg class=\"lucide lucide-sun\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" > <circle cx=\"12\" cy=\"12\" r=\"4\" /> <path d=\"M12 2v2\" /> <path d=\"M12 20v2\" /> <path d=\"m4.93 4.93 1.41 1.41\" /> <path d=\"m17.66 17.66 1.41 1.41\" /> <path d=\"M2 12h2\" /> <path d=\"M20 12h2\" /> <path d=\"m6.34 17.66-1.41 1.41\" /> <path d=\"m19.07 4.93-1.41 1.41\" /> </svg>"
+      },
+      {
+        "name": "Moon",
+        "svg": "<!-- @license lucide-static v1.14.0 - ISC --> <svg class=\"lucide lucide-moon\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" > <path d=\"M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401\" /> </svg>"
+      },
+      {
+        "name": "Layers",
+        "svg": "<!-- @license lucide-static v1.14.0 - ISC --> <svg class=\"lucide lucide-layers\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" > <path d=\"M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z\" /> <path d=\"M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12\" /> <path d=\"M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17\" /> </svg>"
+      },
+      {
+        "name": "Zap",
+        "svg": "<!-- @license lucide-static v1.14.0 - ISC --> <svg class=\"lucide lucide-zap\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" > <path d=\"M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z\" /> </svg>"
+      },
+      {
+        "name": "Check",
+        "svg": "<!-- @license lucide-static v1.14.0 - ISC --> <svg class=\"lucide lucide-check\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" > <path d=\"M20 6 9 17l-5-5\" /> </svg>"
+      },
+      {
+        "name": "Bell",
+        "svg": "<!-- @license lucide-static v1.14.0 - ISC --> <svg class=\"lucide lucide-bell\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" > <path d=\"M10.268 21a2 2 0 0 0 3.464 0\" /> <path d=\"M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326\" /> </svg>"
+      },
+      {
+        "name": "Settings",
+        "svg": "<!-- @license lucide-static v1.14.0 - ISC --> <svg class=\"lucide lucide-settings\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" > <path d=\"M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915\" /> <circle cx=\"12\" cy=\"12\" r=\"3\" /> </svg>"
+      },
+      {
+        "name": "User",
+        "svg": "<!-- @license lucide-static v1.14.0 - ISC --> <svg class=\"lucide lucide-user\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" > <path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\" /> <circle cx=\"12\" cy=\"7\" r=\"4\" /> </svg>"
+      }
+    ]
+  },
+  "logo": {
+    "name": "Meridian mark",
+    "svg": "<svg viewBox=\"0 0 318.75 330.05\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M291.67,201.01c-13.58-10.8-27.47-22.56-41.49-35.34,14.38-13.45,28.65-25.98,42.68-37.63,33.14-27.51,34.7-77.82,3.3-107.29-.49-.46-.98-.92-1.47-1.38-31.88-29.92-82.82-24.47-107.81,11.4-8.47,12.16-17.63,24.58-27.51,37.17-9.88-12.58-19.04-25.01-27.51-37.17C106.87-5.1,55.94-10.54,24.06,19.38c-.49.46-.98.92-1.47,1.38-31.4,29.47-29.84,79.79,3.3,107.29,14.03,11.65,28.31,24.17,42.68,37.63-14.02,12.78-27.91,24.54-41.49,35.34-34.2,27.19-36.35,78.36-4.49,108.26l1.47,1.38c31.4,29.47,81.51,24.74,106.86-10.06,8.87-12.19,18.35-24.59,28.46-37.14,10.11,12.55,19.59,24.95,28.46,37.14,25.35,34.81,75.46,39.53,106.86,10.06l1.47-1.38c31.85-29.9,29.7-81.07-4.49-108.26Z\"/></svg>"
+  },
+  "tags": [
+    "Editorial",
+    "Light",
+    "Serif Display",
+    "AI Infrastructure",
+    "Minimal",
+    "CSS"
+  ]
+}

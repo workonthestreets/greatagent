@@ -55,7 +55,7 @@ def agent_output_text_v1(res: dict) -> str:
         a = e["action"]
         lines.append(f"- {a.get('tool')} -> {a.get('to_name', '')} ({a.get('to_role', '')}) via {a.get('channel', '')} [{e['status']}]\n  {a.get('body', '')}")
     lines.append("Deliberately not doing: " + "; ".join(p.get("not_doing") or []))
-    lines.append(f"Closes when: {p.get('closes_when')}")
+    lines.append(f"Proof that closes this step: {p.get('proof_standard')}")
     return "\n".join(lines)
 
 

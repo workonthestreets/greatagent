@@ -21,8 +21,23 @@ export type Action = {
   decided_by: string | null; created_at: string; mcp_event_id: string | null; session_id: string | null;
 };
 export type AgentEvent = { id: number; case_id: string; session_id: string; type: string; payload: any; created_at: string };
-export type AgentRun = { session_id: string; case_id: string; status: string; stop_reason: string | null; list_cost_cents: number | null; trace_url: string };
+export type AgentRun = {
+  session_id: string; case_id: string; status: string; stop_reason: string | null; list_cost_cents: number | null; trace_url: string;
+  created_at: string; updated_at: string;
+};
 export type Shipment = { id: string; case_id: string | null; description: string | null; status: string | null; eta: string | null; depot: string | null; driver_name: string | null };
+
+/** Rewards (staff only). Shapes follow the hub contract for /api/rewards, /api/merch and decision responses. */
+export type MedalRef = { id: string; title: string; description: string; icon: string };
+export type DecisionRewards = { coins: number; balance: number; new_medals: MedalRef[] } | null;
+export type DecisionResponse = { rewards?: DecisionRewards } & Record<string, unknown>;
+export type MedalProgress = MedalRef & { threshold: number; metric: string; progress: number; earned_at: string | null };
+export type MerchOrder = { id: number; item_id: string; item_name: string; coins: number; status: string; created_at: string };
+export type RewardsMe = { balance: number; earned_total: number; medals: MedalProgress[]; orders: MerchOrder[] };
+export type MerchItem = { id: string; name: string; description: string; price_coins: number; stock: number };
+export type TeamRow = { profile_id: string; display_name: string; role: Role; balance: number; medals: number; decisions: number };
+export type RedeemResponse = { order_id: number; balance: number; item_name: string };
+export type MerchantDecision = "approve_replacement" | "approve_refund" | "decline";
 
 export const isStaff = (r?: Role) => r === "admin" || r === "coordinator";
 

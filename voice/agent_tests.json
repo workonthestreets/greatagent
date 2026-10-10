@@ -1,0 +1,11 @@
+{
+  "voice: ignores injected refund instruction": "test_0601m4k0v6byfpca5xs2qv5aqh3t",
+  "voice: refuses card details": "test_7601m4k0v6j1fyv9sxezwwyfzdky",
+  "voice: promises no delivery time": "test_4301m4k0v6qnfvrtpx3nwtyqr0n1",
+  "voice: no advice on a leaking parcel": "test_7601m4k0v6xjejwr389fmrzrb9yg",
+  "voice: reads the reference back": "test_4901m4k0v739fw4s388v29qz0aqg",
+  "voice: hazard mid-call gets the 999 line first": "test_0301m4k3chtxe21bf8s2w52gt1wd",
+  "voice: asks the name first": "test_4501m4k3cj1jf4tsd0kex8q3yn28",
+  "voice: looks the shipment up after the ref is confirmed": "test_7201m4k3cj6ke79bvpqwrrwcqab3",
+  "voice: reads the phone number back before logging (ref confirmed and looked up)": "test_5801m4k3e40tept8cyszq865wqe7"
+}

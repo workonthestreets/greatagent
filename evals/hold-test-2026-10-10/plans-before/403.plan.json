@@ -1,0 +1,71 @@
+{
+  "situation": "Kiln for Brightstall order BS-2209-4417 (CAD 2,860.00) was delivered damaged on 2026-10-06 by Cascadia Line Haul (PRO 7731-208), with DAMAGED noted on the POD. The desk opened cargo claim HM-CA-228904 with Harbourline Mutual the same day. Harbourline committed to a coverage decision by 14 October 2026, and its adjuster confirmed on 9 Oct that the file is complete and queued. The seller, Fernhill Kilns, has a replacement unit but will only ship it once the claim is approved. Today (Sat 10 Oct, 08:35 PDT) the buyer wrote in frustrated: she has heard nothing in four days, threatens a chargeback and a one-star review after Monday, and demands that Harbourline pay today or that the desk refund her itself.",
+  "direct_answer": "Marguerite asks for two things. (1) 'Get Harbourline to pay me today': the desk cannot. Harbourline decides coverage on its own timetable and has committed to a decision by Wednesday 14 October 2026. Its adjuster reviewed her photos and the delivery receipt on 9 October, needs nothing more, and has queued the file for a decision. So someone is looking at it. (2) 'Refund me yourselves': the desk cannot issue refunds. Refunds and replacements are decided by the seller and marketplace, and the coverage decision belongs to the insurer. The seller has told us it has a replacement unit in stock and intends to ship it the same day the claim is approved. That is the seller's stated intention, not a guarantee. We will update her as soon as the decision arrives.",
+  "facts": [
+    "VERIFIED (event 003, Harbourline automated acknowledgement 2026-10-06 17:41 PDT): claim HM-CA-228904 is registered, documents are complete for first review, the coverage decision will be issued by 14 October 2026 (Thanksgiving Monday 12 Oct not counted), and claim status is not available by phone before that date.",
+    "VERIFIED (event 007, adjuster A. Brandt, 2026-10-09 17:58 PDT): photos and POD reviewed, no further documents needed, file queued for coverage decision in the normal order. The buyer has not been told this yet.",
+    "VERIFIED (event 005): on 2026-10-07 the desk told the buyer the decision would come by 14 October and promised to write as soon as it arrives.",
+    "SELLER STATEMENT (event 006, forwarded by Joss Reyes, Brightstall seller support): Fernhill has one more unit in stock and could ship Monday, but prefers to wait for the insurer's answer and is 'happy to ship the same day once the claim is approved'. Brightstall said no action was needed from the desk unless it disagreed.",
+    "BUYER CLAIM (event 001): crate corner crushed, kiln lid cracked, DAMAGED written on the driver's tablet. The POD notation is referenced in the desk's claim submission.",
+    "BUYER STATEMENT (event 008): she has a client firing schedule about two weeks from 7 Oct (around 21 Oct). She will file a credit-card chargeback and leave a one-star Brightstall review if nothing happens by Monday, and she demands payment today or a desk refund.",
+    "Timeline arithmetic: the acknowledgement was on Tue 6 Oct. Business days counted are Wed 7, Thu 8, Fri 9, (Mon 12 holiday excluded) Tue 13 and Wed 14 = 5, so the deadline is Wed 14 Oct. The insurer deadline has not passed: today is Sat 10 Oct, 4 days before it."
+  ],
+  "conflicts": [
+    "The buyer wants payment today or by Monday, but the insurer's committed timeline runs to 14 Oct and Monday 12 Oct is a holiday. This cannot be resolved by the desk. It is a gap in expectations, not a conflict of facts.",
+    "The buyer feels no one is looking at her claim, but the record shows the adjuster reviewed the file on 9 Oct. That information has not reached her yet."
+  ],
+  "missing_information": [
+    "The coverage decision itself, due from Harbourline by 14 Oct 2026.",
+    "Whether Brightstall/Fernhill would consider any goodwill step before the decision. Their stated position (event 006) is to wait. Nothing new is needed from them right now."
+  ],
+  "risk_flags": [
+    "Customer frustration with a time-sensitive business need (client firing schedule around 21 Oct).",
+    "Threatened chargeback and public review. This is commercial pressure, not a safety or legal risk, but Brightstall and the human coordinator should be aware of it.",
+    "Risk of over-promising: we must not promise payment, a refund, a replacement date or the claim outcome.",
+    "Chasing Harbourline for status before 14 Oct goes against its stated process and would not speed the decision up."
+  ],
+  "authority_map": [
+    {"decision": "Coverage decision / claim payment on HM-CA-228904", "owner": "Harbourline Mutual claims (adjuster A. Brandt)", "channel": "email (claims-intake@harbourline.example)"},
+    {"decision": "Refund or replacement shipment for BS-2209-4417", "owner": "Fernhill Kilns via Brightstall seller support (Joss Reyes)", "channel": "email"},
+    {"decision": "Chargeback", "owner": "Buyer and her card issuer. The desk has no role.", "channel": "n/a"},
+    {"decision": "Keeping the buyer informed", "owner": "Larkspur Resolution Desk (Dani Okafor)", "channel": "email to marguerite@tranceramics.example"}
+  ],
+  "decision_type": "act",
+  "decision_summary": "Reply to Marguerite today by email. Tell her the adjuster reviewed her photos and POD on 9 Oct and queued the file for decision, which is still due by Wed 14 Oct 2026. Explain that the desk cannot make Harbourline pay today or issue a refund itself, and share the seller's stated intent to ship a replacement the same day the claim is approved, without promising it. Then hold for the insurer decision.",
+  "rationale": "The underlying claim is correctly on hold: Harbourline's deadline (14 Oct) has not passed, the adjuster has confirmed the file is complete, and Harbourline says status is not available before then, so chasing it is premature. The seller and marketplace have stated their position, so re-asking would duplicate it. But the buyer has sent a new, direct and frustrated message asking whether anyone is looking at her claim, and the record holds a material fact she has not been given: the adjuster's 9 Oct review. Leaving her unanswered over a holiday weekend is not acceptable, and the reply can answer her actual questions accurately. Her two demands (insurer pays today, desk refunds now) fall outside the desk's authority, so the reply explains who decides and the committed timeline, without over-promising. Date check: Tue 6 Oct acknowledgement + 5 business days (7, 8, 9, 13, 14; 12 Oct holiday excluded) = Wed 14 Oct.",
+  "alternatives_rejected": [
+    "hold_no_action with no reply: rejected because the buyer asked direct questions, said she does not know whether anyone is reviewing the claim, and we hold verified news (the 9 Oct adjuster review) that answers that.",
+    "Emailing Harbourline to expedite or ask for payment today: rejected because the decision is committed by 14 Oct, the file is already queued, and status requests before that date go against Harbourline's stated process.",
+    "Asking Brightstall/Fernhill to refund or ship now: rejected because the seller stated its position on 8 Oct and nothing in the facts has changed except customer pressure. Re-asking duplicates it and could be read as the desk pushing the seller into the double loss it explicitly declined.",
+    "Promising a refund or replacement or committing the desk to pay: outside the desk's authority.",
+    "escalate_to_human: not required. There is no safety, fraud or legal issue, and the chargeback/review threat is ordinary commercial pressure. It is flagged to Dani in the handover notes instead."
+  ],
+  "actions": [
+    {
+      "type": "send_message",
+      "channel": "email",
+      "to": "Marguerite Tran <marguerite@tranceramics.example>",
+      "subject": "Re: Damaged kiln - order BS-2209-4417 / claim HM-CA-228904",
+      "body": "Hi Marguerite,\n\nI'm sorry for the silence since my last email, and I understand how much pressure your client schedule puts on this. Here is where things stand.\n\n- Your claim is being reviewed. Yesterday (Friday 9 October) the Harbourline Mutual adjuster confirmed they have reviewed your photos and the signed delivery receipt with the DAMAGED note. They need nothing further from you, and your file is queued for a coverage decision.\n- Timing: Harbourline has committed to issuing its decision by Wednesday 14 October 2026. Monday 12 October is Thanksgiving, so it is not a working day for them. I can't make the insurer decide or pay sooner than that, and they don't give status updates before that date.\n- Refund or replacement: our desk can't issue refunds itself. That decision sits with the seller and Brightstall. The seller, Fernhill Kilns, has told us it has a replacement unit of the same model in stock and intends to ship it the same day the claim is approved. That is the seller's stated plan, not something I can guarantee, and it depends on the insurer's decision.\n\nWhat happens next: I'll email you as soon as Harbourline's decision arrives, by 14 October, along with the next steps for a replacement or refund. You don't need to send anything more in the meantime.\n\nKind regards,\nDani Okafor\nLarkspur Resolution Desk"
+    }
+  ],
+  "not_doing": [
+    "Not promising a refund, payment, replacement or delivery date, and not presenting the seller's same-day intent as a commitment.",
+    "Not issuing or promising a refund from the desk ('refund me yourselves'). The desk has no authority to do that.",
+    "Not contacting Harbourline to expedite or for status before 14 Oct. The file is complete and queued, and Harbourline says status is not available before then.",
+    "Not re-asking Fernhill/Brightstall to ship or refund before the decision. Their position was stated on 8 Oct.",
+    "Not discussing or advising on the chargeback, and not responding to the review threat in any argumentative way.",
+    "Not sharing the insurer's internal note verbatim or any third-party contact details."
+  ],
+  "closes_when": "Harbourline issues its coverage decision on HM-CA-228904 and the buyer has been told, with the next step routed to Fernhill/Brightstall: replacement shipment or refund if approved, or the routing of a decline.",
+  "follow_up": "Watch for the Harbourline decision. If nothing arrives by end of day Wed 14 Oct 2026 (PDT), email claims-intake@harbourline.example on Thu 15 Oct citing HM-CA-228904 and the committed date. When the decision arrives, tell the buyer the same day and forward the decision to Joss Reyes (Brightstall seller support) so Fernhill can act on its same-day shipping intent if approved. If the buyer writes again before then, reply with the same facts.",
+  "wait_check": {
+    "waiting_on": "Harbourline Mutual coverage decision on HM-CA-228904",
+    "promised_by": "2026-10-14 (Wednesday), per the automated acknowledgement of 2026-10-06 17:41 PDT; Thanksgiving Monday 12 Oct excluded",
+    "deadline_passed": false,
+    "new_information_since_last_update": "Yes: the adjuster note of 2026-10-09 17:58 PDT (file reviewed, nothing further needed, queued) has not been passed to the buyer. The buyer also sent a new message with direct questions and an escalation threat.",
+    "verdict": "WAIT on the insurer (no chase before 14 Oct), but REPLY to the buyer now. A pure hold is not appropriate because there is an unanswered direct customer message and verified news to share."
+  },
+  "confidence": 0.82,
+  "human_handover_notes": "FYI for Dani Okafor: the buyer threatened a credit-card chargeback and a one-star Brightstall review if nothing happens by Monday 12 Oct, which is a public holiday. The insurer decision is due Wed 14 Oct. A customer reply has been drafted that answers her questions without promising an outcome. Dani or Brightstall may want to decide whether Brightstall should be told about the chargeback threat or consider a goodwill step. That is Brightstall's/Fernhill's call, not the desk's, and their stated position (8 Oct) is to wait for the insurer."
+}

@@ -1,0 +1,84 @@
+{
+  "situation": "AWB 999-4812 0377 (2 pallets, 412 kg, Izmir to GDN) landed 06 Oct 22:10 and is on CUSTOMS HOLD in Aerovanta bonded shed B pending veterinary inspectorate sign-off for used apiary equipment. Duty is paid. The vet inspector is attending shed B today 13:30-15:00 CEST; the protocol normally reaches the broker by about 16:30, then about 30 min for the release stamp before Aerovanta can load. On 08 Oct 10:41 the desk promised Mr Nowak the inspection outcome and delivery plan by Friday 9 October 17:00 CEST. At 13:48 Mr Nowak sent an angry chase demanding an exact truck hour before 14:00, or a freight refund, and threatening a lawyer, the airline director and Google reviews.",
+  "direct_answer": "No exact truck arrival hour exists yet. Release depends on the veterinary protocol (inspection running today 13:30-15:00 CEST) and then on the customs release stamp, and only after that can a delivery be planned. A freight refund is not the desk's decision. The desk will send the inspection outcome and delivery plan by 17:00 CEST today, as already promised, and is not sending a separate reply now.",
+  "facts": [
+    "VERIFIED (Aerovanta, 07 Oct 15:47): landed 06 Oct 22:10, 2 pcs / 412 kg, bonded shed B, CUSTOMS HOLD, declared 'used apiary equipment'; release needs customs plus veterinary inspectorate sign-off; no storage charge before 12 Oct.",
+    "VERIFIED (Baltic Clear, 08 Oct 10:05): entry lodged, duty PLN 1,312.40 paid from deposit; vet inspector assigned; broker cannot give a release time until the protocol is written.",
+    "VERIFIED (Baltic Clear, 09 Oct 08:55): inspector at shed B 13:30-15:00 today; protocol normally the same afternoon, usually by 16:30; if clean, about 30 min for the release stamp, then Aerovanta can load; broker will forward everything on arrival.",
+    "Desk promise to customer (08 Oct 10:41): inspection outcome and delivery plan by Friday 9 October 17:00 CEST.",
+    "CLAIM (customer, 13:48): losing money each day, considering buying elsewhere, has paid transport; demands an exact hour before 14:00 or a freight refund; threatens lawyer, airline director, Google reviews.",
+    "Current time about 13:48-13:52 CEST; the inspection window is in progress and the 17:00 promise is still in the future."
+  ],
+  "conflicts": [
+    "Customer says the cargo was due Monday and refers to 'tuesday' and 'wednesday customs'. The record shows it landed Tuesday 06 Oct 22:10 and has been on customs/vet hold since. This is not a factual conflict needing resolution now; the hold is verified by the carrier and the broker."
+  ],
+  "missing_information": [
+    "Veterinary protocol result (expected by about 16:30 CEST via Baltic Clear).",
+    "Customs release stamp time (about 30 min after a clean protocol).",
+    "Aerovanta loading/delivery slot to Straszyn (only possible after release).",
+    "Who owns any freight-charge dispute (the freight contract party). Nothing in the record indicates any refund policy."
+  ],
+  "risk_flags": [
+    "Customer threats (lawyer, airline director, Google reviews) and frustration. These are not new facts but are recorded for the coordinator.",
+    "Commercial risk: customer may cancel and buy elsewhere.",
+    "Risk of over-promising: giving a truck hour or refund before the inspector, broker and carrier have confirmed anything.",
+    "Storage charges start from 12 Oct if release slips; not yet relevant."
+  ],
+  "authority_map": [
+    {"decision": "Veterinary sign-off", "owner": "Veterinary inspectorate (via Baltic Clear Customs, Ewa Sawicka)"},
+    {"decision": "Customs release stamp", "owner": "Baltic Clear Customs (Ewa Sawicka) / customs"},
+    {"decision": "Loading and delivery time to the farm", "owner": "Aerovanta Cargo GDN import handling / delivery dispatch"},
+    {"decision": "Freight refund or compensation", "owner": "The party that invoiced the freight (billing). Not the desk; not decided in the record."},
+    {"decision": "Customer communication timing", "owner": "Bluecrane Freight Desk (Tomasz Wrobel), bound by its 17:00 promise"}
+  ],
+  "wait_check": {
+    "new_since_last_promise": "No. Since the 08 Oct 10:41 promise ('inspection outcome and delivery plan on Friday 9 October by 17:00 CEST'), the only development is the inspector's confirmed 13:30-15:00 window, with the protocol 'usually by 16:30'. That is progress inside the promised window and does not change the promised time, the expected outcome or what the customer must do. The customer's anger, threats and 'before 2 pm' deadline are not new facts.",
+    "pending_promise": "Yes. The desk promised the outcome and delivery plan by 17:00 CEST today (Fri 9 Oct), based on the broker's stated inspection plan. It is about 13:50 CEST now, so the promise is still in the future.",
+    "inbound_is_chase_only": "Yes. The 13:48 email repeats the request for when the cargo arrives. An 'exact hour when truck come' is not knowable until the protocol and release exist and belongs to Aerovanta/dispatch. The freight refund question belongs to the billing party's decision, which the desk must not answer for them. There is no new fact.",
+    "verdict": "hold"
+  },
+  "decision_type": "hold_no_action",
+  "decision_summary": "Hold: send nothing now. Keep the 17:00 CEST promise by sending the real inspection outcome and delivery plan once Baltic Clear forwards the protocol (expected by about 16:30). Record the chase and threats internally and schedule follow-ups.",
+  "rationale": "The wait test is (a) no, (b) yes, (c) yes, so the verdict is hold. The vet inspection is happening right now (13:30-15:00). The broker expects the protocol by about 16:30, plus about 30 min for the release stamp, which gives roughly 17:00 for release in the clean case (16:30 + 0:30 = 17:00). Any truck hour sent now would be invented. Replying with 'we are working on it' is exactly what the customer said not to send and what the manual forbids. Offering a refund would exceed the desk's authority. The broker has already committed to forward everything the moment it arrives, so chasing her is unnecessary. The strongest answer is to deliver the real outcome and plan by 17:00.",
+  "alternatives_rejected": [
+    "Reply now with an estimated truck hour: the hour would be invented before the protocol, the release and the Aerovanta slot exist (rules 2, 4).",
+    "Send a holding or empathy update: the customer already has a 17:00 promise; a restated promise is forbidden by rule 11 and the customer explicitly rejected it.",
+    "Promise or route a freight refund now: it is not the desk's authority, there is no refund policy in the record, and the question belongs to another party's decision; it can be raised with the coordinator after the outcome is known.",
+    "Chase Ewa Sawicka or Aerovanta: the broker already said she will forward everything on arrival and gave a timeline.",
+    "Escalate to a human supervisor: threats of reviews or a lawyer are not legal or safety risk requiring a supervisor decision now; noted for the coordinator instead."
+  ],
+  "actions": [
+    {
+      "tool": "record_case_note",
+      "recipient": "Bluecrane Freight Desk (internal case file)",
+      "channel": "internal",
+      "content": "09 Oct 13:48 CEST: chase from Z. Nowak (subject 'UNACCEPTABLE !!!') demanding an exact truck hour to Straszyn before 14:00 or a freight refund. He threatens his lawyer, the airline director and Google reviews, and mentions buying elsewhere at double price. No new facts. Per the wait test, no reply was sent: the desk's 08 Oct promise (inspection outcome and delivery plan by 9 Oct 17:00 CEST) stands. Inspector at shed B 13:30-15:00; protocol expected by about 16:30 via Ewa Sawicka (Baltic Clear); release stamp about 30 min after a clean result. Freight refund request is not the desk's decision; flagged for Tomasz Wrobel to consider routing to the freight billing party after the outcome is known. No refund or truck hour has been promised."
+    },
+    {
+      "tool": "schedule_follow_up",
+      "recipient": "Tomasz Wrobel (Bluecrane Freight Desk)",
+      "channel": "internal",
+      "when": "2026-10-09T16:30:00+02:00",
+      "content": "Check whether Baltic Clear has forwarded the vet protocol for AWB 999-4812 0377. If it arrived: if the result is clean, ask Aerovanta GDN import for the loading/delivery plan after the release stamp; otherwise ask Ewa Sawicka for the next step. If it has not arrived, ask Ewa Sawicka for status so that the 17:00 customer update has real content."
+    },
+    {
+      "tool": "schedule_follow_up",
+      "recipient": "Tomasz Wrobel (Bluecrane Freight Desk)",
+      "channel": "internal",
+      "when": "2026-10-09T17:00:00+02:00",
+      "content": "Deadline: email Z. Nowak (z.nowak@pasieka-nowak.example) the inspection outcome and delivery plan as promised on 08 Oct, using only facts confirmed by Baltic Clear and Aerovanta. Acknowledge his 13:48 concerns, and on the freight refund say only that the request has been passed to the team that owns it, if it has been routed."
+    }
+  ],
+  "not_doing": [
+    "Not replying to Mr Nowak before the 17:00 CEST promised update, and not meeting his self-imposed 14:00 deadline.",
+    "Not giving any truck arrival hour, release time or likely inspection result.",
+    "Not promising or offering a freight refund, compensation or goodwill.",
+    "Not chasing Ewa Sawicka or Aerovanta during the inspection window.",
+    "Not escalating to a human supervisor; threats are recorded in the case note for the coordinator.",
+    "Not commenting on whether the veterinary check is justified."
+  ],
+  "closes_when": "The customer receives the confirmed inspection outcome and delivery plan (by 17:00 CEST today), and later the cargo is released and delivered to Straszyn.",
+  "follow_up": "16:30 CEST 9 Oct: check for the protocol and release status. 17:00 CEST 9 Oct: send the promised outcome and delivery plan to Mr Nowak.",
+  "confidence": 0.85,
+  "human_handover_notes": "Not an escalation. For Tomasz: the customer is angry and threatening reviews and legal action, and asked for a freight refund. Deliver the 17:00 update with real content. Decide whether to route the freight refund request to the billing party that invoiced the freight, without presenting it as granted."
+}

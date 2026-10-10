@@ -1,0 +1,595 @@
+/* Swipe approvals, rewards and role portals. Loaded after styles.css; Meridian tokens only. */
+
+/* ---------- Desk: swipe deck of drafts ---------- */
+.deck {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  max-width: 560px;
+  margin: -128px auto 0;
+  padding-bottom: 28px;
+}
+
+.deck__card {
+  grid-area: 1 / 1;
+  position: relative;
+  height: 440px;
+  min-width: 0;
+  transform-origin: 50% 100%;
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 240ms ease;
+  user-select: none;
+}
+
+.deck__card--top {
+  z-index: 3;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.deck__card--top.is-dragging {
+  cursor: grabbing;
+  transition: none;
+}
+
+/* The next cards peek out under the top one, a little smaller and a shade lighter. */
+.deck__card--d1 {
+  z-index: 2;
+  transform: translateY(14px) scale(0.96);
+  background: linear-gradient(180deg, #2b2a26, #201f1b);
+}
+
+.deck__card--d2 {
+  z-index: 1;
+  transform: translateY(28px) scale(0.92);
+  background: linear-gradient(180deg, #33322d, #282722);
+}
+
+.deck__card--d1 > *,
+.deck__card--d2 > * {
+  visibility: hidden;
+}
+
+.deck__card .approval__draft-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.deck__draft.approval__draft {
+  max-height: none;
+  flex: 1;
+  min-height: 0;
+  align-content: start;
+}
+
+/* While dragging, the decision reads as a plain ink word on a paper chip: no green, no red. */
+.deck__stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  padding: 10px 28px;
+  border-radius: var(--radius-full);
+  background: var(--color-on-inverse);
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-headline-lg);
+  font-weight: 500;
+  line-height: 1.1;
+  box-shadow: var(--shadow-card);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+/* Staff-only phone link (Desk / Rewards) in the right cluster; the left cluster is hidden below 820px. */
+.nav__mobile {
+  display: none;
+}
+
+@media (max-width: 820px) {
+  /* The left cluster is visibility:hidden on phones; this one link opts back in, first in the row. */
+  .nav__mobile {
+    display: inline-flex;
+    visibility: visible;
+  }
+
+  .nav__links > :not(.nav__mobile) {
+    display: none;
+  }
+}
+
+.deck__controls {
+  margin-top: var(--space-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+}
+
+.deck__btn.btn--icon {
+  width: 56px;
+  height: 56px;
+}
+
+.deck__btn.btn--icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.deck__btn:disabled,
+.deck__btn:disabled:hover {
+  background-color: var(--color-primary);
+  opacity: 0.4;
+}
+
+.deck__hint {
+  font-size: var(--text-body-sm);
+  color: var(--color-secondary);
+}
+
+.deck__error {
+  margin-top: var(--space-sm);
+  text-align: center;
+}
+
+/* Coin toast: a small paper note that fades in and out. */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-xl);
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 10px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-card);
+  color: var(--color-primary);
+  font-size: var(--text-label-md);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+  animation: toast 2600ms ease forwards;
+  pointer-events: none;
+}
+
+@keyframes toast {
+  0% { opacity: 0; transform: translate(-50%, 8px); }
+  10% { opacity: 1; transform: translate(-50%, 0); }
+  80% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 0); }
+}
+
+/* Medal unlock: one charcoal card over a paper veil, no blur. */
+.unlock {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: var(--space-md);
+  background: rgba(243, 241, 233, 0.72);
+}
+
+.unlock__card {
+  width: min(380px, 100%);
+  align-items: center;
+  text-align: center;
+  padding: var(--space-xl) 28px 28px;
+}
+
+.unlock__card .card-feature__cta {
+  align-self: center;
+  margin-top: var(--space-sm);
+}
+
+.unlock__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  background: var(--color-on-inverse);
+  color: var(--color-primary);
+}
+
+.unlock__kicker {
+  font-size: var(--text-label-md);
+  font-weight: 500;
+  color: var(--color-neutral);
+}
+
+/* ---------- Rewards ---------- */
+.balance {
+  margin-top: var(--space-2xl);
+  padding-block: var(--space-xl);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.balance__figure {
+  font-family: var(--font-display);
+  font-size: 6rem;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--color-primary);
+}
+
+.balance__unit {
+  margin: var(--space-sm) 0 var(--space-xs);
+  font-family: var(--font-display);
+  font-size: var(--text-headline-md);
+  color: var(--color-primary);
+}
+
+.rewards__section {
+  margin-top: var(--space-2xl);
+}
+
+.rewards__error {
+  margin-top: var(--space-lg);
+}
+
+.medals {
+  list-style: none;
+  margin: var(--space-md) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--color-border);
+}
+
+.medal {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-lg) var(--space-lg) var(--space-lg) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.medal:not(:nth-child(3n + 1)) {
+  padding-left: var(--space-lg);
+  border-left: 1px solid var(--color-border);
+}
+
+.medal__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  color: var(--color-secondary);
+}
+
+.medal--earned .medal__icon {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-inverse);
+}
+
+.medal__text {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.medal__title {
+  font-weight: 600;
+  color: var(--color-secondary);
+}
+
+.medal--earned .medal__title {
+  color: var(--color-primary);
+}
+
+.medal__desc {
+  font-size: var(--text-body-sm);
+  color: var(--color-secondary);
+}
+
+.medal__when {
+  margin-top: var(--space-xs);
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.medal__progress {
+  margin-top: var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--text-body-sm);
+  color: var(--color-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.medal__bar {
+  position: relative;
+  flex: 1;
+  max-width: 120px;
+  height: 2px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.medal__bar > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--color-secondary);
+}
+
+.shop {
+  list-style: none;
+  margin: var(--space-md) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.shop__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.shop__name {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.shop__desc {
+  font-size: var(--text-body-sm);
+  color: var(--color-secondary);
+}
+
+.shop__foot {
+  margin-top: auto;
+  padding-top: var(--space-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.shop__price {
+  font-family: var(--font-display);
+  font-size: var(--text-headline-md);
+  font-weight: 500;
+  color: var(--color-primary);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.shop__price span {
+  font-family: var(--font-ui);
+  font-size: var(--text-body-sm);
+  font-weight: 400;
+  color: var(--color-secondary);
+}
+
+.shop__stock {
+  font-size: var(--text-body-sm);
+  color: var(--color-secondary);
+}
+
+.tbl tr.is-current td {
+  background-color: var(--color-surface);
+}
+
+/* ---------- Driver and depot stops ---------- */
+.stops {
+  list-style: none;
+  margin: var(--space-md) 0 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.stop {
+  padding: var(--space-lg);
+  display: grid;
+  gap: var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.stop:last-child {
+  border-bottom: none;
+}
+
+.stop.is-current {
+  box-shadow: inset 2px 0 0 var(--color-primary);
+}
+
+.stop__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-md);
+}
+
+.stop__head .tbl__id {
+  font-size: var(--text-body-lg);
+}
+
+.stop__what {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-on-surface);
+}
+
+.stop__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs) var(--space-md);
+  font-size: var(--text-body-sm);
+  color: var(--color-secondary);
+}
+
+.stop__case {
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.stop__case:hover {
+  text-decoration-color: var(--color-primary);
+}
+
+.stop__actions {
+  margin-top: var(--space-xs);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm) var(--space-md);
+}
+
+.stop__note.input {
+  flex: 1 1 220px;
+  min-width: 0;
+  height: 44px;
+  font-size: var(--text-body-sm);
+}
+
+.stop__pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* The current status pill reads as selected: ink outline, full opacity. */
+.stop__pills .btn--secondary[aria-pressed="true"] {
+  opacity: 1;
+  border-color: var(--color-primary);
+}
+
+.btn-text.btn-text--ink {
+  height: 44px;
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--color-border);
+  text-underline-offset: 3px;
+}
+
+.btn-text.btn-text--ink:hover:not(:disabled) {
+  color: var(--color-primary);
+  text-decoration-color: var(--color-primary);
+}
+
+.stop__msg {
+  font-size: var(--text-body-sm);
+  color: var(--color-secondary);
+}
+
+/* ---------- Merchant decision panel ---------- */
+.merchant-decision {
+  margin-top: var(--space-lg);
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.merchant-decision .input {
+  width: 100%;
+  margin-top: var(--space-xs);
+}
+
+.merchant-decision__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+}
+
+@media (max-width: 1080px) {
+  .medals,
+  .shop {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .medal:not(:nth-child(3n + 1)) {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .medal:nth-child(even) {
+    padding-left: var(--space-lg);
+    border-left: 1px solid var(--color-border);
+  }
+}
+
+@media (max-width: 820px) {
+  .deck {
+    margin-top: var(--space-lg);
+  }
+}
+
+@media (max-width: 520px) {
+  .deck__card {
+    height: 460px;
+  }
+
+  .deck__controls {
+    gap: var(--space-md);
+  }
+
+  .deck__hint {
+    text-align: center;
+    max-width: 150px;
+  }
+
+  .medals,
+  .shop {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .medal:nth-child(n) {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .balance__figure {
+    font-size: 4.5rem;
+  }
+
+  .stop {
+    padding: var(--space-md);
+  }
+
+  .stop__head {
+    flex-wrap: wrap;
+    column-gap: var(--space-sm);
+  }
+
+  .stop__what {
+    flex-basis: 100%;
+    order: 3;
+  }
+
+  .stop__head .status {
+    margin-left: auto;
+  }
+
+  .stop__note.input {
+    flex-basis: 100%;
+  }
+}

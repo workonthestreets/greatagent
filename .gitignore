@@ -26,3 +26,4 @@ data/
 
 # local env file with live keys (never commit)
 _env
+holdout/followup/

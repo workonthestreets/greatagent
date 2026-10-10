@@ -1,17 +1,20 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   fmtTime, go, hub, useLive, type Action, type AgentEvent, type AgentRun, type Case, type CaseEvent, type Profile,
 } from "./lib";
 import { Composer, Timeline } from "./Timeline";
+import SwipeDeck from "./SwipeDeck";
+import { ArrowUpRight, Mail, Pause, User, X } from "./icons";
+import { Status, statusText } from "./ui";
 
 const STATUSES = ["all", "open", "in_progress", "waiting", "escalated", "resolved"];
 
-export default function Ops({ profile }: { profile: Profile }) {
+export default function Ops({ profile, initialCase }: { profile: Profile; initialCase?: string }) {
   const cases = useLive<Case>("cases", (q) => q.order("updated_at", { ascending: false }));
   const pending = useLive<Action>("actions", (q) => q.eq("status", "pending_approval").order("created_at"));
   const runs = useLive<AgentRun>("agent_runs", (q) => q.order("updated_at", { ascending: false }).limit(200));
   const [filter, setFilter] = useState("all");
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(initialCase ?? null);
 
   const shown = cases.filter((c) => filter === "all" || c.status === filter);
   const totalCost = runs.reduce((s, r) => s + (r.list_cost_cents ?? 0), 0);
@@ -22,47 +25,53 @@ export default function Ops({ profile }: { profile: Profile }) {
   }, [cases]);
 
   return (
-    <main className="ops">
-      <section className="stats">
+    <main className="view ops" id="top">
+      <header className="view-head">
+        <h1 className="headline-lg">Today on the <span className="emphasis">desk</span>.</h1>
+        <p className="text-muted body-lg">
+          The agent plans each next step, a reviewer checks it, and nothing reaches a customer until you approve it.
+        </p>
+      </header>
+
+      <dl className="stats">
         <Stat label="Cases" value={cases.length} />
         <Stat label="Escalated" value={counts.escalated ?? 0} />
         <Stat label="Waiting" value={counts.waiting ?? 0} />
         <Stat label="Awaiting approval" value={pending.length} highlight={pending.length > 0} />
         <Stat label="Agent runs" value={runs.length} />
         <Stat label="Agent spend" value={`$${(totalCost / 100).toFixed(2)}`} />
-      </section>
+      </dl>
 
-      {pending.length > 0 && (
-        <section className="card">
-          <h2>Approvals</h2>
-          {pending.map((a) => <Approval key={a.id} action={a} onOpen={() => setSelected(a.case_id)} />)}
-        </section>
-      )}
+      <SwipeDeck pending={pending} onOpen={setSelected} />
 
       <div className="split">
-        <section className="card list">
-          <div className="row">
-            <h2>Cases</h2>
-            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-              {STATUSES.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
-            </select>
+        <section className="split__list" aria-labelledby="cases-title">
+          <h2 className="section-title" id="cases-title">Cases</h2>
+          <div className="tabs tabs--scroll" role="tablist" aria-label="Filter cases by status">
+            {STATUSES.map((s) => (
+              <button key={s} role="tab" className="tab" aria-selected={filter === s} onClick={() => setFilter(s)}>
+                {s === "all" ? "All" : statusText(s)}
+                <span className="tab__count">{s === "all" ? cases.length : counts[s] ?? 0}</span>
+              </button>
+            ))}
           </div>
-          <ul className="cases">
+          <ul className="case-list">
             {shown.map((c) => (
-              <li key={c.id} className={c.id === selected ? "active" : ""} onClick={() => setSelected(c.id)}>
-                <div className="row">
-                  <strong>#{c.id}</strong>
-                  <span className={`status s-${c.status}`}>{c.status.replace("_", " ")}</span>
+              <li key={c.id} className="case-row" aria-current={c.id === selected ? "true" : undefined}
+                onClick={() => setSelected(c.id)}>
+                <div className="case-row__top">
+                  <span className="case-row__title">#{c.id} {c.title}</span>
+                  <Status status={c.status} />
                 </div>
-                <div>{c.title}</div>
-                {c.decision_summary && <div className="muted small">AI: {c.decision_summary}</div>}
+                {c.decision_summary && <div className="case-row__summary">AI: {c.decision_summary}</div>}
               </li>
             ))}
+            {!shown.length && <li className="empty text-muted">No cases with this status.</li>}
           </ul>
         </section>
-        <section className="card detail">
+        <section className="split__detail">
           {selected ? <CaseDetail key={selected} caseId={selected} runs={runs} profile={profile} /> :
-            <p className="muted">Pick a case to see its timeline, the agent's actions and its live activity.</p>}
+            <p className="text-muted empty">Pick a case to see its timeline, the agent's actions and its live activity.</p>}
         </section>
       </div>
     </main>
@@ -71,40 +80,39 @@ export default function Ops({ profile }: { profile: Profile }) {
 
 function Stat({ label, value, highlight }: { label: string; value: number | string; highlight?: boolean }) {
   return (
-    <div className={`stat ${highlight ? "hl" : ""}`}>
-      <div className="stat-v">{value}</div>
-      <div className="muted small">{label}</div>
+    <div className="stat">
+      <dt className="stat__label">{label}</dt>
+      <dd className="stat__value">
+        {highlight && <span className="stat__dot" aria-hidden="true" />}
+        {value}
+      </dd>
     </div>
   );
 }
 
-function Approval({ action, onOpen }: { action: Action; onOpen: () => void }) {
-  const [reason, setReason] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-  const decide = async (verb: "approve" | "reject") => {
-    setBusy(true);
-    setErr("");
-    try { await hub(`/api/actions/${action.id}/${verb}`, { reason }); } catch (e) { setErr((e as Error).message); }
-    setBusy(false);
-  };
-  const a = action.args as Record<string, string>;
+const DECISION: Record<string, { label: string; icon: ReactNode }> = {
+  act: { label: "Acting", icon: <ArrowUpRight /> },
+  request_information: { label: "Asking for information", icon: <Mail /> },
+  escalate_to_human: { label: "Handed to a human", icon: <User /> },
+  hold_no_action: { label: "Holding, nothing to send", icon: <Pause /> },
+  decline: { label: "Declined", icon: <X /> },
+};
+
+function DecisionPanel({ decision }: { decision: Record<string, string> }) {
+  const type = decision.decision_type;
+  const d = DECISION[type] ?? { label: statusText(type ?? "decision"), icon: <ArrowUpRight /> };
   return (
-    <div className="approval">
-      <div className="row">
-        <span><span className="tag">{action.tool}</span> case <a onClick={onOpen}>#{action.case_id}</a>
-          {a.to_party && <> → <strong>{a.to_party}</strong> via {a.channel}</>}</span>
-        <span className="muted small">{fmtTime(action.created_at)}</span>
+    <section className={`card decision decision--${type}`} aria-label="Agent decision">
+      <div className="decision__type">
+        <span className="decision__icon">{d.icon}</span>
+        {d.label}
       </div>
-      {a.subject && <div><strong>{a.subject}</strong></div>}
-      <pre className="msg">{a.body ?? JSON.stringify(action.args, null, 2)}</pre>
-      <div className="row">
-        <input placeholder="Reason (sent to the agent if rejected)" value={reason} onChange={(e) => setReason(e.target.value)} />
-        <button className="danger" disabled={busy} onClick={() => decide("reject")}>Reject</button>
-        <button className="primary" disabled={busy} onClick={() => decide("approve")}>Approve</button>
-      </div>
-      {err && <p className="error">{err}</p>}
-    </div>
+      {decision.summary && <p className="decision__summary">{decision.summary}</p>}
+      {decision.not_doing && <p className="decision__line"><span className="decision__key">Not doing:</span> {decision.not_doing}</p>}
+      {decision.next_trigger && (
+        <p className="decision__line decision__line--next"><span className="decision__key">Next:</span> {decision.next_trigger}</p>
+      )}
+    </section>
   );
 }
 
@@ -118,35 +126,30 @@ function CaseDetail({ caseId, runs, profile }: { caseId: string; runs: AgentRun[
   const [busy, setBusy] = useState(false);
   const run = runs.find((r) => r.session_id === c?.session_id);
 
-  if (!c) return <p className="muted">Loading…</p>;
+  if (!c) return <p className="text-muted empty">Loading…</p>;
   const rerun = async () => { setBusy(true); try { await hub(`/api/cases/${caseId}/run`, {}); } finally { setBusy(false); } };
 
   return (
-    <div>
-      <div className="row">
-        <h2>#{c.id} {c.title}</h2>
-        <button disabled={busy} onClick={rerun}>{busy ? "Waking agent…" : "Ask agent to re-assess"}</button>
+    <div className="detail">
+      <div className="detail__head">
+        <h2 className="headline-md">#{c.id}&nbsp; {c.title}</h2>
+        <button className="btn btn--secondary" disabled={busy} onClick={rerun}>{busy ? "Waking agent…" : "Ask agent to re-assess"}</button>
       </div>
       <div className="meta">
-        <span className={`status s-${c.status}`}>{c.status.replace("_", " ")}</span>
+        <Status status={c.status} />
         {c.shipment_id && <span>Shipment {c.shipment_id}</span>}
         {c.source_name && <span>Raised by {c.source_name}</span>}
-        {run && <span>Agent: {run.status}{run.stop_reason ? ` (${run.stop_reason})` : ""}
-          {run.list_cost_cents != null && ` · $${(run.list_cost_cents / 100).toFixed(2)}`}
-          {" · "}<a href={run.trace_url} target="_blank" rel="noreferrer">trace</a></span>}
+        {run && <span>{runText(run)}</span>}
+        {run?.list_cost_cents != null && <span>${(run.list_cost_cents / 100).toFixed(2)}</span>}
+        {run && <a className="meta__link" href={run.trace_url} target="_blank" rel="noreferrer">Trace <ArrowUpRight size={14} /></a>}
         <AgentLink caseId={c.id} />
       </div>
-      {c.decision && (
-        <div className="decision">
-          <div><span className="tag">{c.decision.decision_type}</span> {c.decision.summary}</div>
-          <div className="muted small">Not doing: {c.decision.not_doing}</div>
-          <div className="muted small">Next: {c.decision.next_trigger}</div>
-        </div>
-      )}
-      <div className="tabs">
+      {c.decision && <DecisionPanel decision={c.decision} />}
+      <div className="tabs detail__tabs" role="tablist">
         {(["timeline", "actions", "agent"] as const).map((t) => (
-          <button key={t} className={tab === t ? "tab active" : "tab"} onClick={() => setTab(t)}>
-            {t === "timeline" ? `Timeline (${events.length})` : t === "actions" ? `Actions (${actions.length})` : "Agent live log"}
+          <button key={t} role="tab" className="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
+            {t === "timeline" ? "Timeline" : t === "actions" ? "Actions" : "Agent live log"}
+            {t !== "agent" && <span className="tab__count">{t === "timeline" ? events.length : actions.length}</span>}
           </button>
         ))}
       </div>
@@ -157,29 +160,46 @@ function CaseDetail({ caseId, runs, profile }: { caseId: string; runs: AgentRun[
         </>
       )}
       {tab === "actions" && <ActionsTable actions={actions} />}
-      {tab === "agent" && <><AgentLink caseId={caseId} label="Open the full live agent view" /><AgentLog events={agentEvents} /></>}
+      {tab === "agent" && <><AgentLink caseId={caseId} label="Open the full live log" /><AgentLog events={agentEvents} /></>}
     </div>
   );
 }
 
+const RUN_STATUS: Record<string, string> = {
+  idle: "idle", running: "running", rescheduling: "restarting", terminated: "stopped", error: "failed",
+};
+const STOP_REASON: Record<string, string> = {
+  requires_action: "needs action", end_turn: "finished", max_tokens: "hit its length limit", retries_exhausted: "gave up after retries",
+};
+const words = (s: string) => s.replace(/_/g, " ");
+
+/** "Agent idle, needs action" rather than the raw enums. */
+function runText(run: AgentRun): string {
+  const status = RUN_STATUS[run.status] ?? words(run.status);
+  const stop = run.stop_reason ? STOP_REASON[run.stop_reason] ?? words(run.stop_reason) : "";
+  return `Agent ${status}${stop ? `, ${stop}` : ""}`;
+}
+
 function ActionsTable({ actions }: { actions: Action[] }) {
-  if (!actions.length) return <p className="muted">The agent hasn't acted on this case yet.</p>;
+  if (!actions.length) return <p className="text-muted empty">The agent hasn't acted on this case yet.</p>;
   return (
-    <table className="tbl">
-      <thead><tr><th>When</th><th>Tool</th><th>Status</th><th>Details</th><th>Policy</th></tr></thead>
-      <tbody>
-        {actions.map((a) => (
-          <tr key={a.id}>
-            <td className="nowrap">{fmtTime(a.created_at)}</td>
-            <td>{a.tool}</td>
-            <td><span className={`status s-${a.status}`}>{a.status.replace("_", " ")}</span>{a.decided_by && <div className="muted small">by {a.decided_by}</div>}</td>
-            <td><pre className="msg">{summarize(a.args)}</pre></td>
-            <td>{a.policy?.filter((p) => !p.negated_context).map((p, i) => (
-              <span key={i} className={`tag ${p.level === "BLOCK" ? "tag-bad" : "tag-warn"}`}>{p.rule}</span>))}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="table-wrap">
+      <table className="tbl">
+        <thead><tr><th>When</th><th>Tool</th><th>Status</th><th>Details</th><th>Policy</th></tr></thead>
+        <tbody>
+          {actions.map((a) => (
+            <tr key={a.id}>
+              <td className="nowrap text-muted">{fmtTime(a.created_at)}</td>
+              <td className="mono">{a.tool}</td>
+              <td><Status status={a.status} />{a.decided_by && <div className="text-muted body-sm">by {a.decided_by}</div>}</td>
+              <td><div className="pre">{summarize(a.args)}</div></td>
+              <td>{a.policy?.filter((p) => !p.negated_context).map((p, i) => (
+                <span key={i} className={`policy ${p.level === "BLOCK" ? "policy--block" : ""}`}>{p.rule}</span>))}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -189,11 +209,15 @@ function summarize(args: Record<string, unknown>): string {
 
 function AgentLog({ events }: { events: AgentEvent[] }) {
   const lines = events.map((e) => describe(e)).filter(Boolean) as { id: number; when: string; kind: string; text: string }[];
-  if (!lines.length) return <p className="muted">No agent activity yet.</p>;
+  if (!lines.length) return <p className="text-muted empty">No agent activity yet.</p>;
   return (
     <ul className="agentlog">
       {lines.map((l) => (
-        <li key={l.id}><span className="muted small">{l.when}</span> <span className="tag">{l.kind}</span> {l.text}</li>
+        <li key={l.id} className={l.kind === "error" ? "agentlog__row agentlog__row--error" : "agentlog__row"}>
+          <span className="agentlog__when">{l.when}</span>
+          <span className="agentlog__kind">{l.kind}</span>
+          <span className="agentlog__text">{l.text}</span>
+        </li>
       ))}
     </ul>
   );
@@ -212,7 +236,7 @@ function describe(e: AgentEvent) {
     case "user.message":
       return { ...base, kind: "wake-up", text: (p.content ?? []).map((b: any) => b.text ?? "").join(" ").slice(0, 300) };
     case "user.tool_confirmation":
-      return { ...base, kind: "approval", text: `${p.result}${p.deny_message ? ` — ${p.deny_message}` : ""}` };
+      return { ...base, kind: "approval", text: `${p.result}${p.deny_message ? `: ${p.deny_message}` : ""}` };
     case "session.status_idle":
       return { ...base, kind: "idle", text: p.stop_reason?.type ?? "" };
     case "session.error":
@@ -222,9 +246,12 @@ function describe(e: AgentEvent) {
   }
 }
 
-function AgentLink({ caseId, label = "agent view" }: { caseId: string; label?: string }) {
+/** Link into /agents/<case>; a plain href too, so cmd-click opens it in a new tab. */
+function AgentLink({ caseId, label = "Agent log" }: { caseId: string; label?: string }) {
   const href = `/agents/${encodeURIComponent(caseId)}`;
   return (
-    <a href={href} onClick={(e) => { if (!e.metaKey && !e.ctrlKey) { e.preventDefault(); go(href); } }}>{label} →</a>
+    <a className="meta__link" href={href} onClick={(e) => { if (!e.metaKey && !e.ctrlKey) { e.preventDefault(); go(href); } }}>
+      {label} <ArrowUpRight size={14} />
+    </a>
   );
 }

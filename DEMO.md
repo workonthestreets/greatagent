@@ -81,6 +81,39 @@ D103's change cutoff is about 45 minutes after seeding (printed by the script), 
 
 A typical run takes 30–70 s (the planner plus reviewer, each calling Claude). Cut the wait in the edit.
 
+## The two screens
+
+The web app (`web/`) is styled on the Meridian design system (`web/design/meridian/`, licensed for use in this project; fonts Fraunces and Inter from Google Fonts, Lucide icons inline). Each view has one pastel band as its focal point:
+
+- **Desk** (`coordinator@greatagent.demo`): headline, the six desk figures, the approvals band (charcoal draft cards with Approve / Reject, shown only while drafts are pending), the case list, and the case detail with the decision panel. The panel names the decision in words: Acting, Asking for information, Handed to a human, Holding, nothing to send, or Declined, with the "Not doing" and "Next" lines under it.
+- **Customer portal** (`customer@greatagent.demo`, shown at phone width next to the desk): headline, the band with the latest desk message (the same text the voice line reads out) and a Reply button, shipments, the case list and the thread.
+
+The login page carries both entry points as two cards on its band ("Sign in as coordinator", "Sign in as customer").
+
+### Swipe approvals, medals, coins and merch (staff)
+
+Drafts waiting for approval are a deck of charcoal cards on the desk: drag the top card right to approve, left to reject (the reason field on the card goes to the agent), or use the round check / x buttons and the arrow keys. Every decision earns coins (15 for an approval, 10 for a rejection with a reason, 5 without) and can unlock a medal: First call, Steady hand, Desk veteran, Gatekeeper, Clean desk, Early bird. The **Rewards** page shows the balance, the medals with progress, the merch shop (coins buy fictional Rivet merch: cap, mug, socks, tote, hoodie, bottle) and past orders; admins also see the team table. Coins and medals are for staff accounts only; nothing is cash.
+
+Setup once per database: `python -m db.migrate` (applies `db/migrations/002_rewards.sql`) and `python -m db.seed_rewards` (120 welcome coins per staff profile, idempotent).
+
+### One portal per role
+
+- **Customer**: the thread with the desk, shipments, new requests.
+- **Driver**: stops on the route with "Out for delivery", "Attempted", "Delivered" (each writes the shipment status and a case event, and wakes the agent) and "Report a problem".
+- **Depot**: shipments at the site with "Arrived", "Ready for collection", "Collected".
+- **Merchant**: cases on the merchant's orders with "Approve replacement", "Approve refund", "Decline" plus a note; the decision lands on the case and the agent takes it from there.
+
+Demo accounts: `driver@`, `depot@`, `merchant@greatagent.demo` (same demo password).
+
+### Preview without Supabase
+
+```bash
+cd web && npm run preview:demo      # http://127.0.0.1:3100/?view=login | ops | ops-hold | party | rewards | driver | depot | merchant
+web/preview/shoot.sh [out_dir]      # headless-Chrome screenshots at 1440 and 390 px
+```
+
+The preview swaps `src/lib.ts` for `preview/mock-lib.ts` (fixture cases D103, D101 and a held D104), so it renders both sides with no backend and no sign-in. Use it to rehearse the take or to check a styling change.
+
 ## Fallbacks
 
 1. **Voice fails:** log in as `customer@greatagent.demo` and type the same question in the portal. It takes the same path through `/api/cases/D103/messages`.

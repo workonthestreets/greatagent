@@ -92,8 +92,7 @@ def feedback_text(plan: dict, review: dict, lint: list) -> str:
     return "\n".join(lines)
 
 
-PLAN_LISTS = ("facts", "conflicts", "missing_information", "risk_flags", "authority_map", "alternatives_rejected",
-              "actions", "not_doing")
+PLAN_LISTS = ("facts", "conflicts", "missing_information", "risk_flags", "authority_map", "actions", "not_doing")
 TOOLS = ("send_message", "escalate_to_human", "schedule_follow_up", "record_case_note")
 
 
@@ -109,12 +108,19 @@ def sanitize_plan(plan: dict) -> dict:
         elif not isinstance(v, list):
             plan[k] = [v]
     plan["actions"] = [a for a in plan["actions"] if isinstance(a, dict)]
-    for k in ("facts", "authority_map", "alternatives_rejected"):
+    for k in ("facts", "authority_map"):
         plan[k] = [x if isinstance(x, dict) else {"fact": str(x), "source": "", "status": "inferred", "party": str(x),
-                                                    "controls": "", "option": str(x), "why_not": ""} for x in plan[k]]
-    for k in ("situation", "decision_summary", "rationale", "closes_when", "follow_up", "direct_answer", "human_handover_notes"):
+                                                    "controls": ""} for x in plan[k]]
+    if not isinstance(plan.get("case_parameters"), dict):
+        plan["case_parameters"] = {}
+    if not isinstance(plan.get("proof_standard"), str):
+        plan["proof_standard"] = ""
+    for k in ("situation", "decision_summary", "rationale", "follow_up"):
         if k in plan and not isinstance(plan[k], str):
             plan[k] = json.dumps(plan[k], ensure_ascii=False) if not isinstance(plan[k], (list, tuple)) else "\n".join(map(str, plan[k]))
+    wc = plan.get("wait_check")
+    if not isinstance(wc, dict):
+        plan["wait_check"] = {"new_since_last_promise": str(wc), "pending_promise": "", "inbound_is_chase_only": False, "verdict": ""} if wc else {}
     if plan.get("decision_type") not in ("act", "request_information", "escalate_to_human", "hold_no_action", "decline"):
         plan["decision_type"] = "escalate_to_human" if plan.get("decision_type") else "hold_no_action"
     return plan
@@ -144,12 +150,9 @@ def escalation_plan(plan: dict, reason: str) -> dict:
     new["actions"] = [{"tool": "escalate_to_human", "to_name": "Desk supervisor", "priority": "high",
                        "subject": f"Case {plan.get('_case_id', '')} needs human decision", "body": "\n".join(handover),
                        "purpose": "No autonomous action was approved as safe."}]
-    new["human_handover_notes"] = "\n".join(handover)
-    new["closes_when"] = "A human supervisor reviews this handover and decides the next step; nothing was sent to any party."
+    new["proof_standard"] = ""
     new["follow_up"] = "Supervisor decision needed (see the handover ticket). The drafted messages remain unsent until a human approves them."
     new["not_doing"] = ["Not sending any of the drafted messages: the independent review did not approve autonomous action."] + list(plan.get("not_doing") or [])
-    if (plan.get("direct_answer") or "").strip():
-        new["direct_answer"] = "(Draft only - NOT sent; awaiting human review.)\n\n" + plan["direct_answer"].strip()
     return new
 
 
@@ -214,7 +217,7 @@ def final_status(plan: dict, executed: list) -> str:
         parts.append(f"{len(failed)} action(s) failed and were handed to a human")
     if not parts:
         parts.append("No action taken - holding: " + (plan.get("follow_up") or plan.get("decision_summary", "")))
-    return "; ".join(parts) + ". Closes when: " + (plan.get("closes_when") or "n/a")
+    return "; ".join(parts) + ". Proof that closes this step: " + (plan.get("proof_standard") or "n/a")
 
 
 # --------------------------------------------------------------------- orchestration

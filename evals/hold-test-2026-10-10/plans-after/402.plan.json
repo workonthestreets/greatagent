@@ -1,0 +1,76 @@
+{
+  "situation": "Resident Omar Haddad (apt 1904) cannot open BoxHaven locker C14 (Tower B lobby, bank TB-LOBBY-02), which holds his Souq Atelier order SA-7730915 (AED 1,249, Falcon waybill FD-55102-AE). Telemetry shows a latch fault (E41) with the compartment LOCKED_OCCUPIED. Facilities (Karim Saleh) logged BoxHaven ticket FM-77410 at 19:52 on 8 Oct and said the technician attends by Fri 9 Oct 19:52 GST at the latest. The desk's message to Omar (event 005) did not pass on that time. Omar is now chasing, has noticed Falcon's DELIVERED notice, asks whether to confirm Souq Atelier replacement case R-55820, and says he will confirm it at lunch if he hears nothing.",
+  "direct_answer": "Re-sending: the original parcel is not lost. It is locked inside C14, so there is nothing for Falcon to deliver again. The fix is the BoxHaven technician opening C14, which facilities say will happen by today (Fri 9 Oct) 19:52 GST at the latest. Whether to confirm replacement case R-55820 is a decision for Omar and Souq Atelier. The desk will not advise him to confirm or not confirm, but tells him plainly that the original box is still inside C14 so he can share that with Souq Atelier.",
+  "facts": [
+    "VERIFIED (BoxHaven telemetry, event 002): courier FD-courier-3318 deposited into C14 at 2026-10-08 14:31:22; door closed and latch engaged; SMS code sent; resident open requests at 18:20:05 and 18:20:31 failed with LATCH_FAULT_E41; state at 18:21:12 is LOCKED_OCCUPIED.",
+    "VERIFIED (Karim Saleh, facilities, event 004): BoxHaven ticket FM-77410 logged at 19:52 on 8 Oct, priority standard; the technician attends within 24 hours, i.e. by Fri 9 Oct 19:52 at the latest; the technician opens C14 with the service key; the front desk takes custody and calls the resident to collect; nothing is needed from the desk on the ticket.",
+    "VERIFIED (event 005): the desk told Omar that FM-77410 was logged, that a technician would open C14, and that the front desk would hold the parcel and contact him. The desk promised to update him once the compartment is open. The 19:52 attendance deadline was NOT passed on.",
+    "VERIFIED (event 007): Falcon automated notice: FD-55102-AE DELIVERED into TB-LOBBY-02/C14 on 08 Oct 14:31; disputes accepted within 7 days.",
+    "CLAIM (Omar, event 006): Souq Atelier opened replacement case R-55820 and will ship a new box if he confirms.",
+    "CLAIM (Omar, event 008): no one has come yet and the locker is unchanged; he will confirm the replacement at lunch if he hears nothing."
+  ],
+  "conflicts": [
+    "Falcon says DELIVERED, but the resident cannot access the parcel. These do not actually conflict: telemetry confirms the deposit and a latch fault, so this is a locker fault, not a delivery dispute. No dispute with Falcon is needed now."
+  ],
+  "missing_information": [
+    "The exact time the technician will attend within the window (owned by BoxHaven via facilities; not needed before 19:52).",
+    "How Souq Atelier handles a replacement while the original box is still in the locker (owned by Souq Atelier; it is Omar's case with them)."
+  ],
+  "risk_flags": [
+    "Duplicate shipment: Omar may confirm replacement R-55820 while the AED 1,249 original is still in C14. This is the merchant's decision; the desk gives facts and does not advise.",
+    "Expectation gap: Omar was never given the attendance deadline, so he reads silence as inaction.",
+    "No credentials: the desk must not ask for or share the pickup code or any service key."
+  ],
+  "authority_map": [
+    {"decision": "Opening C14 / repairing the latch", "owner": "BoxHaven technician via Marsa Heights facilities (Karim Saleh), ticket FM-77410"},
+    {"decision": "Custody of the parcel once removed and the call to the resident", "owner": "Marsa Heights front desk / facilities"},
+    {"decision": "Replacement R-55820 (ship or not, return of the original)", "owner": "Souq Atelier, with the resident"},
+    {"decision": "Delivery dispute or redelivery", "owner": "Falcon Dispatch (not needed: the parcel was delivered into the locker)"}
+  ],
+  "wait_check": {
+    "new_since_last_promise": "Yes, partly. Falcon's DELIVERED notice (event 007) and the replacement offer R-55820 (event 006) change what Omar believes he must do. He now intends to act by lunch on a wrong premise ('Falcon will not help', so the parcel must be sent again).",
+    "pending_promise": "The owning party (facilities) gave a deadline of Fri 9 Oct 19:52 GST, and it is still in the future. But it was never passed on to Omar: event 005 gave no time. So condition (b) ('already passed on to the requester') is not met.",
+    "inbound_is_chase_only": "No. Omar asks 'tell me what you doing now' and he does not have the answer (the attendance deadline). The replacement question belongs to Souq Atelier, so the desk will not answer it, but the factual status he lacks is the desk's to give.",
+    "verdict": "proceed"
+  },
+  "decision_type": "act",
+  "decision_summary": "Send Omar one factual WhatsApp update: the parcel is confirmed inside C14 (latch fault), BoxHaven ticket FM-77410 means a technician attends by today Fri 9 Oct 19:52 GST at the latest, the front desk will hold the parcel and call him, Falcon does not need to re-send, and the replacement choice is his and Souq Atelier's. Do not chase facilities. Record a note and set a follow-up for 19:52.",
+  "rationale": "The desk promised an update once C14 is open but never gave Omar the window the owning party stated (logged 19:52 on 8 Oct + 24 h = 19:52 on 9 Oct). With that missing, and with Omar about to act on the mistaken belief that the parcel must be re-sent, a short message giving facts he does not have is justified. It adds no new ETA beyond what facilities stated and makes no outcome promise. Facilities said nothing is needed from the desk and the window has about 10.5 hours left (09:26 to 19:52), so chasing Karim would be premature. Redelivery is impossible and unnecessary, because the parcel is physically in C14. The replacement decision belongs to Souq Atelier and Omar, so the desk states neutral facts only.",
+  "alternatives_rejected": [
+    "hold_no_action: rejected, because the owner's deadline was never passed on to Omar and he lacks a fact he needs before a decision at lunch.",
+    "Ask Falcon to redeliver: rejected, because the parcel is in C14 and Falcon has no authority over the locker latch.",
+    "Chase Karim/BoxHaven: rejected, because the attendance window runs to 19:52 and facilities said nothing is needed from the desk.",
+    "Tell Omar to confirm or not to confirm R-55820: rejected, because this is the merchant's decision.",
+    "Escalate to human: not needed; there is no safety, fraud or authority issue."
+  ],
+  "actions": [
+    {
+      "tool": "send_message",
+      "recipient": "Omar Haddad",
+      "channel": "WhatsApp",
+      "message": "Good morning Mr Haddad. Here is where things stand. The locker system shows your parcel (order SA-7730915) is inside compartment C14, which has a latch fault. That is why your code is rejected. Building facilities have logged this with BoxHaven as ticket FM-77410. They have told us the locker technician will attend by today, Friday 9 October, 19:52 (Dubai time) at the latest. He will open C14 with a service key, and the building front desk will hold your parcel and call you to collect it. Falcon's 'delivered' notice is correct because the parcel was placed in C14, so it does not need to be sent again. Whether to confirm the Souq Atelier replacement (case R-55820) is up to you and Souq Atelier. If it helps, you can tell them the original box is still inside the locker waiting to be opened. I will update you here once the compartment has been opened. Priya, Lantern Desk"
+    },
+    {
+      "tool": "record_case_note",
+      "recipient": "internal (case 402)",
+      "note": "09:26 Fri 9 Oct: Omar chased (events 006, 008) and plans to confirm Souq Atelier replacement R-55820 at lunch. The duplicate-shipment risk is the merchant's decision. Gave him the facilities deadline (technician by 19:52 today, FM-77410), which was missing from event 005. Did not chase Karim: the window is still open and facilities said nothing is needed from us. No redelivery request to Falcon: the parcel is physically in C14."
+    },
+    {
+      "tool": "schedule_follow_up",
+      "recipient": "Lantern Desk (Priya Menon)",
+      "when": "2026-10-09 19:52 GST +04:00, or earlier when facilities confirm C14 is open",
+      "note": "When facilities confirm C14 is open and the parcel is with the front desk, update Omar on WhatsApp. If there is no confirmation by 19:52, ask Karim Saleh for the status of FM-77410 and give Omar the facts."
+    }
+  ],
+  "not_doing": [
+    "Not asking Falcon to redeliver or opening a dispute.",
+    "Not chasing Karim/BoxHaven before 19:52.",
+    "Not advising Omar to confirm or decline replacement R-55820, and not contacting Souq Atelier on his behalf.",
+    "Not promising an exact attendance time earlier than the facilities deadline, or any compensation.",
+    "Not asking for or sharing the pickup code or service-key details."
+  ],
+  "closes_when": "Omar has collected the parcel from the front desk after C14 is opened, or the replacement is handled between him and Souq Atelier.",
+  "follow_up": {"when": "2026-10-09 19:52 GST +04:00", "trigger": "Facilities confirm C14 is open, or the technician deadline passes"},
+  "confidence": 0.72,
+  "human_handover_notes": "None required. If the technician misses 19:52, the coordinator should ask Karim Saleh for the FM-77410 status."
+}
