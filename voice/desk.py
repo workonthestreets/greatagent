@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import threading
 import time
@@ -30,13 +31,7 @@ _running = threading.BoundedSemaphore(MAX_AT_ONCE)
 _starts: deque[float] = deque()  # start times of recent runs, for the hourly cap
 _cap_lock = threading.Lock()
 
-DECISION_WORDS = {
-    "act": "Our desk has acted on it",
-    "request_information": "Our desk has asked for the information it needs",
-    "escalate_to_human": "Our desk has passed it to a colleague to review",
-    "hold_no_action": "Our desk is holding it for now",
-    "decline": "Our desk can't action this request as it stands",
-}
+_SPEAKABLE = re.compile(r"^[A-Za-z][A-Za-z ,'&/.-]{1,58}$")  # a team or person name, no digits or symbols
 
 
 def _deskagent():
@@ -187,16 +182,57 @@ def start(conversation_id: str, folder: Path) -> None:
     worker.start()
 
 
-def update_line(conversation_id: str) -> str:
-    """What a later call hears about the case. Templates only; names are short and digit-free."""
-    path = CASES_DIR / slug(conversation_id) / "_result.json"
+def _speakable(name: str) -> str:
+    """A contacted party's name if it is safe to say aloud (no refs, amounts or long text), else ''."""
+    for candidate in (name or "", (name or "").split("(")[0], (name or "").split(",")[0]):
+        candidate = candidate.strip()
+        if _SPEAKABLE.match(candidate):
+            return candidate
+    return ""
+
+
+def latest_case(conversation_id: str) -> str:
+    """The newest case opened in this conversation: a second problem is <conv>-2, -3, ..."""
+    n, latest = 2, conversation_id
+    while (CASES_DIR / slug(f"{conversation_id}-{n}")).exists():
+        latest, n = f"{conversation_id}-{n}", n + 1
+    return latest
+
+
+def update_status(conversation_id: str) -> tuple[str, str]:
+    """(status, what to say) for the newest case in the conversation. Templates only: the decision
+    type and the names of who was contacted; deskagent's own wording is never spoken."""
+    folder = CASES_DIR / slug(latest_case(conversation_id))
+    path = folder / "_result.json"
     if not path.exists():
-        return "I can't find that case. A colleague will follow up."
+        return "missing", "I can't find that case. A colleague will follow up with you."
     r = json.loads(path.read_text())
     if r.get("status") == "pending":
-        return "Your case is still with our delivery desk. We'll update you as soon as there's news."
+        return "pending", "Still working on it."
     if r.get("status") != "done":
-        return "Your case has been passed to a colleague, who will follow up with you."
-    said = DECISION_WORDS.get(r.get("decision_type") or "", "Our desk has reviewed it")
-    who = next((n for n in r.get("contacted") or [] if n and len(n) <= 60 and not any(c.isdigit() for c in n)), "")
-    return f"{said}{f', and has contacted {who}' if who else ''}. I can't promise a time or outcome yet."
+        return r.get("status", "failed"), "Your case is with a colleague, who will follow up with you."
+    call_path = folder / "_call.json"
+    caller = (json.loads(call_path.read_text()).get("caller") or "").strip().lower() if call_path.exists() else ""
+    contacted = [n for n in r.get("contacted") or [] if n]
+    told_caller = any(n.strip().lower() == caller for n in contacted) if caller else False
+    others = list(dict.fromkeys(x for x in (_speakable(n) for n in contacted if n.strip().lower() != caller) if x))
+    who = " and ".join(others[:2]) or "the team responsible"
+    you = ", and sent you a message" if told_caller else ""
+    kind = r.get("decision_type")
+    if kind == "request_information" and not others:
+        said = "Our desk has sent you a message asking for a few details. Please reply to it and we'll take it from there"
+    elif kind in ("act", "request_information"):
+        said = f"Our desk has contacted {who}{you}. We'll update you when they reply"
+    elif kind == "escalate_to_human":
+        said = f"Our desk has passed this to a colleague to review{you}. They'll contact you"
+    elif kind == "hold_no_action":
+        said = f"Our desk is holding this for now{you} and will check again. We'll update you"
+    elif kind == "decline":
+        said = "Our desk can't action this request as it stands. A colleague will explain the options"
+    else:
+        said = "Our desk has reviewed it. A colleague will follow up with you"
+    return "done", f"{said}. I can't promise a time or outcome yet."
+
+
+def update_line(conversation_id: str) -> str:
+    return update_status(conversation_id)[1]

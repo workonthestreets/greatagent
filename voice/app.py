@@ -36,7 +36,8 @@ from triage.outbox import deliver
 from voice import desk, hub
 
 LOG_DIR = Path(os.getenv("VOICE_LOG_DIR", "runs/voice"))
-DECIDE_BUDGET_S = 14  # ElevenLabs gives a webhook tool 20 s by default; leave room for the network
+DECIDE_BUDGET_S = 14
+UPDATE_WAIT_S = int(os.getenv("VOICE_UPDATE_WAIT_S", "8"))  # inside the 10 s get_case_update tool budget  # ElevenLabs gives a webhook tool 20 s by default; leave room for the network
 _pool = ThreadPoolExecutor(4)
 app = FastAPI(title="Delivery voice line")
 
@@ -335,7 +336,12 @@ def latest_update(q: UpdateQuery, x_tool_secret: str = Header("")) -> dict:
         contact = record.get("contact") or {}
         phone = contact.get("contact") if contact.get("update_by") in ("text", "call") else None
         return {"say": hub.latest_update(record["hub_case_id"], phone)}
-    return {"say": desk.update_line(q.conversation_id)}
+    deadline = time.time() + UPDATE_WAIT_S  # wait briefly for deskagent so each try is worth making
+    status, say = desk.update_status(q.conversation_id)
+    while status == "pending" and time.time() < deadline:
+        time.sleep(1)
+        status, say = desk.update_status(q.conversation_id)
+    return {"say": say, "status": status}
 
 
 @app.post("/voice/turn")
