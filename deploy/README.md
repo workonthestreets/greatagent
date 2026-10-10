@@ -2,7 +2,21 @@
 
 The phone line (`voice/`, which hands each call to `deskagent` unchanged) runs as one Railway
 service with a fixed `https://` address, so ElevenLabs reaches it without a laptop tunnel.
-A second service runs Mailpit as the demo inbox. Railway builds from `main`.
+A second service runs Mailpit as the demo inbox.
+
+## Live now: no need to build this again
+
+- Voice line: `https://voice-production-ef21.up.railway.app`. `GET /health` returns
+  `{"ok":true,"agent":"deskagent"}`.
+- Railway project `greatagent-voice` has 2 services: `voice` (volume at `/data`) and `mailpit`
+  (demo inbox, behind a password). Ask Kash for access.
+- The ElevenLabs post-call webhook already points at the voice line, and a test call came
+  back `200`. The demo agent's tools still point at the laptop tunnel until someone runs
+  `setup_agent` against the address above (section 3).
+- It was deployed with the Railway CLI (`railway up` from a checkout), not GitHub-connect, so
+  **merging to `main` does not redeploy it**. Redeploy with `railway up` from an up-to-date `main`.
+
+The steps below are how it was set up, for a rebuild or a second environment.
 
 ## 1. Voice service
 
@@ -73,3 +87,22 @@ docker compose -f deploy/docker-compose.yml up --build   # voice on :8010, inbox
 ```
 
 Keys and secrets come from `.env` at the repo root (never committed), with the names above.
+
+## Live desk on Railway: hub + web
+
+Two more services in the same project build from `main` with their own Dockerfiles:
+
+| Service | Config-as-code | Dockerfile | Serves |
+| --- | --- | --- | --- |
+| `hub` | `deploy/railway.hub.json` | `deploy/Dockerfile.hub` | `hub.app:app` (`/api`, `/webhooks`, `/mcp`); healthcheck `/health` hits the database |
+| `web` | `deploy/railway.web.json` | `deploy/Dockerfile.web` | the Vite build of `web/`, served as a single-page app |
+
+Hub variables: everything in `.env.example` under "Live desk" (`SUPABASE_*`, `DATABASE_URL`, `ADMIN_EMAILS`,
+`DEMO_PASSWORD`, `HUB_MCP_TOKEN`, `HUB_WEBHOOK_SECRET`, `ANTHROPIC_API_KEY`, `ANTHROPIC_WORKSPACE_ID`) plus
+`HUB_PUBLIC_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}` and `DESK_ENGINE=pipeline`.
+Web variables (read at build time): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_DEMO_PASSWORD` and
+`VITE_HUB_URL=https://${{hub.RAILWAY_PUBLIC_DOMAIN}}`.
+
+Schema and seed data still come from a laptop against the same Supabase database
+(`python -m db.migrate`, `python -m db.seed --reset`, `python -m db.seed_demo`). ElevenLabs webhook tools point at
+`https://<hub domain>/webhooks/...` (see `DEMO.md`).

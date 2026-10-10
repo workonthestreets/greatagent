@@ -23,3 +23,6 @@ web/tsconfig.tsbuildinfo
 # voice channel
 data/
 *.eml
+
+# local env file with live keys (never commit)
+_env

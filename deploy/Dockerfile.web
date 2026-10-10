@@ -1,0 +1,24 @@
+# Web app (web/, Vite + React) for Railway: build the static bundle, then serve it. Build from the repo root:
+#   docker build -f deploy/Dockerfile.web --build-arg VITE_SUPABASE_URL=... --build-arg VITE_SUPABASE_ANON_KEY=... --build-arg VITE_HUB_URL=... .
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY web/package.json web/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY web/ ./
+
+# Vite inlines these at build time. Railway passes service variables as build args when they are declared here.
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_HUB_URL
+ARG VITE_DEMO_PASSWORD
+RUN npm run build
+
+FROM node:20-alpine
+RUN npm install -g --no-audit --no-fund serve@14.2.4
+WORKDIR /app
+COPY --from=build /app/dist ./dist
+USER node
+
+EXPOSE 3000
+# -s: single-page app, every unknown path serves index.html
+CMD ["sh", "-c", "exec serve -s dist -l ${PORT:-3000}"]
