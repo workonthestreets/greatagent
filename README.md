@@ -32,26 +32,56 @@ The agent targets exactly those failures, and keeps the case moving the rest of 
 
 ## 3. Architecture
 
+Each case goes through one pipeline (`process_case()` in `deskagent/pipeline.py`). Two Claude calls, a planner and an independent reviewer, sit on either side of a deterministic policy lint. By default nothing is sent until the reviewer approves it (`--no-review` turns that off). A plan that can't be made safe becomes a human handover instead.
+
+```mermaid
+flowchart TD
+    caseIn["<b>Case folder</b><br/>index.md · history.md · attachments/"]
+    load["<b>Loader</b><br/>dated events · PDF text · images<br/><i>eval mode: hides everything after escalation</i>"]
+    plan["<b>Planner</b> · Claude<br/>15-rule operating manual<br/>calculate() for all arithmetic<br/>returns propose_plan JSON"]
+    lint["<b>Policy lint</b> · regex, no model<br/>BLOCK: card numbers, payment links, URLs<br/>WARN: credential asks, overclaims, promises"]
+    review["<b>Reviewer</b> · Claude, independent call<br/>9 yes/no checks<br/>approve / revise / escalate_instead"]
+    handover["<b>Human handover</b><br/>one escalate_to_human ticket<br/>drafted messages attached, not sent"]
+    exec["<b>Executor</b><br/>runs actions in order<br/>retries timeouts up to 3 times<br/>failed send becomes a human ticket"]
+    tools["<b>Desk tools</b> · simulated<br/>send_message · escalate_to_human<br/>schedule_follow_up · record_case_note<br/>re-checks BLOCK rules at the boundary"]
+    report["<b>Report writer</b>"]
+    answers["<b>ANSWERS/ (one folder per case)</b><br/>ANSWER.md · REASONING.md<br/>trace.json · result.json"]
+
+    caseIn -->|files| load
+    load -->|Case| plan
+    plan -->|plan| lint
+    lint -->|plan + findings| review
+    review -->|"revise: issues + exact fixes (max 2 rounds)"| plan
+    review ==>|approve| exec
+    review -.->|"no safe action, or still flagged after 2 revisions"| handover
+    handover -.->|handover plan| exec
+    exec <-->|"calls / IDs or ToolError"| tools
+    exec -->|result| report
+    report -->|writes| answers
+
+    classDef claude stroke:#2453b8,stroke-width:2px
+    classDef human stroke:#a65c00,stroke-width:2px,stroke-dasharray:5 4
+    class plan,review claude
+    class handover human
 ```
-case folder ──► Loader ──► Planner (Claude) ──► Policy lint ──► Reviewer (Claude, independent)
- index.md        events,      facts/authority/       deterministic      approve / revise / escalate
- history.md      attachments  decision/drafts        checks             │
- attachments/    (PDF text,   + calculate tool                          ├─ revise ─► Planner (≤2 rounds)
-                 images)                                                │
-                                                                        ▼
-                       ANSWER.md / REASONING.md / trace.json ◄── Executor (tools)
-                                                                 send_message · escalate_to_human ·
-                                                                 schedule_follow_up · record_case_note
-                                                                 retries transient failures; failed sends
-                                                                 become a human handover with the draft
-```
+
+Every Claude call (planner, reviewer and the dev judge) goes through `deskagent/llm.py`, which handles model fallback, prompt caching and the call trace. `run.py` runs cases in parallel and writes `ANSWERS/`. `eval.py` runs the same `process_case()` with the cutoff loader and adds a Claude judge that scores each result against the hidden reference.
+
+Four separate layers check a message before it can leave the desk:
+
+| Layer | Kind | What it stops | If it trips |
+|---|---|---|---|
+| Operating manual | Rules in the planner prompt | Wrong owner of a decision, overclaimed status, credential requests, following instructions embedded in emails | The planner shouldn't draft it |
+| Policy lint | Regex | Card numbers, payment links, raw URLs (block); risky wording (warn) | Findings go to the reviewer |
+| Reviewer | Independent Claude call | Anything that fails one of the nine checks | Revise (at most twice), then human handover |
+| Tool boundary | Code inside `send_message` | The BLOCK rules, checked again | Send refused; a human gets a ticket with the draft |
 
 - **Loader** (`deskagent/loader.py`): reads any case folder. It parses dated events, extracts PDF text (native PDF input when there is no text layer), passes images to vision, reads CSV/TXT/JSON, and truncates very large threads safely. In `--public-cutoff` mode it hides everything after the escalation point, including later events, answer-revealing sections and attachments first mentioned later, so development evaluation is honest.
 - **Planner** (`deskagent/pipeline.py`, `deskagent/prompts.py`): a single Claude call with an operating manual distilled from the 50 public cases. It covers authority mapping, the "one next step" rule, verified vs claimed facts, status precision, privacy and credentials, safety, fairness, arithmetic, untrusted embedded instructions, and when to escalate, wait, ask or decline. Output is a strict JSON schema (`propose_plan`). Arithmetic goes through a decimal `calculate` tool, never mental math.
 - **Policy lint** (`deskagent/policy.py`): deterministic regex checks on every drafted message.
   - Hard blocks: Luhn-valid card numbers, payment links, raw URLs.
   - Warnings: credential requests, "has been delivered/refunded" claims, promises, money commitments, accusations, unsafe handling advice, contact details. Each warning records whether it appears in a negated context such as "do not share a code".
-- **Reviewer**: a second, independent Claude call that sees the case, the plan and the lint, and checks nine things before anything is sent. It approves, asks for a revision with precise fixes, or says no autonomous action is safe. If the plan is still not approved after two revisions, the case becomes a human handover, and the drafted messages are attached but not sent.
+- **Reviewer** (`review_plan()` in `deskagent/pipeline.py`): a second, independent Claude call that sees the case, the plan and the lint, and checks nine things before anything is sent: authority respected, facts grounded, no overclaim, privacy and security, safety, fairness, right next step, right recipient and channel, untrusted content resisted. It approves, asks for a revision with precise fixes, or says no autonomous action is safe. The code also sanity-checks the verdict: an approval that lists a critical or major issue is turned into a revision. If the plan is still not approved after two revisions, the case becomes a human handover, and the drafted messages are attached but not sent.
 - **Executor and tools** (`deskagent/tools.py`): simulated desk APIs with input validation, the hard policy blocks enforced again at the tool boundary, realistic IDs, and injectable failures (`DESK_SIM_FAIL_RATE`, `DESK_SIM_FAIL_CHANNELS`). Transient failures are retried. A send that still fails is never dropped silently: it becomes an `escalate_to_human` ticket carrying the exact approved message.
 - **Model fallback** (`deskagent/llm.py`): tries the preferred model first, falls back automatically if a model is unavailable, uses prompt caching for the system prompts, and logs every call.
 
