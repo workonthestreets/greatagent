@@ -30,15 +30,25 @@ flowchart LR
     VI -->|"instant, fixed template<br/>no LLM text is spoken"| SP["Caller hears:<br/>'passed to safety lead' /<br/>'asking the carrier to look'"]
     SP -.-> PH
     VI -->|"writes"| CF["case folder<br/>call = event 001"]
-    CF --> PIPE["Same reviewed pipeline:<br/>Loader → Planner → Lint → Reviewer → Executor"]
-    EM["Email / portal / ticket"] --> PIPE
-    PIPE --> O2["ANSWER.md · audit trail"]
-    PIPE --> FU["Follow-up to caller<br/>email / callback"]
+
+    subgraph DA["deskagent — existing code, unchanged"]
+        CF --> L2["Loader"]
+        EM["Email / portal / ticket"] --> L2
+        L2 --> P2["Planner"]
+        P2 --> PL2["Policy lint"]
+        PL2 --> R2["Reviewer"]
+        R2 -->|approved| X2["Executor"]
+        R2 -->|revise| P2
+    end
+
+    X2 --> O2["ANSWER.md · audit trail"]
+    X2 --> FU["Follow-up to caller<br/>email / callback"]
 ```
 
 The split is the whole point: the caller gets an **immediate, safe acknowledgement** off
-a template; the *decision* is made by the same reviewed pipeline every other channel
-uses — voice is an add-on intake, never a different decision path.
+a template; the *decision* is made inside the existing `deskagent` box, exactly as it is
+for email — voice is an add-on intake, never a different decision path. The only new
+code is everything left of the `deskagent` subgraph.
 
 ## What each lane has today
 
