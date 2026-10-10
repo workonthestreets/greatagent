@@ -32,14 +32,16 @@ The voice service becomes a channel *into* `deskagent`, not a second agent.
 - `setup_agent.py` provisions the ElevenLabs agent + webhook tool; ids (no secrets) in
   `voice/agent_ids.json`. Needs `APP_ELEVENLABS_API_KEY` + `VOICE_TOOL_SECRET`.
 
-**Decision needed — latency.** `process_case` runs planner + reviewer (~2 Claude calls);
-the ElevenLabs tool budget is ~20 s and the service currently assumes 14 s. Options:
+**Recommended: capture line.** Voice is one intake channel among several — its job is
+to produce a well-formed `event 001`, then `deskagent` decides in the same reviewed
+flow every other channel uses. `process_case` runs planner + reviewer (~2 Claude calls)
+against a ~20 s ElevenLabs tool budget, so an inline decision would need `review=False` —
+weaker safety on the one channel where a miss is spoken aloud. Capture-line has no
+latency risk and keeps `spoken()` as pure templates.
 
-- **Capture line (recommended first):** voice takes the call, writes a case folder,
-  says "the team will follow up by email". `deskagent` decides in the normal batch.
-  No latency risk, demoable, honest.
-- **Inline fast path:** call `process_case(review=False)` mid-call. Probably 5–15 s —
-  marginal. Only if the demo needs a live decision on the call.
+The inline fast path (`process_case(review=False)` mid-call, probably 5–15 s) stays
+documented but is not recommended; the better second demo, if time allows, is the
+outbound leg — a case stuck awaiting info triggers a *call back* to the customer.
 
 ### 2. `scorer/` → independent second-opinion gate (keep in `kash.testing/` or move to `scoring/`)
 
