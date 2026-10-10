@@ -1,0 +1,309 @@
+[
+ {
+  "type": "input",
+  "case_id": "007",
+  "track": "Delivery & Logistics",
+  "mode": "reality",
+  "files": [
+   "index.md",
+   "history.md"
+  ],
+  "attachments": [
+   "attachments/pickup-screen.png"
+  ],
+  "hidden_events": [],
+  "hidden_attachments": [],
+  "events": 0,
+  "now": "",
+  "warnings": [
+   "could not parse dated events in history.md; the current time is unknown - read the history text directly"
+  ]
+ },
+ {
+  "type": "llm_call",
+  "purpose": "plan",
+  "model": "claude-opus-5-5",
+  "latency_s": 40.03,
+  "request_messages": [
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "Below is the case record as it stands now. The current time is just after the latest visible event (unknown).\n\n<case id=\"007\" track=\"Delivery & Logistics\" mode=\"reality\">\n<file name=\"index.md\">\n# 007 — Pickup readiness shown in the customer app\n\n## Context\n\nVEL-007-26 is routed to locker Lark-12 in Mossbay for Davin Pell. Stored locker-operator contact: locker@vellora.example.\n\n## Available facts\n\nUse the attributed records and correspondence in [history.md](history.md), E01–E06.\nShipment/order reference: VEL-007-26. No agent decision is recorded.\n\n## Current request\n\nPlease confirm I can collect it today; I will set off if you say yes.\n\nDecision time: `2026-10-14T08:50:00+01:00`.\n\n## Attachments\n\n- [pickup-screen.png](attachments/pickup-screen.png)\n</file>\n\n<file name=\"history.md\">\n# 007 — History\n\nAll timestamps include offsets. Records labelled excerpts are reproduced inline.\n\n## E01 | 2026-10-14T08:00:00+01:00 | booking record\n\nFrom: Vellora dispatch register → To: Vellora escalation desk\nKnown at desk: `2026-10-14T08:00:00+01:00`\n\nVEL-007-26 is routed to locker Lark-12 in Mossbay for Davin Pell. Stored locker-operator contact: locker@vellora.example.\n\n## E02 | 2026-10-14T08:10:00+01:00 | procedure excerpt\n\nFrom: Vellora procedure desk → To: Vellora escalation desk\nKnown at desk: `2026-10-14T08:10:00+01:00`\n\nInline locker guide K7: physical availability requires a successful deposit and an assigned compartment. App readiness is a customer-display field. The locker team controls availability corrections.\n\n## E03 | 2026-10-14T08:20:00+01:00 | system excerpt\n\nFrom: Vellora operations → To: Vellora escalation desk\nKnown at desk: `2026-10-14T08:20:00+01:00`\n\nCustomer supplied [pickup-screen.png](attachments/pickup-screen.png). Inline locker events: 2026-10-14T07:40:00+01:00 deposit_attempt; 07:41:00+01:00 deposit_failed, compartment_id=null, parcel=VEL-007-26. No later deposit event at 08:20.\n\n## E04 | 2026-10-14T08:30:00+01:00 | email\n\nFrom: Customer → To: Vellora escalation desk\nKnown at desk: `2026-10-14T08:30:00+01:00`\n\nDavin Pell: The app has turned green and says ready. I can go to Lark-12 on my lunch break.\n\n## E05 | 2026-10-14T08:40:00+01:00 | internal handoff\n\nFrom: Vellora account desk → To: Vellora escalation desk\nKnown at desk: `2026-10-14T08:40:00+01:00`\n\nLocker operator status excerpt at 08:40: compartment allocation for VEL-007-26 remains null; van-custody check is pending. Display refresh job last ran at 08:00.\n\n## E06 | 2026-10-14T08:50:00+01:00 | email\n\nFrom: Customer → To: Vellora escalation desk\nKnown at desk: `2026-10-14T08:50:00+01:00`\n\nPlease confirm I can collect it today; I will set off if you say yes.\n</file>\n\n<attachment name=\"attachments/pickup-screen.png\" type=\"image\">(image provided below)</attachment>\n</case>\n\nKnown channels in the record: (none recorded)\nKnown parties in the record: (none recorded)\nLoader warnings: could not parse dated events in history.md; the current time is unknown - read the history text directly\nAnalyse the case and call `propose_plan` (use `calculate` first if any arithmetic is involved)."
+     },
+     {
+      "type": "text",
+      "text": "Attachment image: attachments/pickup-screen.png"
+     },
+     {
+      "type": "image",
+      "note": "binary attachment omitted from trace"
+     },
+     {
+      "type": "text",
+      "text": "Respond by calling the `propose_plan` tool (exactly once)."
+     }
+    ]
+   }
+  ],
+  "stop_reason": "tool_use",
+  "usage": {
+   "input_tokens": 2710,
+   "output_tokens": 4335,
+   "cache_read_input_tokens": 6369
+  },
+  "response": [
+   {
+    "type": "thinking",
+    "thinking": ""
+   },
+   {
+    "type": "tool_use",
+    "name": "propose_plan",
+    "input": {
+     "situation": "Davin Pell sees 'Ready for collection' for VEL-007-26 at locker Lark-12, Mossbay in the app. He is asking us to confirm he can collect today, and says he will set off if we say yes. The locker records say otherwise. The deposit failed at 07:41 and no compartment was assigned (compartment_id=null). At 08:40 the compartment allocation was still null, and a check on whether the parcel is still in the van was pending. The app display last refreshed at 08:00, so the green 'ready' status is a display field and does not mean the parcel is available.",
+     "facts": [
+      {
+       "fact": "VEL-007-26 is routed to locker Lark-12 in Mossbay for Davin Pell; stored locker-operator contact is locker@vellora.example",
+       "source": "event E01",
+       "status": "verified"
+      },
+      {
+       "fact": "Locker guide K7: a parcel is only physically available after a successful deposit and an assigned compartment. App readiness is a customer-display field. The locker team controls availability corrections.",
+       "source": "event E02",
+       "status": "verified"
+      },
+      {
+       "fact": "Locker events: deposit_attempt 07:40+01:00, then deposit_failed 07:41+01:00 with compartment_id=null. No later deposit event as of 08:20.",
+       "source": "event E03",
+       "status": "verified"
+      },
+      {
+       "fact": "At 08:40 the compartment allocation is still null, the van-custody check is pending, and the display refresh job last ran at 08:00",
+       "source": "event E05",
+       "status": "verified"
+      },
+      {
+       "fact": "Customer screenshot shows 'Ready for collection', captured and exported 08:00+01:00 from the Vellora customer app",
+       "source": "attachment pickup-screen.png",
+       "status": "verified"
+      },
+      {
+       "fact": "Customer says the app has turned green and he plans to go on his lunch break; he asks for confirmation before setting off",
+       "source": "event E04, event E06",
+       "status": "claimed"
+      },
+      {
+       "fact": "The 'ready' display is most likely out of date or wrong, because it was produced at 08:00, after the 07:41 failed deposit",
+       "source": "event E03, event E05",
+       "status": "inferred"
+      }
+     ],
+     "conflicts": [
+      "The customer app and screenshot show 'Ready for collection' (08:00). The locker records show deposit_failed with compartment_id=null (07:41), still null at 08:40. Under guide K7 the physical record decides availability. The locker team owns correcting the display and confirming where the parcel is."
+     ],
+     "missing_information": [
+      "Whether the parcel is still in the van (custody check pending)",
+      "Whether and when a successful deposit with an assigned compartment will happen at Lark-12",
+      "When the app's readiness display will be corrected"
+     ],
+     "risk_flags": [
+      "Telling the customer 'yes' would send him on a wasted trip: the parcel has no compartment",
+      "Customer-supplied screenshot is a display field, not proof the parcel is available",
+      "No collection time or arrival can be promised until the locker team confirms a successful deposit"
+     ],
+     "case_parameters": {
+      "requester_type": "consumer",
+      "issue_type": "tracking_visibility",
+      "shipment_stage": "on_route",
+      "owner_org_type": "pickup_point",
+      "verification_state": "asserted_only",
+      "urgency": "none",
+      "risk_flags": [],
+      "evidence_conflict": true,
+      "money_involved": false,
+      "customer_input_required": false,
+      "queue": "carrier_ops",
+      "human_gate": "none"
+     },
+     "authority_map": [
+      {
+       "party": "Vellora locker team (locker@vellora.example)",
+       "controls": "Physical availability, compartment assignment, deposit retry, availability/display corrections (guide K7)"
+      },
+      {
+       "party": "Vellora dispatch / van custody",
+       "controls": "Where the parcel is after the failed deposit (custody check pending)"
+      },
+      {
+       "party": "Davin Pell",
+       "controls": "Whether and when he travels to collect"
+      },
+      {
+       "party": "Escalation desk",
+       "controls": "Coordination only; cannot confirm readiness"
+      }
+     ],
+     "wait_check": {
+      "new_since_last_promise": "The desk has made no earlier promise to the customer. New: the E05 status shows the compartment is still null and the van check is pending, and the customer is asking for a go/no-go",
+      "pending_promise": "none",
+      "inbound_is_chase_only": false,
+      "verdict": "proceed"
+     },
+     "decision_type": "act",
+     "decision_summary": "Do not confirm collection. Ask the locker team to confirm where the parcel is, whether it can be deposited at Lark-12, and to correct the wrong 'ready' display. Tell Davin not to travel on the strength of the app until we confirm.",
+     "rationale": "Under guide K7, a parcel is only available after a successful deposit with a compartment. The record shows the deposit failed and no compartment was assigned, so the green app status is not proof the parcel is there. The locker team owns availability corrections and confirming the deposit, so the request goes to them at the recorded contact. Davin is about to make a trip based on a wrong display, so he needs a clear 'not yet confirmed' now. We give him no time or outcome that the locker team has not given us.",
+     "actions": [
+      {
+       "tool": "send_message",
+       "channel": "Email",
+       "to_name": "locker@vellora.example",
+       "to_role": "Vellora locker operator team",
+       "recipient_function": "pickup_point_operator",
+       "action_class": "request_operator_action",
+       "priority": "high",
+       "subject": "VEL-007-26 / Lark-12 Mossbay – failed deposit but app shows 'Ready for collection'",
+       "body": "Hello, we need your help with VEL-007-26 at locker Lark-12, Mossbay. Your locker events show deposit_attempt at 07:40 and deposit_failed at 07:41 (+01:00), with compartment_id=null. At 08:40 the allocation was still null and the van-custody check was pending. However, the customer app has shown 'Ready for collection' since the 08:00 display refresh, and the customer plans to collect on his lunch break today. Please: (1) confirm where the parcel is now (in the van or elsewhere); (2) tell us whether and when a successful deposit with an assigned compartment is planned at Lark-12; (3) correct the readiness display for VEL-007-26 until a deposit succeeds. We have told the customer that collection is not yet confirmed. Please reply today, before midday (+01:00) if possible, as the customer intends to travel at lunchtime. Thank you, Vellora escalation desk",
+       "purpose": "Ask the owner of physical availability and display corrections to confirm the parcel's status and fix the wrong 'ready' status"
+      },
+      {
+       "tool": "send_message",
+       "channel": "Email",
+       "to_name": "Davin Pell",
+       "to_role": "Customer",
+       "recipient_function": "customer_self",
+       "action_class": "ask_customer",
+       "priority": "high",
+       "subject": "Your parcel VEL-007-26 at Lark-12 – please don't set off yet",
+       "body": "Hello Davin, thank you for checking with us before travelling. We can't confirm yet that your parcel VEL-007-26 is ready at locker Lark-12 in Mossbay. Our locker records show it has not yet been placed in a locker compartment, even though the app currently shows it as ready. Please don't set off on the strength of the app message for now. We've asked the locker team to check where your parcel is and to correct the app. We'll email you as soon as they confirm it is actually in the locker. Sorry for the confusion. Vellora escalation desk",
+       "purpose": "Stop a wasted trip; tell the customer the true status without promising a time"
+      }
+     ],
+     "not_doing": [
+      "Not confirming that he can collect today: the deposit failed and no compartment is assigned",
+      "Not giving an arrival or collection time: the locker team has not given one",
+      "Not treating the screenshot or app status as proof the parcel is available (guide K7)",
+      "Not escalating to a supervisor: the owner is clear and no money or authority decision is involved"
+     ],
+     "proof_standard": "operator_confirmation",
+     "follow_up": "Check for the locker team's reply before Davin's lunch break today, around midday +01:00, and within the working day under the carrier_ops rule. If they confirm a successful deposit with a compartment, tell Davin he can collect. If they report the parcel is still in the van or the deposit has failed again, pass on only what they confirmed. If there is no reply, chase locker@vellora.example and ask dispatch to locate the parcel (carrier_trace)."
+    }
+   }
+  ]
+ },
+ {
+  "type": "llm_call",
+  "purpose": "review",
+  "model": "claude-opus-5-5",
+  "latency_s": 10.5,
+  "request_messages": [
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "<case id=\"007\" track=\"Delivery & Logistics\">\n<file name=\"index.md\">\n# 007 — Pickup readiness shown in the customer app\n\n## Context\n\nVEL-007-26 is routed to locker Lark-12 in Mossbay for Davin Pell. Stored locker-operator contact: locker@vellora.example.\n\n## Available facts\n\nUse the attributed records and correspondence in [history.md](history.md), E01–E06.\nShipment/order reference: VEL-007-26. No agent decision is recorded.\n\n## Current request\n\nPlease confirm I can collect it today; I will set off if you say yes.\n\nDecision time: `2026-10-14T08:50:00+01:00`.\n\n## Attachments\n\n- [pickup-screen.png](attachments/pickup-screen.png)\n</file>\n\n<file name=\"history.md\">\n# 007 — History\n\nAll timestamps include offsets. Records labelled excerpts are reproduced inline.\n\n## E01 | 2026-10-14T08:00:00+01:00 | booking record\n\nFrom: Vellora dispatch register → To: Vellora escalation desk\nKnown at desk: `2026-10-14T08:00:00+01:00`\n\nVEL-007-26 is routed to locker Lark-12 in Mossbay for Davin Pell. Stored locker-operator contact: locker@vellora.example.\n\n## E02 | 2026-10-14T08:10:00+01:00 | procedure excerpt\n\nFrom: Vellora procedure desk → To: Vellora escalation desk\nKnown at desk: `2026-10-14T08:10:00+01:00`\n\nInline locker guide K7: physical availability requires a successful deposit and an assigned compartment. App readiness is a customer-display field. The locker team controls availability corrections.\n\n## E03 | 2026-10-14T08:20:00+01:00 | system excerpt\n\nFrom: Vellora operations → To: Vellora escalation desk\nKnown at desk: `2026-10-14T08:20:00+01:00`\n\nCustomer supplied [pickup-screen.png](attachments/pickup-screen.png). Inline locker events: 2026-10-14T07:40:00+01:00 deposit_attempt; 07:41:00+01:00 deposit_failed, compartment_id=null, parcel=VEL-007-26. No later deposit event at 08:20.\n\n## E04 | 2026-10-14T08:30:00+01:00 | email\n\nFrom: Customer → To: Vellora escalation desk\nKnown at desk: `2026-10-14T08:30:00+01:00`\n\nDavin Pell: The app has turned green and says ready. I can go to Lark-12 on my lunch break.\n\n## E05 | 2026-10-14T08:40:00+01:00 | internal handoff\n\nFrom: Vellora account desk → To: Vellora escalation desk\nKnown at desk: `2026-10-14T08:40:00+01:00`\n\nLocker operator status excerpt at 08:40: compartment allocation for VEL-007-26 remains null; van-custody check is pending. Display refresh job last ran at 08:00.\n\n## E06 | 2026-10-14T08:50:00+01:00 | email\n\nFrom: Customer → To: Vellora escalation desk\nKnown at desk: `2026-10-14T08:50:00+01:00`\n\nPlease confirm I can collect it today; I will set off if you say yes.\n</file>\n\n<attachment name=\"attachments/pickup-screen.png\" type=\"image\">(image provided below)</attachment>\n</case>\n\n<proposed_plan>\n{\n  \"situation\": \"Davin Pell sees 'Ready for collection' for VEL-007-26 at locker Lark-12, Mossbay in the app. He is asking us to confirm he can collect today, and says he will set off if we say yes. The locker records say otherwise. The deposit failed at 07:41 and no compartment was assigned (compartment_id=null). At 08:40 the compartment allocation was still null, and a check on whether the parcel is still in the van was pending. The app display last refreshed at 08:00, so the green 'ready' status is a display field and does not mean the parcel is available.\",\n  \"facts\": [\n    {\n      \"fact\": \"VEL-007-26 is routed to locker Lark-12 in Mossbay for Davin Pell; stored locker-operator contact is locker@vellora.example\",\n      \"source\": \"event E01\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"Locker guide K7: a parcel is only physically available after a successful deposit and an assigned compartment. App readiness is a customer-display field. The locker team controls availability corrections.\",\n      \"source\": \"event E02\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"Locker events: deposit_attempt 07:40+01:00, then deposit_failed 07:41+01:00 with compartment_id=null. No later deposit event as of 08:20.\",\n      \"source\": \"event E03\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"At 08:40 the compartment allocation is still null, the van-custody check is pending, and the display refresh job last ran at 08:00\",\n      \"source\": \"event E05\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"Customer screenshot shows 'Ready for collection', captured and exported 08:00+01:00 from the Vellora customer app\",\n      \"source\": \"attachment pickup-screen.png\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"Customer says the app has turned green and he plans to go on his lunch break; he asks for confirmation before setting off\",\n      \"source\": \"event E04, event E06\",\n      \"status\": \"claimed\"\n    },\n    {\n      \"fact\": \"The 'ready' display is most likely out of date or wrong, because it was produced at 08:00, after the 07:41 failed deposit\",\n      \"source\": \"event E03, event E05\",\n      \"status\": \"inferred\"\n    }\n  ],\n  \"conflicts\": [\n    \"The customer app and screenshot show 'Ready for collection' (08:00). The locker records show deposit_failed with compartment_id=null (07:41), still null at 08:40. Under guide K7 the physical record decides availability. The locker team owns correcting the display and confirming where the parcel is.\"\n  ],\n  \"missing_information\": [\n    \"Whether the parcel is still in the van (custody check pending)\",\n    \"Whether and when a successful deposit with an assigned compartment will happen at Lark-12\",\n    \"When the app's readiness display will be corrected\"\n  ],\n  \"risk_flags\": [\n    \"Telling the customer 'yes' would send him on a wasted trip: the parcel has no compartment\",\n    \"Customer-supplied screenshot is a display field, not proof the parcel is available\",\n    \"No collection time or arrival can be promised until the locker team confirms a successful deposit\"\n  ],\n  \"case_parameters\": {\n    \"requester_type\": \"consumer\",\n    \"issue_type\": \"tracking_visibility\",\n    \"shipment_stage\": \"on_route\",\n    \"owner_org_type\": \"pickup_point\",\n    \"verification_state\": \"asserted_only\",\n    \"urgency\": \"none\",\n    \"risk_flags\": [],\n    \"evidence_conflict\": true,\n    \"money_involved\": false,\n    \"customer_input_required\": false,\n    \"queue\": \"carrier_ops\",\n    \"human_gate\": \"none\"\n  },\n  \"authority_map\": [\n    {\n      \"party\": \"Vellora locker team (locker@vellora.example)\",\n      \"controls\": \"Physical availability, compartment assignment, deposit retry, availability/display corrections (guide K7)\"\n    },\n    {\n      \"party\": \"Vellora dispatch / van custody\",\n      \"controls\": \"Where the parcel is after the failed deposit (custody check pending)\"\n    },\n    {\n      \"party\": \"Davin Pell\",\n      \"controls\": \"Whether and when he travels to collect\"\n    },\n    {\n      \"party\": \"Escalation desk\",\n      \"controls\": \"Coordination only; cannot confirm readiness\"\n    }\n  ],\n  \"wait_check\": {\n    \"new_since_last_promise\": \"The desk has made no earlier promise to the customer. New: the E05 status shows the compartment is still null and the van check is pending, and the customer is asking for a go/no-go\",\n    \"pending_promise\": \"none\",\n    \"inbound_is_chase_only\": false,\n    \"verdict\": \"proceed\"\n  },\n  \"decision_type\": \"act\",\n  \"decision_summary\": \"Do not confirm collection. Ask the locker team to confirm where the parcel is, whether it can be deposited at Lark-12, and to correct the wrong 'ready' display. Tell Davin not to travel on the strength of the app until we confirm.\",\n  \"rationale\": \"Under guide K7, a parcel is only available after a successful deposit with a compartment. The record shows the deposit failed and no compartment was assigned, so the green app status is not proof the parcel is there. The locker team owns availability corrections and confirming the deposit, so the request goes to them at the recorded contact. Davin is about to make a trip based on a wrong display, so he needs a clear 'not yet confirmed' now. We give him no time or outcome that the locker team has not given us.\",\n  \"actions\": [\n    {\n      \"tool\": \"send_message\",\n      \"channel\": \"Email\",\n      \"to_name\": \"locker@vellora.example\",\n      \"to_role\": \"Vellora locker operator team\",\n      \"recipient_function\": \"pickup_point_operator\",\n      \"action_class\": \"request_operator_action\",\n      \"priority\": \"high\",\n      \"subject\": \"VEL-007-26 / Lark-12 Mossbay – failed deposit but app shows 'Ready for collection'\",\n      \"body\": \"Hello, we need your help with VEL-007-26 at locker Lark-12, Mossbay. Your locker events show deposit_attempt at 07:40 and deposit_failed at 07:41 (+01:00), with compartment_id=null. At 08:40 the allocation was still null and the van-custody check was pending. However, the customer app has shown 'Ready for collection' since the 08:00 display refresh, and the customer plans to collect on his lunch break today. Please: (1) confirm where the parcel is now (in the van or elsewhere); (2) tell us whether and when a successful deposit with an assigned compartment is planned at Lark-12; (3) correct the readiness display for VEL-007-26 until a deposit succeeds. We have told the customer that collection is not yet confirmed. Please reply today, before midday (+01:00) if possible, as the customer intends to travel at lunchtime. Thank you, Vellora escalation desk\",\n      \"purpose\": \"Ask the owner of physical availability and display corrections to confirm the parcel's status and fix the wrong 'ready' status\"\n    },\n    {\n      \"tool\": \"send_message\",\n      \"channel\": \"Email\",\n      \"to_name\": \"Davin Pell\",\n      \"to_role\": \"Customer\",\n      \"recipient_function\": \"customer_self\",\n      \"action_class\": \"ask_customer\",\n      \"priority\": \"high\",\n      \"subject\": \"Your parcel VEL-007-26 at Lark-12 – please don't set off yet\",\n      \"body\": \"Hello Davin, thank you for checking with us before travelling. We can't confirm yet that your parcel VEL-007-26 is ready at locker Lark-12 in Mossbay. Our locker records show it has not yet been placed in a locker compartment, even though the app currently shows it as ready. Please don't set off on the strength of the app message for now. We've asked the locker team to check where your parcel is and to correct the app. We'll email you as soon as they confirm it is actually in the locker. Sorry for the confusion. Vellora escalation desk\",\n      \"purpose\": \"Stop a wasted trip; tell the customer the true status without promising a time\"\n    }\n  ],\n  \"not_doing\": [\n    \"Not confirming that he can collect today: the deposit failed and no compartment is assigned\",\n    \"Not giving an arrival or collection time: the locker team has not given one\",\n    \"Not treating the screenshot or app status as proof the parcel is available (guide K7)\",\n    \"Not escalating to a supervisor: the owner is clear and no money or authority decision is involved\"\n  ],\n  \"proof_standard\": \"operator_confirmation\",\n  \"follow_up\": \"Check for the locker team's reply before Davin's lunch break today, around midday +01:00, and within the working day under the carrier_ops rule. If they confirm a successful deposit with a compartment, tell Davin he can collect. If they report the parcel is still in the van or the deposit has failed again, pass on only what they confirmed. If there is no reply, chase locker@vellora.example and ask dispatch to locate the parcel (carrier_trace).\",\n  \"_case_id\": \"007\"\n}\n</proposed_plan>\n\n<automated_policy_lint>\nNo automated policy findings.\n</automated_policy_lint>\n\nReview the plan and call `submit_review`."
+     },
+     {
+      "type": "text",
+      "text": "Attachment image: attachments/pickup-screen.png"
+     },
+     {
+      "type": "image",
+      "note": "binary attachment omitted from trace"
+     },
+     {
+      "type": "text",
+      "text": "Respond by calling the `submit_review` tool (exactly once)."
+     }
+    ]
+   }
+  ],
+  "stop_reason": "tool_use",
+  "usage": {
+   "input_tokens": 5685,
+   "output_tokens": 1013,
+   "cache_read_input_tokens": 1757
+  },
+  "response": [
+   {
+    "type": "thinking",
+    "thinking": ""
+   },
+   {
+    "type": "tool_use",
+    "name": "submit_review",
+    "input": {
+     "checks": {
+      "authority_respected": true,
+      "facts_grounded": true,
+      "fair_no_accusation": true,
+      "no_overclaim": true,
+      "privacy_security_ok": true,
+      "right_next_step": true,
+      "right_recipient_and_channel": true,
+      "safety_ok": true,
+      "untrusted_content_resisted": true
+     },
+     "issues": [
+      {
+       "severity": "minor",
+       "action_index": 1,
+       "problem": "The customer email is tagged action_class 'ask_customer', but it asks him nothing. It tells him the status and asks him to hold off. This also doesn't match customer_input_required=false.",
+       "fix": "Change the tag to an informational or status-update class."
+      },
+      {
+       "severity": "minor",
+       "action_index": -1,
+       "problem": "case_parameters set urgency to 'none', but the customer is about to travel and both messages are marked high priority. The midday deadline is also the desk's guess at when 'lunch break' is, not a time the customer gave.",
+       "fix": "Set urgency to match the time pressure. Keep the midday request phrased as 'if possible' and don't treat it as a confirmed time."
+      }
+     ],
+     "verdict": "approve",
+     "summary": "I'm approving this plan. Collection is correctly not confirmed: the locker records show the deposit failed and no compartment has been assigned. The plan asks the locker team, who control availability and display corrections under K7, to confirm where the parcel is and fix the app. It also tells the customer, accurately, not to travel yet, without promising any time or outcome. There are only minor tagging issues."
+    }
+   }
+  ]
+ },
+ {
+  "type": "tool_call",
+  "phase": "execute",
+  "tool": "send_message",
+  "input": {
+   "to_name": "locker@vellora.example",
+   "to_role": "Vellora locker operator team",
+   "channel": "Email",
+   "subject": "VEL-007-26 / Lark-12 Mossbay – failed deposit but app shows 'Ready for collection'",
+   "body": "Hello, we need your help with VEL-007-26 at locker Lark-12, Mossbay. Your locker events show deposit_attempt at 07:40 and deposit_failed at 07:41 (+01:00), with compartment_id=null. At 08:40 the allocation was still null and the van-custody check was pending. However, the customer app has shown 'Ready for collection' since the 08:00 display refresh, and the customer plans to collect on his lunch break today. Please: (1) confirm where the parcel is now (in the van or elsewhere); (2) tell us whether and when a successful deposit with an assigned compartment is planned at Lark-12; (3) correct the readiness display for VEL-007-26 until a deposit succeeds. We have told the customer that collection is not yet confirmed. Please reply today, before midday (+01:00) if possible, as the customer intends to travel at lunchtime. Thank you, Vellora escalation desk"
+  },
+  "output": {
+   "status": "sent",
+   "message_id": "MSG-7-01",
+   "channel": "Email",
+   "note": "queued on channel (channel not previously used in this case)"
+  },
+  "error": null,
+  "at": "2026-10-10T15:36:43.237392+00:00"
+ },
+ {
+  "type": "tool_call",
+  "phase": "execute",
+  "tool": "send_message",
+  "input": {
+   "to_name": "Davin Pell",
+   "to_role": "Customer",
+   "channel": "Email",
+   "subject": "Your parcel VEL-007-26 at Lark-12 – please don't set off yet",
+   "body": "Hello Davin, thank you for checking with us before travelling. We can't confirm yet that your parcel VEL-007-26 is ready at locker Lark-12 in Mossbay. Our locker records show it has not yet been placed in a locker compartment, even though the app currently shows it as ready. Please don't set off on the strength of the app message for now. We've asked the locker team to check where your parcel is and to correct the app. We'll email you as soon as they confirm it is actually in the locker. Sorry for the confusion. Vellora escalation desk"
+  },
+  "output": {
+   "status": "sent",
+   "message_id": "MSG-7-02",
+   "channel": "Email",
+   "note": "queued on channel (channel not previously used in this case)"
+  },
+  "error": null,
+  "at": "2026-10-10T15:36:43.237634+00:00"
+ }
+]
