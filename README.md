@@ -266,7 +266,7 @@ The hub wakes the agent on each new event. `DESK_ENGINE` picks the engine: `pipe
 - **Status.** The `pipeline` engine is tested end to end against local Postgres (`tests/test_pipeline_driver.py`) and by real runs (`demo/recorded/`). The `managed` engine ran 6 live sessions on Supabase on 10 Oct; it has no independent reviewer, so the coordinator's approval is its only check.
 - **Messages stay inside the demo app.** There are no real carrier or customer connectors.
 
-There is also a standalone **voice line** (`voice/`, hosted on Railway at `https://voice-production-ef21.up.railway.app`). An ElevenLabs agent takes the caller's name, reference and problem, writes the call as a case folder and hands it to `deskagent` unchanged in the background, with the reviewer as its check. The caller hears only fixed templates, never a promise of money or a date, and any hazard gets the 999 line first. Finished calls are mirrored into the Desk already decided. Nothing in `deskagent/`, `run.py` or `reality.sh` depends on it.
+There is also a standalone **voice line** (`voice/`, hosted on Railway at `https://voice-production-ef21.up.railway.app`). An ElevenLabs agent takes the caller's name, reference and problem, writes the call as a case folder and hands it to `deskagent` unchanged in the background, with the reviewer as its check. The caller hears only fixed templates, never a promise of money or a date, and any hazard gets the 999 line first. On the call it takes the caller's name, reads the order reference and the email or phone number back before logging (UK numbers must be 11 digits), looks the shipment up, offers updates by email, text or call back, and can tell the caller the desk's decision before they hang up. A second problem in the same call becomes its own case. `VOICE_AGENT` switches who decides (`deskagent` by default; `triage` and `hub` are kept as alternatives). Finished calls are mirrored into the Desk already decided. Nothing in `deskagent/`, `run.py` or `reality.sh` depends on it.
 
 The demo script, both screens and every fallback are in [`DEMO.md`](DEMO.md). The hub API is described in [`hub/README.md`](hub/README.md).
 
@@ -570,6 +570,7 @@ Local frameworks: FastAPI, uvicorn, pydantic and psycopg for the hub and voice s
   - The agent sometimes sends a request through the team it is already talking to and asks them to forward it, instead of going straight to the owning team named in the record.
   - It sometimes answers the customer directly from the information it has, where a coordinator would first ask the carrier for approved wording or steps.
 - **Multi-part requests.** In some long cases the agent leaves out one required sub-request, such as asking for redelivery as well as a status correction.
+- **The voice line sees less than a full case.** Its case is the caller's words plus the desk's own record up to the escalation, so routing from a call is sometimes softer than from the full thread. A misheard reference falls back to its letters-and-digits core, which can match the wrong shipment if two refs share it (the reference is read back first).
 - **The wait test can still yield.** On the hard set, the agent sometimes replies when holding was preferred, because something looked new or helpful (cases 402 and 403 in `evals/prompt-v2-2026-10-10/`).
 
 </details>
