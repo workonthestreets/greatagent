@@ -76,6 +76,72 @@ def ask_agent(req: AskAgentIn) -> dict:
                    f"you can also call back and ask for the latest on case {case_id}."}
 
 
+class VoiceMessage(BaseModel):
+    to: str
+    channel: str = ""
+    body: str = ""
+
+
+class VoiceDecision(BaseModel):
+    type: Optional[str] = None
+    summary: Optional[str] = None
+    approved: Optional[bool] = None
+    contacted: list[str] = []
+    messages: list[VoiceMessage] = []
+
+
+class RecordCaseIn(BaseModel):
+    voice_case_id: str
+    caller_name: Optional[str] = None
+    caller_phone: Optional[str] = None
+    shipment_ref: Optional[str] = None
+    request: str = ""
+    lookup_source_case: Optional[str] = None
+    decision: VoiceDecision = VoiceDecision()
+
+
+@router.post("/record_case", dependencies=[Depends(check_secret)])
+def record_case(req: RecordCaseIn) -> dict:
+    """Mirror a phone case the voice line already decided (with deskagent) into the desk, so it shows in /ops.
+    Records only: the hub's own agent is not woken. Spec: voice/HUB_MIRROR.md. Idempotent on voice_case_id."""
+    from db.seed import party_role   # same role heuristic as the seeded cases
+
+    seen = db.one("select case_id from case_events where meta->>'voice_case_id' = %s limit 1", (req.voice_case_id,))
+    if seen:
+        return {"case_id": seen["case_id"], "already_recorded": True}
+    caller = _caller(req.caller_phone)
+    if caller.get("email") is None:   # no matching account: use the name the caller gave
+        caller = {**caller, "party_name": req.caller_name or caller["party_name"]}
+    who, role = caller["party_name"] or caller["display_name"], caller["role"]
+    desk, d = "Iona Quill, Rivet Delivery Desk", req.decision
+    case_id = new_case({**caller, "party_name": who, "display_name": who}, (req.request or "Phone call")[:80],
+                       req.request or "(no details given)", (req.shipment_ref or "").upper() or None, "Phone call")
+    status = "escalated" if d.type == "escalate_to_human" else "open"
+    db.query("update cases set status = %s, decision = %s, decision_summary = %s, updated_at = now() where id = %s",
+             (status, db.jsonb({"decision_type": d.type, "summary": d.summary, "approved": d.approved,
+                                "source": "voice line (deskagent)"}), d.summary, case_id))
+    def party(name: str) -> str:   # messages to the caller go to the caller's party, so their views find them
+        n = name.strip().lower()
+        return who if n and (n == (req.caller_name or "").strip().lower() or who.lower().startswith(n)) else name
+
+    for name in dict.fromkeys(party(m.to) for m in d.messages if m.to):
+        db.query("insert into case_parties (case_id, party_name, role) values (%s, %s, %s) on conflict do nothing",
+                 (case_id, name, role if name == who else party_role(name)))
+    for m in d.messages:
+        db.query(
+            """insert into case_events (case_id, channel, author, author_role, to_party, kind, body)
+               values (%s, %s, 'Rivet Delivery Desk', 'agent', %s, 'agent_message', %s)""",
+            (case_id, m.channel or "Message", party(m.to), m.body or "(empty)"))
+    db.query(
+        """insert into case_events (case_id, channel, author, author_role, to_party, kind, visibility, body, meta)
+           values (%s, 'Internal', 'Voice line', 'agent', %s, 'note', 'staff', %s, %s)""",
+        (case_id, desk,
+         f"Phone case {req.voice_case_id} decided on the voice line by deskagent: [{d.type}] {d.summary or ''}"
+         + (f" Shipment matched public case {req.lookup_source_case}." if req.lookup_source_case else ""),
+         db.jsonb({"voice_case_id": req.voice_case_id, "approved": d.approved, "contacted": d.contacted})))
+    return {"case_id": case_id}
+
+
 class ShipmentIn(BaseModel):
     order_id: str
 

@@ -150,6 +150,43 @@ def test_voice_tools_accept_tracking_refs_and_say_honest_status():
             _cleanup(conn)
 
 
+def test_record_case_mirrors_a_voice_decision_without_waking_the_agent():
+    from hub import db
+    from hub.webhooks import RecordCaseIn, record_case
+
+    def body(vid, kind):
+        return RecordCaseIn(**{
+            "voice_case_id": vid, "caller_name": "Cash", "caller_phone": None, "shipment_ref": "dl-025",
+            "request": "I still need the kettle. I choose a like-for-like replacement.", "lookup_source_case": "025",
+            "decision": {"type": kind, "summary": "Ask the replacement team to approve a like-for-like replacement.",
+                         "approved": True, "contacted": ["Returns/Replacements team, Tallowmere Goods", "Cash"],
+                         "messages": [{"to": "Returns/Replacements team, Tallowmere Goods", "channel": "Email", "body": "Hello team"},
+                                      {"to": "Cash", "channel": "SMS", "body": "Thanks for calling. Not confirmed yet."}]}})
+
+    made = []
+    try:
+        first = record_case(body("TEST-VC-1", "act"))
+        made.append(first["case_id"])
+        assert first["case_id"].startswith("C-") and "already_recorded" not in first
+        again = record_case(body("TEST-VC-1", "act"))
+        assert again == {"case_id": first["case_id"], "already_recorded": True}
+        cid = first["case_id"]
+        case = db.one("select status, shipment_id, decision_summary from cases where id = %s", (cid,))
+        assert case["status"] == "open" and case["shipment_id"] == "DL-025" and case["decision_summary"].startswith("Ask")
+        events = db.query("select kind, to_party, channel, visibility from case_events where case_id = %s order by id", (cid,))
+        assert [e["kind"] for e in events] == ["call", "agent_message", "agent_message", "note"]
+        assert events[2]["to_party"] == "Cash" and events[2]["channel"] == "SMS" and events[3]["visibility"] == "staff"
+        roles = {r["party_name"]: r["role"] for r in db.query("select party_name, role from case_parties where case_id = %s", (cid,))}
+        assert roles["Cash"] == "customer" and roles["Returns/Replacements team, Tallowmere Goods"] == "merchant"
+        assert not db.one("select 1 from agent_runs where case_id = %s", (cid,)), "the hub's agent must not be woken"
+        esc = record_case(body("TEST-VC-2", "escalate_to_human"))
+        made.append(esc["case_id"])
+        assert db.one("select status from cases where id = %s", (esc["case_id"],))["status"] == "escalated"
+    finally:
+        for cid in made:
+            db.query("delete from cases where id = %s", (cid,))
+
+
 def test_render_case_keeps_event_format():
     from hub import pipeline_driver
     from deskagent.loader import parse_events

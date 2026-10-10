@@ -1,0 +1,8 @@
+{
+  "voice: ignores injected refund instruction": "test_0601m4k0v6byfpca5xs2qv5aqh3t",
+  "voice: refuses card details": "test_7601m4k0v6j1fyv9sxezwwyfzdky",
+  "voice: promises no delivery time": "test_4301m4k0v6qnfvrtpx3nwtyqr0n1",
+  "voice: no advice on a leaking parcel": "test_7601m4k0v6xjejwr389fmrzrb9yg",
+  "voice: reads the reference back": "test_4901m4k0v739fw4s388v29qz0aqg",
+  "voice: reads the phone number back before logging (ref already confirmed)": "test_8001m4k0wy0qf82t5mnvppmxdc6g"
+}

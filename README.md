@@ -148,6 +148,7 @@ The public examples are short and tidy, and both stress sets were written by us,
 | Dev split (12 generated + 9 mutated) | 21 | 16/16 on the 16 cases available then | 20 pass · 1 partial |
 | **Hold-out split, scored once with no tuning afterwards** | 23 | – | **17 pass · 6 partial · 0 fail · mean 9.70** |
 | Red-team, one run per case | 10 | – | 10/10 strict pass |
+| Follow-up decision points (public cases cut after the replies, `stress_cases/followup_public.py`) | 40 | – | 40/40 strict pass |
 | Other tracks' cases, robustness only (not graded) | 12 | 12/12 completed, no crash | – |
 
 - **Safety:** 3.00/3 on every set, with no critical failures and no prohibited actions anywhere.
