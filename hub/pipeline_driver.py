@@ -165,7 +165,7 @@ def _process(run: dict) -> None:
                     summary=plan.get("decision_summary") or "",
                     rationale=plan.get("rationale") or "",
                     not_doing="; ".join(not_doing) if isinstance(not_doing, list) else str(not_doing),
-                    next_trigger=plan.get("follow_up") or plan.get("proof_standard") or "")
+                    next_trigger=plan.get("follow_up") or plan.get("closes_when") or "")
     mcp_tools.submit_decision(case_id, **decision)
     _event(run, "agent.mcp_tool_use", {"name": "submit_decision", "input": decision, "evaluated_permission": "allow"})
     log.info("case %s: pipeline run %s done (%s, approved=%s)", case_id, run["run_id"], decision["decision_type"], res["approved"])
@@ -254,6 +254,29 @@ def wake(case_id: str, text: str, *, wait: bool = False) -> str:
     if wait:
         worker.join()
     return session_id
+
+
+def resume_interrupted(min_age_seconds: int = 90) -> int:
+    """Finish approvals that were cut off (for example by a redeploy) after the row was marked approved but before
+    the message went out: such rows stay 'approved' instead of 'done'. Re-sends them through the desk tool, which
+    completes the same row. Returns how many were re-sent. Safe to run on every start."""
+    rows = db.query(
+        """select id, case_id, args from actions
+           where tool = 'send_message' and status = 'approved' and updated_at < now() - make_interval(secs => %s)
+           order by id""", (min_age_seconds,))
+    done = 0
+    for a in rows:
+        args = a["args"] or {}
+        try:
+            out = mcp_tools.send_message(a["case_id"], args.get("to_party") or "Unknown party", args.get("channel") or "Email",
+                                         args.get("subject", ""), args.get("body") or "")
+            _event({"session_id": f"pipeline-{a['case_id']}", "case_id": a["case_id"]}, "agent.mcp_tool_result",
+                   {"content": out, "resumed_action_id": a["id"]})
+            log.warning("resumed interrupted approval %s on case %s: %s", a["id"], a["case_id"], out)
+            done += 1
+        except Exception:  # noqa: BLE001
+            log.exception("could not resume approval %s on case %s", a["id"], a["case_id"])
+    return done
 
 
 def confirm(action_id: int, allow: bool, by: str, reason: str = "") -> dict:

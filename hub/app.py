@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 import secrets
 import threading
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -28,10 +29,24 @@ mcp_app = mcp.streamable_http_app(
 )
 
 
+def _resume_interrupted_approvals() -> None:
+    """Approvals cut off by a restart are finished after start-up (pipeline engine only; the managed agent completes its own)."""
+    time.sleep(5)
+    try:
+        from . import pipeline_driver
+        n = pipeline_driver.resume_interrupted()
+        if n:
+            logging.getLogger("hub").warning("resumed %d interrupted approval(s) after start-up", n)
+    except Exception:  # noqa: BLE001
+        logging.getLogger("hub").exception("resuming interrupted approvals failed")
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     if settings.engine == "managed":
         threading.Thread(target=_resume, daemon=True, name="resume-runs").start()
+    if settings.engine == "pipeline":
+        threading.Thread(target=_resume_interrupted_approvals, daemon=True, name="resume-approvals").start()
     async with mcp.session_manager.run():
         yield
 
