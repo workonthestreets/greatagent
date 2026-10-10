@@ -18,7 +18,7 @@ Follow `hub/README.md` (Supabase project, `.env`, migrate, seed), then:
 ```bash
 # .env additions for the demo
 DESK_ENGINE=pipeline                 # or managed
-DEMO_CUSTOMER_PHONE=+44...           # the phone you call from; maps the caller to the demo customer
+DEMO_CUSTOMER_PHONE=+447700900103    # set before db.seed; maps the caller to the demo customer
 HUB_PUBLIC_URL=https://<id>.ngrok-free.app
 
 .venv/bin/uvicorn hub.app:app --port 8000      # terminal 1
@@ -26,7 +26,26 @@ ngrok http 8000                                # terminal 2 (cloudflared works t
 cd web && npm run dev                          # terminal 3, http://localhost:3000
 ```
 
-ElevenLabs server tools: `ask_agent`, `get_latest_update`, `get_case_status` and `lookup_shipment`, each a POST to `HUB_PUBLIC_URL/webhooks/<name>` with the header `X-Hub-Secret`. Pass `caller_phone` from `system__caller_id`. If the call comes from the web widget with no phone number, pass `case_id: "D103"`. The hub will then treat the caller as unidentified, and the agent will answer only through the verified portal.
+### ElevenLabs agent → hub (Kashif's existing agent)
+
+Add two **Webhook tools** to the agent. Each one: method POST, response timeout 10 s, header `X-Hub-Secret` of type **Secret**, set to `HUB_WEBHOOK_SECRET`.
+
+| Tool | URL | Body parameters (all type "LLM prompt") |
+|---|---|---|
+| `ask_agent` | `HUB_PUBLIC_URL/webhooks/ask_agent` | `request`: what the caller wants, in their own words. `case_id`: the tracking or case reference they give, such as DL-103 (blank if none). `caller_phone`: the phone number on their account, as they say it. |
+| `get_latest_update` | `HUB_PUBLIC_URL/webhooks/get_latest_update` | `case_id`: the same reference. `caller_phone`: the same number. |
+
+System prompt additions:
+
+> Ask for the caller's name, their tracking reference and the phone number on their account. Call `ask_agent` once with their request and read its `say` field back word for word. When they ask for news, call `get_latest_update` and read `say` word for word. Never promise refunds, dates or outcomes yourself.
+
+How the hub handles these calls:
+- **References.** It accepts a tracking reference (`DL-103`) or a case number (`D103`).
+- **Caller matching.** It matches the caller by the last 10 digits of the phone number. On a real phone line you can pass `system__caller_id` instead of asking.
+- **Unidentified callers** can't be matched to an account. Their request is still logged on the case, but "any news" reads back only messages addressed to that caller, so an unmatched caller hears none of the desk's messages to the customer.
+- **While the agent is still working, or a draft is waiting for approval,** "any news" says exactly that.
+
+For the demo, set `DEMO_CUSTOMER_PHONE=+447700900103` before `db.seed`. That's an Ofcom drama number, so it's fictional. The presenter says "07700 900103" when asked.
 
 ## Before each take
 

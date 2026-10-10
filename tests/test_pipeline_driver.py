@@ -116,6 +116,40 @@ def test_call_plan_review_approve_reject():
             _cleanup(conn)
 
 
+def test_voice_tools_accept_tracking_refs_and_say_honest_status():
+    from db.seed_demo import d103, seed_case
+    from hub import db
+    from hub.webhooks import CaseIn, _case_ref, get_latest_update
+
+    with psycopg.connect(os.environ["DATABASE_URL"], autocommit=True) as conn:
+        _cleanup(conn)
+        spec = d103(datetime.now(timezone.utc), CUSTOMER)
+        spec["id"], spec["shipment"]["id"] = CASE, "DL-103-T"
+        seed_case(conn, spec)
+    try:
+        assert _case_ref("dl-103-t") == CASE and _case_ref(f" {CASE.lower()} ") == CASE and _case_ref("DL-NOPE") is None
+        assert "couldn't find" in get_latest_update(CaseIn(case_id="DL-NOPE"))["say"]
+        db.query("insert into agent_runs (session_id, case_id, status) values ('pipeline-test-run', %s, 'running')", (CASE,))
+        assert "still working" in get_latest_update(CaseIn(case_id="DL-103-T"))["say"]
+        db.query("update agent_runs set status = 'idle' where session_id = 'pipeline-test-run'")
+        db.query("""insert into actions (case_id, tool, args, status) values (%s, 'send_message', %s, 'pending_approval')""",
+                 (CASE, db.jsonb({"to_party": "Unidentified caller", "channel": "Phone", "subject": "", "body": "x"})))
+        assert "waiting for a coordinator" in get_latest_update(CaseIn(case_id="DL-103-T"))["say"]
+
+        from hub.webhooks import _caller
+        prof =db.one("select id, phone from profiles where role = 'customer' order by email limit 1")
+        if prof:   # seeded demo customer: both phone formats map to the same account
+            db.query("update profiles set phone = '+44 7700 900199' where id = %s", (prof["id"],))
+            try:
+                assert _caller("07700 900199")["id"] == prof["id"] and _caller("+447700900199")["id"] == prof["id"]
+                assert _caller("123")["party_name"] == "Caller 123"
+            finally:
+                db.query("update profiles set phone = %s where id = %s", (prof["phone"], prof["id"]))
+    finally:
+        with psycopg.connect(os.environ["DATABASE_URL"], autocommit=True) as conn:
+            _cleanup(conn)
+
+
 def test_render_case_keeps_event_format():
     from hub import pipeline_driver
     from deskagent.loader import parse_events

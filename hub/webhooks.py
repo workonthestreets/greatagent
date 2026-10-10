@@ -22,8 +22,11 @@ def check_secret(x_hub_secret: Optional[str] = Header(None)) -> None:
 
 def _caller(phone: Optional[str]) -> dict:
     digits = re.sub(r"\D", "", phone or "")
-    if digits:
-        row = db.one("select * from profiles where regexp_replace(coalesce(phone, ''), '\\D', '', 'g') = %s", (digits,))
+    if len(digits) >= 7:
+        # Compare the last 10 digits so "+44 7700 900103" and "07700 900103" are the same caller.
+        row = db.one("""select * from profiles where phone is not null
+                        and right(regexp_replace(phone, '\\D', '', 'g'), 10) = right(%s, 10)
+                        order by email limit 1""", (digits,))
         if row:
             return row
     name = f"Caller {phone}" if phone else "Unidentified caller"
@@ -36,13 +39,23 @@ class AskAgentIn(BaseModel):
     case_id: Optional[str] = None
 
 
+def _case_ref(ref: Optional[str]) -> Optional[str]:
+    """Callers give a case number or a tracking reference (DL-103); map either to the case, open cases first."""
+    ref = (ref or "").strip().upper()
+    if not ref:
+        return None
+    row = db.one("select id from cases where upper(id) = %s", (ref,)) or db.one(
+        """select c.id from cases c left join shipments s on s.case_id = c.id
+           where upper(c.shipment_id) = %s or upper(s.id) = %s
+           order by (c.status in ('resolved', 'closed')), c.updated_at desc limit 1""", (ref, ref))
+    return row["id"] if row else None
+
+
 @router.post("/ask_agent", dependencies=[Depends(check_secret)])
 def ask_agent(req: AskAgentIn) -> dict:
     caller = _caller(req.caller_phone)
     who = caller["party_name"] or caller["display_name"]
-    case_id = req.case_id
-    if case_id and not db.one("select 1 from cases where id = %s", (case_id,)):
-        case_id = None
+    case_id = _case_ref(req.case_id)
     if not case_id:
         latest = db.one(
             """select c.id from cases c join case_parties p on p.case_id = c.id
@@ -84,7 +97,8 @@ class CaseIn(BaseModel):
 
 @router.post("/get_case_status", dependencies=[Depends(check_secret)])
 def get_case_status(req: CaseIn) -> dict:
-    row = db.one("select id, title, status, updated_at from cases where id = %s", (req.case_id.strip(),))
+    case_id = _case_ref(req.case_id)
+    row = db.one("select id, title, status, updated_at from cases where id = %s", (case_id,)) if case_id else None
     if not row:
         return {"found": False, "say": "I couldn't find that case number."}
     return {"found": True, "case": row, "say": f"Case {row['id']} is {row['status'].replace('_', ' ')}."}
@@ -92,8 +106,8 @@ def get_case_status(req: CaseIn) -> dict:
 
 @router.post("/get_latest_update", dependencies=[Depends(check_secret)])
 def get_latest_update(req: CaseIn) -> dict:
-    case_id = req.case_id.strip()
-    case = db.one("select status from cases where id = %s", (case_id,))
+    case_id = _case_ref(req.case_id)
+    case = db.one("select status from cases where id = %s", (case_id,)) if case_id else None
     if not case:
         return {"found": False, "say": "I couldn't find that case number."}
     # Only messages the desk addressed to this caller are read out; never notes or other parties' messages.
@@ -102,6 +116,13 @@ def get_latest_update(req: CaseIn) -> dict:
         """select ts, body from case_events where case_id = %s and kind = 'agent_message' and to_party = %s
            order by ts desc, id desc limit 1""", (case_id, who))
     if not msg:
+        run = db.one("select status from agent_runs where case_id = %s order by created_at desc limit 1", (case_id,))
+        if run and run["status"] == "running":
+            return {"found": True, "say": f"The desk is still working on case {case_id}. Please ask me again in a minute."}
+        if db.one("""select 1 from actions where case_id = %s and status = 'pending_approval' and tool = 'send_message'
+                     and args->>'to_party' = %s""", (case_id, who)):
+            return {"found": True, "say": f"An update for you on case {case_id} is written and waiting for a coordinator "
+                                          "to approve it. Please ask me again shortly."}
         return {"found": True, "say": f"Case {case_id} is {case['status'].replace('_', ' ')}. "
                                       "There's no update addressed to you yet."}
     return {"found": True, "latest": msg, "say": f"The latest update on case {case_id}: {msg['body']}"}
