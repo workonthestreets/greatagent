@@ -40,14 +40,16 @@ class AskAgentIn(BaseModel):
 
 
 def _case_ref(ref: Optional[str]) -> Optional[str]:
-    """Callers give a case number or a tracking reference (DL-103); map either to the case, open cases first."""
-    ref = (ref or "").strip().upper()
+    """Callers give a case number or a tracking reference (DL-103); map either to the case, open cases first.
+    Compared on letters and digits only, so "DL 103", "dl-103" and "DL103" are the same reference."""
+    ref = re.sub(r"[^A-Za-z0-9]", "", ref or "").upper()
     if not ref:
         return None
-    row = db.one("select id from cases where upper(id) = %s", (ref,)) or db.one(
-        """select c.id from cases c left join shipments s on s.case_id = c.id
-           where upper(c.shipment_id) = %s or upper(s.id) = %s
-           order by (c.status in ('resolved', 'closed')), c.updated_at desc limit 1""", (ref, ref))
+    key = "upper(regexp_replace(coalesce({col}, ''), '[^A-Za-z0-9]', '', 'g'))"
+    row = db.one(f"select id from cases where {key.format(col='id')} = %s order by updated_at desc limit 1", (ref,)) or db.one(
+        f"""select c.id from cases c left join shipments s on s.case_id = c.id
+            where {key.format(col='c.shipment_id')} = %s or {key.format(col='s.id')} = %s
+            order by (c.status in ('resolved', 'closed')), c.updated_at desc limit 1""", (ref, ref))
     return row["id"] if row else None
 
 
@@ -72,8 +74,8 @@ def ask_agent(req: AskAgentIn) -> dict:
         case_id = new_case(caller, req.request[:80], req.request, None, "Phone call")
         driver.wake(case_id, f"A new case was opened from a phone call by {who}. Work out the next step.")
     return {"case_id": case_id,
-            "say": f"I've passed this to the delivery desk under case {case_id}. You'll get an update by message; "
-                   f"you can also call back and ask for the latest on case {case_id}."}
+            "say": f"I've logged your request as case {case_id}. Nothing is confirmed yet; "
+                   "you can ask me for the latest at any time."}
 
 
 class VoiceMessage(BaseModel):
@@ -191,4 +193,40 @@ def get_latest_update(req: CaseIn) -> dict:
                                           "to approve it. Please ask me again shortly."}
         return {"found": True, "say": f"Case {case_id} is {case['status'].replace('_', ' ')}. "
                                       "There's no update addressed to you yet."}
-    return {"found": True, "latest": msg, "say": f"The latest update on case {case_id}: {msg['body']}"}
+    return {"found": True, "latest": msg, "say": f"Latest update: {spoken_update(msg['body'])}"}
+
+
+SPOKEN_MAX = 150   # about ten seconds of speech; status sentences are kept beyond it
+_GREETING = re.compile(r"^(hello|hi|dear|good (morning|afternoon|evening))\b.{0,40}$", re.I)
+_SIGNOFF = re.compile(r"^(kind regards|best regards|warm regards|regards|best wishes|many thanks|thanks|thank you|"
+                      r"sincerely|cheers)[,.!]?$", re.I)
+_GREETING_LEAD = re.compile(r"^(hello|hi|dear|good (morning|afternoon|evening))\b[^,.!?]{0,40}[,.!]\s+", re.I)
+_PLEASANTRY = re.compile(r"^(thanks|thank you|sorry|i'm sorry|we're sorry|apologies)\b", re.I)
+_STATUS = re.compile(r"\b(not (yet )?(been )?(confirmed|moved|changed|booked|delivered)|isn't confirmed|not yet|"
+                     r"not a confirmation|hasn't|has not|have not|haven't|no new)\b", re.I)
+
+
+def spoken_update(body: str, limit: int = SPOKEN_MAX) -> str:
+    """The approved message shortened for the phone, without rewording it: the subject line, greeting, sign-off
+    and pleasantries go; the remaining sentences are kept word for word and in order until about `limit`
+    characters. A sentence saying what is not done or not confirmed is always kept."""
+    paras = [p.strip() for p in re.split(r"\n\s*\n", (body or "").strip()) if p.strip()]
+    if len(paras) > 1 and len(paras[0]) <= 120 and not paras[0].endswith((".", "!", "?")):
+        paras = paras[1:]   # stored as "subject\n\nbody"
+    lines = []
+    for line in "\n".join(paras).splitlines():
+        s = line.strip()
+        if _SIGNOFF.match(s):
+            break           # sign-off and signature
+        if s and not (len(s) <= 50 and _GREETING.match(s)):
+            lines.append(s)
+    text = _GREETING_LEAD.sub("", " ".join(lines), count=1)   # "Hello Vessa, thank you for calling. ..."
+    sentences = [s for s in re.split(r"(?<=[.!?])\s+", text) if s]
+    core = [s for s in sentences if _STATUS.search(s) or not _PLEASANTRY.match(s)] or sentences
+    out, size = [], 0
+    for s in core:
+        if out and size + len(s) > limit and not _STATUS.search(s):
+            continue
+        out.append(s)
+        size += len(s) + 1
+    return " ".join(out) or (body or "").strip()[:limit]
