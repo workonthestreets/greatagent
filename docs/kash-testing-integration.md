@@ -4,6 +4,42 @@ Proposal for merging the `kash.testing/` lane (`feat/case-scorer`) with `deskage
 `main`. Nothing here changes `deskagent` — every integration point calls its public
 functions (`load_case`, `process_case`) the same way `run.py` does.
 
+## The flows
+
+**Without voice — every channel today goes through the same reviewed pipeline:**
+
+```mermaid
+flowchart LR
+    A["Email / portal / ticket<br/>index.md + history.md + attachments/"] --> L["Loader<br/>events · attachments · public-cutoff"]
+    L --> P["Planner<br/>Claude proposes plan + drafts"]
+    P --> PL["Policy lint<br/>deterministic blocks & warnings"]
+    PL --> R["Reviewer<br/>independent Claude:<br/>approve / revise / hand over"]
+    R -->|"revise (≤2 rounds)"| P
+    R -->|approved| X["Executor<br/>send_message · escalate_to_human<br/>schedule_follow_up · record_case_note"]
+    R -->|"can't be made safe"| H["Human handover<br/>drafts attached, nothing sent"]
+    X --> O["ANSWER.md · REASONING.md<br/>trace.json · SUMMARY.md"]
+    H --> O
+```
+
+**With voice — the call becomes a case; two things happen from one webhook:**
+
+```mermaid
+flowchart LR
+    PH["Caller phones the desk"] --> EL["ElevenLabs agent<br/>captures name · order ref · issue · contact"]
+    EL -->|"POST /voice/tool (CallReport)"| VI["voice service"]
+    VI -->|"instant, fixed template<br/>no LLM text is spoken"| SP["Caller hears:<br/>'passed to safety lead' /<br/>'asking the carrier to look'"]
+    SP -.-> PH
+    VI -->|"writes"| CF["case folder<br/>call = event 001"]
+    CF --> PIPE["Same reviewed pipeline:<br/>Loader → Planner → Lint → Reviewer → Executor"]
+    EM["Email / portal / ticket"] --> PIPE
+    PIPE --> O2["ANSWER.md · audit trail"]
+    PIPE --> FU["Follow-up to caller<br/>email / callback"]
+```
+
+The split is the whole point: the caller gets an **immediate, safe acknowledgement** off
+a template; the *decision* is made by the same reviewed pipeline every other channel
+uses — voice is an add-on intake, never a different decision path.
+
 ## What each lane has today
 
 | Concern | `main` (`deskagent`) | `feat/case-scorer` (`kash.testing/`) |
