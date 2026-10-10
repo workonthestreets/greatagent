@@ -1,0 +1,19 @@
+SYNTHETIC EXERCISE - NOT A LIVE DOCUMENT
+
+Printable return label RL-031
+
+Issued: 2026-03-04 09:50 UTC
+
+Issuer: Tallowmere Goods - Return label team
+
+Customer: Kessa Ulm | Return RT-031 | Order TG-031
+
+Original shipment: DL-031
+
+Return destination: Tallowmere Goods, synthetic returns bay R1, Merrow Quay.
+
+Exercise route: approved staffed drop-off; place this label on the carton.
+
+No live routing barcode, postage, personal address or payment link is included.
+
+Valid only as a fictional label facsimile in this calibration exercise.

@@ -5,3 +5,9 @@ runs/
 .venv/
 .DS_Store
 .transfer/
+
+# Local-only research scratch data (useful for research, not pushed or presented)
+dump-research/
+
+# Local session state
+STATE.md

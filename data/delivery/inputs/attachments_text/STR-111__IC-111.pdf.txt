@@ -1,0 +1,11 @@
+SYNTHETIC EXERCISE - NOT A LIVE DOCUMENT
+Plover Arc Logistics - Import billing
+Itemised import charge IC-111
+Shipment: DL-111 Consignee: Lunn Botanicals Date: 2026-04-14
+
+Line 1 Import duty (fictional tariff band B-7)   GBP 42.10
+Line 2 Customs handling fee                      GBP 15.00
+
+TOTAL DUE BEFORE RELEASE                                GBP 75.10
+
+Queries: Import billing by email. Payment only via your verified account portal.
