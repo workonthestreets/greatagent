@@ -1,8 +1,8 @@
 # Submission
 
-- **Team name:** TODO
+- **Team name:** Team Gingerbread! (gingerbreadking)
 - **Track:** Delivery & Logistics
-- **Members:** Kashif Nazir, TODO (every member, as registered)
+- **Members:** Kashif Nazir, Matsvei Danisheuski, Roman Degtyarev, Andrey Zharkov, Brandon Wooding
 - **Repository:** https://github.com/workonthestreets/greatagent (public, Apache-2.0)
 - **Commit at 16:30 code freeze:** TODO
 - **Reality Test results:** `ANSWERS/` (one folder per case: `ANSWER.md`, `REASONING.md`, `trace.json`; run summary in `ANSWERS/SUMMARY.md`, `ANSWERS/run_manifest.json`)
