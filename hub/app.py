@@ -9,10 +9,12 @@ import secrets
 import threading
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from mcp.server.transport_security import TransportSecuritySettings
+
+from api_v2 import routes as v2_routes
 
 from . import api, driver, webhooks
 from .config import settings
@@ -57,5 +59,7 @@ async def mcp_bearer(request: Request, call_next):
 
 
 app.include_router(api.router)
+# v2 investigation (preprocess -> deskagent_v1_1 trace) for the Investigate page; desk staff only, since runs cost model calls.
+app.include_router(v2_routes.router, prefix="/api/v2", dependencies=[Depends(api.staff)])
 app.include_router(webhooks.router)
 app.mount("/", mcp_app)   # serves /mcp; mounted last so it doesn't shadow the routers

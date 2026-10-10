@@ -92,3 +92,13 @@ Coins (`hub/rewards.py`): approve +15, reject with a reason +10, reject without 
 Tests: `python3 tests/test_rewards.py` (no database needed).
 
 Demo cases with times relative to now: `python -m db.seed_demo [--wake D101]` (see `DEMO.md`). Pipeline engine test against local Postgres: `python tests/test_pipeline_driver.py`.
+
+## Investigate (v2 inside v1)
+
+The web_v2 investigation tool now also lives in `web/` as the staff-only **Investigate** page (`/investigate`): pick one of the
+sample case files, run it through preprocess → `deskagent_v1_1`, and read the decision trace (classifier cards, agreement
+checks, the drafted response). The hub serves the same endpoints as `api_v2` under `/api/v2`, behind the desk-staff login
+(`api_v2/routes.py` is shared by both). Runs need `ANTHROPIC_API_KEY` and `OPENROUTER_API_KEY` (preprocess); without the
+OpenRouter key the agent still runs on the events alone and the trace says so. Runs are stateless and kept in the browser.
+
+`api_v2/` and `web_v2/` still work standalone (Railway v2 deploy) until we retire them.

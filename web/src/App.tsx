@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { go as goPath, isStaff, signOut, supabase, usePath, useSession, type Profile } from "./lib";
 import AgentsPage from "./AgentPage";
+import InvestigatePage from "./investigate/InvestigatePage";
 import Login from "./Login";
 import Ops from "./Ops";
 import Rewards from "./Rewards";
@@ -22,7 +23,7 @@ const VIEW_NAME: Record<string, string> = {
 
 const PORTALS = { customer: CustomerPortal, driver: DriverPortal, depot: DepotPortal, merchant: MerchantPortal };
 
-type Page = "desk" | "rewards" | "agents";
+type Page = "desk" | "rewards" | "agents" | "investigate";
 
 /** `initialCase` / `initialPage` preselect a case or a staff page (used by the screenshot preview); undefined in production. */
 export default function App({ initialCase, initialPage = "desk" }: { initialCase?: string; initialPage?: Page } = {}) {
@@ -34,7 +35,8 @@ export default function App({ initialCase, initialPage = "desk" }: { initialCase
   const path = usePath();
   const agentsRoute = /^\/agents?(\/|$)/.test(path);
   const agentCase = decodeURIComponent(path.match(/^\/agents?\/([^/]+)/)?.[1] ?? "") || null;
-  const page: Page = agentsRoute ? "agents" : statePage;
+  const investigateRoute = /^\/investigate\/?$/.test(path);
+  const page: Page = agentsRoute ? "agents" : investigateRoute ? "investigate" : statePage;
 
   useEffect(() => {
     if (!session) { setProfile(null); return; }
@@ -60,7 +62,8 @@ export default function App({ initialCase, initialPage = "desk" }: { initialCase
   const go = (p: Page) => (e: React.MouseEvent) => {
     e.preventDefault();
     if (p === "agents") goPath("/agents");
-    else { if (agentsRoute) goPath("/"); setPage(p); }
+    else if (p === "investigate") goPath("/investigate");
+    else { if (agentsRoute || investigateRoute) goPath("/"); setPage(p); }
     window.scrollTo({ top: 0 });
   };
   const Portal = PORTALS[profile.role as keyof typeof PORTALS] ?? CustomerPortal;
@@ -78,6 +81,8 @@ export default function App({ initialCase, initialPage = "desk" }: { initialCase
                 aria-current={page === "desk" ? "page" : undefined}>Desk</a>
               <a className={`nav__link ${page === "agents" ? "nav__link--current" : ""}`} href="/agents" onClick={go("agents")}
                 aria-current={page === "agents" ? "page" : undefined}>Agents</a>
+              <a className={`nav__link ${page === "investigate" ? "nav__link--current" : ""}`} href="/investigate" onClick={go("investigate")}
+                aria-current={page === "investigate" ? "page" : undefined}>Investigate</a>
               <a className={`nav__link ${page === "rewards" ? "nav__link--current" : ""}`} href="#rewards" onClick={go("rewards")}
                 aria-current={page === "rewards" ? "page" : undefined}>Rewards</a>
             </>
@@ -92,6 +97,7 @@ export default function App({ initialCase, initialPage = "desk" }: { initialCase
       </nav>
       {staff
         ? page === "agents" ? <AgentsPage caseId={agentCase} />
+          : page === "investigate" ? <InvestigatePage />
           : page === "rewards" ? <Rewards profile={profile} /> : <Ops profile={profile} initialCase={initialCase} />
         : <Portal profile={profile} initialCase={initialCase} />}
     </div>
