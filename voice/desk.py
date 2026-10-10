@@ -3,7 +3,7 @@
 Capture-line mode. The call is written in the same index.md + history.md shape the organisers'
 cases use, then `deskagent.loader.load_case` and `deskagent.pipeline.process_case` run in a
 background thread with the reviewer on. The caller only ever hears fixed templates; deskagent's
-decision lands in `<case>/result.json`, `<case>/answer/<id>/ANSWER.md` and the outbox.
+decision lands in `<case>/_result.json` (underscore: deskagent never reads it as input), `<case>/answer/<id>/ANSWER.md` and the outbox.
 
 deskagent is imported, never edited. Before the merge it comes from a read-only checkout of main
 (`DESKAGENT_PATH`); after the merge it is a normal package at the repo root.
@@ -20,6 +20,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from triage.outbox import deliver, slug
+from voice import hub_mirror, lookup
 
 CASES_DIR = Path(os.getenv("VOICE_CASES_DIR", "runs/voice/cases"))
 DESK_MODEL = "claude-sonnet-5-5"  # cheaper than deskagent's Opus default; VOICE_DESK_MODEL overrides
@@ -61,21 +62,47 @@ def short_id(conversation_id: str) -> str:
 
 
 def write_case_folder(conversation_id: str, caller: str, ref: str, issue: str, how: str, contact: str) -> Path:
+    """The call as a case. When the reference matches a known shipment, the desk's own records up to
+    the escalation come first and the call is appended as the latest event; otherwise the call alone."""
     folder = CASES_DIR / slug(conversation_id)
     folder.mkdir(parents=True, exist_ok=True)
     caller = caller or "Caller"
+    sid = short_id(conversation_id)
     when = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
     reach = f"\n- **Updates by:** {how} to {contact}" if how else ""
-    (folder / "index.md").write_text(
-        f"# Case {short_id(conversation_id)}: Phone call to the delivery desk\n\n"
-        f"## Case details\n- **Source role:** {caller}, recipient\n"
-        f"- **Primary shipment:** {ref or '[reference not given]'}\n- **Created:** {when}{reach}\n\n"
-        f"## Initial request\n{issue}\n")
-    (folder / "history.md").write_text(
-        f"# Case {short_id(conversation_id)} history\n\n"
-        f'<a id="event-001"></a>\n## {when} — event 001\n'
-        f"- **Channel:** Phone call\n- **From:** {caller}, recipient\n- **To:** Delivery desk\n\n{issue}\n")
+    match = lookup.find_shipment(ref) if ref else None
+    known = lookup.known_context(match) if match else None
+    n = len(known.events) + 1 if known else 1
+    call_event = (f'<a id="event-{n:03d}"></a>\n## {when} — event {n:03d}\n- **Channel:** Phone call\n'
+                  f"- **From:** {caller}, recipient\n- **To:** Delivery desk\n- **Stage:** Escalation\n\n{issue}\n")
+    if known:
+        (folder / "index.md").write_text(
+            f"# Case {sid}: Phone call about shipment {known.primary or ref}\n\n"
+            f"## Case details\n{known.details}\n- **Phone call from:** {caller}{reach}\n\n"
+            f"## Initial request\n{known.initial_request}\n")
+        (folder / "history.md").write_text(
+            f"# Case {sid} history\n\n" + "\n\n".join(known.events) + "\n\n" + call_event)
+        for rel in known.attachments:  # only files the pre-escalation events link to
+            (folder / rel).parent.mkdir(parents=True, exist_ok=True)
+            (folder / rel).write_bytes((match / rel).read_bytes())
+    else:
+        (folder / "index.md").write_text(
+            f"# Case {sid}: Phone call to the delivery desk\n\n"
+            f"## Case details\n- **Source role:** {caller}, recipient\n"
+            f"- **Primary shipment:** {ref or '[reference not given]'}\n- **Created:** {when}{reach}\n\n"
+            f"## Initial request\n{issue}\n")
+        (folder / "history.md").write_text(f"# Case {sid} history\n\n{call_event}")
+    (folder / "_call.json").write_text(json.dumps({"caller": caller, "ref": ref, "issue": issue,
+                                                   "update_by": how, "contact": contact}))
+    (folder / "_lookup.json").write_text(json.dumps({
+        "matched": bool(known), "source_case": known.source_case if known else None,
+        "primary": known.primary if known else "", "events_used": len(known.events) if known else 0}))
     return folder
+
+
+def lookup_info(folder: Path) -> dict:
+    path = folder / "_lookup.json"
+    return json.loads(path.read_text()) if path.exists() else {"matched": False}
 
 
 def _deliver_actions(case_id: str, executed: list, folder: Path) -> list:
@@ -109,10 +136,20 @@ def run(conversation_id: str, folder: Path) -> dict:
                              for r in res.get("executed", []) if r.get("status") == "done"
                              and (r.get("action") or {}).get("tool") == "send_message"],
                "emails": _deliver_actions(f"voice-{short_id(conversation_id)}", res.get("executed", []), folder)}
+        messages = [{"to": r["action"].get("to_name") or r["action"].get("to_role"),
+                     "channel": r["action"].get("channel"), "body": r["action"].get("body", "")}
+                    for r in res.get("executed", []) if r.get("status") == "done"
+                    and (r.get("action") or {}).get("tool") in ("send_message", "escalate_to_human")]
     except Exception as exc:  # noqa: BLE001 — the caller has already hung up; record it for a human
         out = {"status": "failed", "error": f"{type(exc).__name__}: {exc}"[:500]}
+    out["lookup"] = lookup_info(folder)
+    if out["status"] == "done" and hub_mirror.configured():  # hub records; it never decides or blocks
+        call_path = folder / "_call.json"
+        call = json.loads(call_path.read_text()) if call_path.exists() else {}
+        out["hub_mirror"] = hub_mirror.post_case(
+            hub_mirror.payload(short_id(conversation_id), call, out["lookup"], out, messages))
     out["elapsed_s"] = round(time.time() - t0, 1)
-    (folder / "result.json").write_text(json.dumps(out, indent=2, default=str))
+    (folder / "_result.json").write_text(json.dumps(out, indent=2, default=str))
     return out
 
 
@@ -142,9 +179,9 @@ def start(conversation_id: str, folder: Path) -> None:
     """Start deskagent on the call unless a cap says no; a capped case stays saved for a human."""
     reason = _cap_reason()
     if reason:
-        (folder / "result.json").write_text(json.dumps({"status": "capped", "reason": reason}))
+        (folder / "_result.json").write_text(json.dumps({"status": "capped", "reason": reason}))
         return
-    (folder / "result.json").write_text(json.dumps({"status": "pending"}))
+    (folder / "_result.json").write_text(json.dumps({"status": "pending"}))
     worker = threading.Thread(target=_run_and_release, args=(conversation_id, folder), daemon=True)
     _threads[conversation_id] = worker
     worker.start()
@@ -152,7 +189,7 @@ def start(conversation_id: str, folder: Path) -> None:
 
 def update_line(conversation_id: str) -> str:
     """What a later call hears about the case. Templates only; names are short and digit-free."""
-    path = CASES_DIR / slug(conversation_id) / "result.json"
+    path = CASES_DIR / slug(conversation_id) / "_result.json"
     if not path.exists():
         return "I can't find that case. A colleague will follow up."
     r = json.loads(path.read_text())

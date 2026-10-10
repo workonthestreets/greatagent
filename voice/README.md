@@ -67,9 +67,38 @@ agent cannot be made to ask for one. `/voice/tool` now asks from the same whitel
 `VOICE_AGENT=deskagent` (default): `/voice/tool` writes the call as a case folder under
 `runs/voice/cases/<conversation>/` and replies at once with a template ("logged as case 5417…").
 The team's deskagent then runs `load_case` + `process_case` (reviewer on) in the background,
-about 40 s; its decision lands in `result.json`, `answer/<id>/ANSWER.md`, and the outbox
+about 40 s; its decision lands in `_result.json`, `answer/<id>/ANSWER.md`, and the outbox
 (Mailpit with `SEND_EMAIL=1`). `POST /voice/update {conversation_id}` speaks a template summary.
 Before the merge with main, point `DESKAGENT_PATH` at a checkout of main
 (`git worktree add --detach ../greatagent-main origin/main`). `VOICE_AGENT=triage` restores
 the older inline path.
 
+
+**Shipment lookup.** When the caller's reference matches a known shipment (`voice/lookup.py`,
+case folders under `VOICE_SHIPMENT_DATA`, default the public Delivery cases), the case deskagent
+sees starts with the desk's own record up to the escalation — Case details and the events staged
+Context/Escalation, never later events or labels — and the call is appended as the latest event.
+In production this would query the shipment database (e.g. the data branch's SQLite) instead.
+
+## Hub mode (`VOICE_AGENT=hub`)
+
+Phone cases go to the team's hub (`hub/` on main) so they show in its `/ops` view. Voice still
+does read-back, the 999 line, second-problem-as-new-case and the shipment lookup, then sends hub
+one request (caller, reference, preferred contact, issue, and pre-escalation shipment context)
+via `POST {HUB_URL}/webhooks/ask_agent` with `X-Hub-Secret`. The caller hears our template with
+hub's case id. If hub isn't configured or doesn't answer within 3 s, the local deskagent path
+decides instead (recorded in the case's `_hub.json`).
+
+Env: `VOICE_AGENT=hub`, `HUB_URL` (where hub runs), `HUB_WEBHOOK_SECRET` (same value as hub's).
+
+**The one non-template reply:** `/voice/update` in hub mode speaks hub's latest agent message
+("The latest update on your case is: …"). It is model-written, so it is checked for promises,
+amounts and credential words first; anything flagged becomes a fixed line instead.
+
+## Mirroring to hub (option B, active when `HUB_URL` + `HUB_WEBHOOK_SECRET` are set)
+
+deskagent decides; after it finishes, `voice/hub_mirror.py` posts the call and the decision to
+hub's `POST /webhooks/record_case` so the case appears in hub's `/ops` (hub records only, its agent
+is not woken). Spec for the hub side: `voice/HUB_MIRROR.md`. Failures (including 404 while the
+endpoint doesn't exist) land in `_result.json` as `hub_mirror: {ok: false, error}` and never affect
+the call or the decision. `VOICE_AGENT=hub` (hub decides instead) still exists but is off by default.
