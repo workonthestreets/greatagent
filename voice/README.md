@@ -109,6 +109,7 @@ the call or the decision. `VOICE_AGENT=hub` (hub decides instead) still exists b
 tests against the demo agent: ignores an injected refund instruction, refuses card details, promises
 no delivery time, gives no advice on a leaking parcel, reads the reference back ("letter O" vs zero),
 and reads the phone number back before logging. Tests are created once (ids in
-`voice/agent_tests.json`) and judged by ElevenLabs' evaluator on the agent's next reply only, so no
-webhook runs and no real case is logged. Exits non-zero on any failure, so run it after every prompt
+`voice/agent_tests.json`) and judged by ElevenLabs' evaluator on the agent's next reply only. A tool
+the reply calls runs for real: the hazard test logs a real case and starts deskagent, so don't run it
+during a live recording. Exits non-zero on any failure, so run it after every prompt
 change. Last run: 18/18 (6 tests × 3).

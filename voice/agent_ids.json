@@ -4,5 +4,6 @@
   "agent_id": "agent_9501m4jpfb9qe69v3pxmjr9mmd2d",
   "assist_tool_id": "tool_6901m4jv9qypewmvnahn3fx6rygd",
   "assist_agent_id": "agent_3301m4jvb7jsf15r4wym84dw7pxt",
-  "update_tool_id": "tool_7201m4jyhb9zerxb8pyfwcgg6dhn"
+  "update_tool_id": "tool_7201m4jyhb9zerxb8pyfwcgg6dhn",
+  "lookup_tool_id": "tool_2701m4k3b4yyeazsz2drw7c76ph3"
 }
