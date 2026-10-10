@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 from typing import Optional
 
 import anthropic
@@ -76,12 +77,14 @@ def wake(case_id: str, text: str, *, wait: bool = False) -> str:
 
 
 def confirm(action_id: int, allow: bool, by: str, reason: str = "") -> dict:
-    """Answer a paused tool call from the approvals queue."""
-    if settings.engine == "pipeline":
-        return pipeline_driver.confirm(action_id, allow, by, reason)
+    """Answer a paused tool call from the approvals queue. Routed by the run that created the action, not by this
+    hub's DESK_ENGINE: hubs with different engines can share one database, and a Managed Agents session only
+    continues when it receives the confirmation itself."""
     action = db.one("select * from actions where id = %s", (action_id,))
     if not action or action["status"] != "pending_approval":
         raise ValueError("action is not waiting for approval")
+    if not action["mcp_event_id"]:   # drafted by the pipeline engine: it carries out the action itself
+        return pipeline_driver.confirm(action_id, allow, by, reason)
     event = {"type": "user.tool_confirmation", "tool_use_id": action["mcp_event_id"], "result": "allow" if allow else "deny"}
     if not allow:
         event["deny_message"] = f"Rejected by {by}: {reason or 'no reason given'}"
@@ -89,6 +92,23 @@ def confirm(action_id: int, allow: bool, by: str, reason: str = "") -> dict:
              ("approved" if allow else "rejected", by, db.jsonb({"reason": reason} if reason else None), action_id))
     _follow(action["session_id"], action["case_id"], send=[event])
     return {"action_id": action_id, "result": event["result"]}
+
+
+def resume_open_runs() -> int:
+    """Called on hub start: re-attach to sessions that were running or waiting for approval, so nothing that
+    happened while the hub was down is lost and live followers exist again."""
+    rows = db.query(
+        """select session_id, case_id from agent_runs
+           where session_id like 'sesn_%%' and (status = 'running' or stop_reason = 'requires_action')
+             and updated_at > now() - interval '2 days'""")
+    for r in rows:
+        try:
+            _follow(r["session_id"], r["case_id"])
+        except Exception:  # noqa: BLE001
+            log.exception("could not resume %s", r["session_id"])
+    if rows:
+        log.info("resumed %d open agent sessions", len(rows))
+    return len(rows)
 
 
 # ------------------------------------------------------------------ event mirror
@@ -128,15 +148,21 @@ def _handle(event, session_id: str, case_id: str) -> Optional[str]:
     if etype in ("agent.mcp_tool_use", "agent.tool_use") and getattr(event, "evaluated_permission", None) == "ask":
         tool = getattr(event, "name", "") or ""
         args = getattr(event, "input", {}) or {}
-        db.query(
+        created = db.one(
             """insert into actions (case_id, session_id, tool, args, status, mcp_event_id)
-               values (%s, %s, %s, %s, 'pending_approval', %s) on conflict (mcp_event_id) do nothing""",
+               values (%s, %s, %s, %s, 'pending_approval', %s) on conflict (mcp_event_id) do nothing returning id""",
             (case_id, session_id, tool, db.jsonb(args), event.id))
         log.info("case %s: %s waiting for approval", case_id, tool)
-        if settings.auto_approve:
+        if settings.auto_approve and created:
             db.query("update actions set status = 'approved', decided_by = 'auto' where mcp_event_id = %s", (event.id,))
             client().beta.sessions.events.send(session_id=session_id, events=[
                 {"type": "user.tool_confirmation", "tool_use_id": event.id, "result": "allow"}])
+    elif etype == "user.tool_confirmation":
+        # Recorded by confirm() already; this also heals rows when replaying history after a hub restart.
+        allowed = getattr(event, "result", None) == "allow"
+        db.query("""update actions set status = %s, updated_at = now()
+                    where mcp_event_id = %s and status = 'pending_approval'""",
+                 ("approved" if allowed else "rejected", getattr(event, "tool_use_id", None)))
     elif etype == "session.status_idle":
         reason = getattr(getattr(event, "stop_reason", None), "type", None)
         _update_run(session_id, "idle", reason)
@@ -147,6 +173,11 @@ def _handle(event, session_id: str, case_id: str) -> Optional[str]:
     elif etype == "session.status_terminated":
         _update_run(session_id, "terminated", None)
         return "stop"
+    elif etype == "session.usage":
+        lc = getattr(getattr(event, "usage", None), "list_cost", None)
+        if lc is not None:
+            db.query("update agent_runs set list_cost_cents = %s, updated_at = now() where session_id = %s",
+                     (int(lc.amount), session_id))
     elif etype == "session.error":
         log.warning("case %s: session error %s", case_id, getattr(event, "error", event))
     return None
@@ -166,21 +197,87 @@ def _update_run(session_id: str, status: str, stop_reason: Optional[str]) -> Non
                updated_at = now() where session_id = %s""", (status, stop_reason, cost, session_id))
 
 
+class _LivePreview:
+    """Relays the stream's event_start / event_delta previews into agent_live so /agent/<case> can show the
+    agent's text while the model is still writing it. Writes are throttled; the buffered event closes a preview."""
+
+    FLUSH_EVERY = 0.3
+
+    def __init__(self, session_id: str, case_id: str):
+        self.session_id, self.case_id = session_id, case_id
+        self.text: dict[str, str] = {}
+        self.flushed_at: dict[str, float] = {}
+
+    def handle(self, ev) -> bool:
+        """Returns True if the event was a preview (never stored in agent_events)."""
+        if ev.type == "event_start":
+            target = ev.event
+            self.text[target.id] = ""
+            self.flushed_at[target.id] = time.monotonic()
+            db.query("""insert into agent_live (event_id, session_id, case_id, kind) values (%s, %s, %s, %s)
+                        on conflict (event_id) do nothing""", (target.id, self.session_id, self.case_id, target.type))
+            return True
+        if ev.type == "event_delta":
+            content = getattr(getattr(ev, "delta", None), "content", None)
+            piece = getattr(content, "text", "") or ""
+            if ev.event_id in self.text and piece:
+                self.text[ev.event_id] += piece
+                if time.monotonic() - self.flushed_at[ev.event_id] >= self.FLUSH_EVERY:
+                    self._flush(ev.event_id)
+            return True
+        if getattr(ev, "id", None) in self.text:          # the buffered event this preview was for
+            self._close(ev.id)
+        elif ev.type == "span.model_request_end":          # errored/interrupted turn: close what's left
+            for event_id in list(self.text):
+                self._close(event_id)
+        return False
+
+    def _flush(self, event_id: str, done: bool = False) -> None:
+        self.flushed_at[event_id] = time.monotonic()
+        db.query("update agent_live set text = %s, done = %s, updated_at = now() where event_id = %s",
+                 (self.text.get(event_id, ""), done, event_id))
+
+    def _close(self, event_id: str) -> None:
+        self._flush(event_id, done=True)
+        self.text.pop(event_id, None)
+        self.flushed_at.pop(event_id, None)
+
+    def close_all(self) -> None:
+        for event_id in list(self.text):
+            self._close(event_id)
+
+
 def _run_follower(session_id: str, case_id: str, send: Optional[list]) -> None:
+    live = _LivePreview(session_id, case_id)
     try:
-        with client().beta.sessions.events.stream(session_id=session_id) as stream:
+        with client().beta.sessions.events.stream(session_id=session_id,
+                                                  event_deltas=["agent.message", "agent.thinking"]) as stream:
             if send:
                 client().beta.sessions.events.send(session_id=session_id, events=send)
             else:
-                # Re-attaching (e.g. after an approval or a hub restart): catch up on anything missed.
+                # Re-attaching (after a hub restart or an approval with no follower): replay what we missed,
+                # then stop if the session has already settled.
                 for ev in client().beta.sessions.events.list(session_id=session_id):
-                    _store(ev, session_id, case_id)
+                    _handle(ev, session_id, case_id)
+                status = client().beta.sessions.retrieve(session_id=session_id).status
+                waiting = db.one("select 1 from actions where session_id = %s and status = 'pending_approval'", (session_id,))
+                if status == "terminated" or (status == "idle" and not waiting):
+                    return
             for ev in stream:
+                try:
+                    if live.handle(ev):
+                        continue
+                except Exception:  # noqa: BLE001 - previews are cosmetic; never lose the real event over them
+                    log.exception("live preview failed for %s", session_id)
                 if _handle(ev, session_id, case_id) == "stop":
                     break
     except Exception:  # noqa: BLE001 - a follower must never take the hub down
         log.exception("follower for %s failed", session_id)
     finally:
+        try:
+            live.close_all()
+        except Exception:  # noqa: BLE001
+            pass
         with _lock:
             if _followers.get(session_id) is threading.current_thread():
                 _followers.pop(session_id, None)

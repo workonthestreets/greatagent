@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { isStaff, signOut, supabase, useSession, type Profile } from "./lib";
+import { go as goPath, isStaff, signOut, supabase, usePath, useSession, type Profile } from "./lib";
+import AgentsPage from "./AgentPage";
 import Login from "./Login";
 import Ops from "./Ops";
 import Rewards from "./Rewards";
@@ -21,14 +22,19 @@ const VIEW_NAME: Record<string, string> = {
 
 const PORTALS = { customer: CustomerPortal, driver: DriverPortal, depot: DepotPortal, merchant: MerchantPortal };
 
-type Page = "desk" | "rewards";
+type Page = "desk" | "rewards" | "agents";
 
 /** `initialCase` / `initialPage` preselect a case or a staff page (used by the screenshot preview); undefined in production. */
 export default function App({ initialCase, initialPage = "desk" }: { initialCase?: string; initialPage?: Page } = {}) {
   const session = useSession();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState("");
-  const [page, setPage] = useState<Page>(initialPage);
+  const [statePage, setPage] = useState<Page>(initialPage);
+  // /agents and /agents/<case id> are real URLs (shareable, back button works); Desk and Rewards stay in-app pages.
+  const path = usePath();
+  const agentsRoute = /^\/agents?(\/|$)/.test(path);
+  const agentCase = decodeURIComponent(path.match(/^\/agents?\/([^/]+)/)?.[1] ?? "") || null;
+  const page: Page = agentsRoute ? "agents" : statePage;
 
   useEffect(() => {
     if (!session) { setProfile(null); return; }
@@ -51,7 +57,12 @@ export default function App({ initialCase, initialPage = "desk" }: { initialCase
   if (!profile) return <div className="page framed app"><p className="center text-muted state">Loading profile…</p></div>;
 
   const staff = isStaff(profile.role);
-  const go = (p: Page) => (e: React.MouseEvent) => { e.preventDefault(); setPage(p); window.scrollTo({ top: 0 }); };
+  const go = (p: Page) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (p === "agents") goPath("/agents");
+    else { if (agentsRoute) goPath("/"); setPage(p); }
+    window.scrollTo({ top: 0 });
+  };
   const Portal = PORTALS[profile.role as keyof typeof PORTALS] ?? CustomerPortal;
 
   return (
@@ -65,6 +76,8 @@ export default function App({ initialCase, initialPage = "desk" }: { initialCase
                 : <a className="nav__link nav__mobile" href="#top" onClick={go("desk")}>Desk</a>}
               <a className={`nav__link ${page === "desk" ? "nav__link--current" : ""}`} href="#top" onClick={go("desk")}
                 aria-current={page === "desk" ? "page" : undefined}>Desk</a>
+              <a className={`nav__link ${page === "agents" ? "nav__link--current" : ""}`} href="/agents" onClick={go("agents")}
+                aria-current={page === "agents" ? "page" : undefined}>Agents</a>
               <a className={`nav__link ${page === "rewards" ? "nav__link--current" : ""}`} href="#rewards" onClick={go("rewards")}
                 aria-current={page === "rewards" ? "page" : undefined}>Rewards</a>
             </>
@@ -78,7 +91,8 @@ export default function App({ initialCase, initialPage = "desk" }: { initialCase
         </div>
       </nav>
       {staff
-        ? page === "rewards" ? <Rewards profile={profile} /> : <Ops profile={profile} initialCase={initialCase} />
+        ? page === "agents" ? <AgentsPage caseId={agentCase} />
+          : page === "rewards" ? <Rewards profile={profile} /> : <Ops profile={profile} initialCase={initialCase} />
         : <Portal profile={profile} initialCase={initialCase} />}
     </div>
   );

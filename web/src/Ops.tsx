@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import {
-  fmtTime, hub, useLive, type Action, type AgentEvent, type AgentRun, type Case, type CaseEvent, type Profile,
+  fmtTime, go, hub, useLive, type Action, type AgentEvent, type AgentRun, type Case, type CaseEvent, type Profile,
 } from "./lib";
 import { Composer, Timeline } from "./Timeline";
 import SwipeDeck from "./SwipeDeck";
@@ -142,6 +142,7 @@ function CaseDetail({ caseId, runs, profile }: { caseId: string; runs: AgentRun[
         {run && <span>{runText(run)}</span>}
         {run?.list_cost_cents != null && <span>${(run.list_cost_cents / 100).toFixed(2)}</span>}
         {run && <a className="meta__link" href={run.trace_url} target="_blank" rel="noreferrer">Trace <ArrowUpRight size={14} /></a>}
+        <AgentLink caseId={c.id} />
       </div>
       {c.decision && <DecisionPanel decision={c.decision} />}
       <div className="tabs detail__tabs" role="tablist">
@@ -159,7 +160,7 @@ function CaseDetail({ caseId, runs, profile }: { caseId: string; runs: AgentRun[
         </>
       )}
       {tab === "actions" && <ActionsTable actions={actions} />}
-      {tab === "agent" && <AgentLog events={agentEvents} />}
+      {tab === "agent" && <><AgentLink caseId={caseId} label="Open the full live log" /><AgentLog events={agentEvents} /></>}
     </div>
   );
 }
@@ -243,4 +244,14 @@ function describe(e: AgentEvent) {
     default:
       return null;
   }
+}
+
+/** Link into /agents/<case>; a plain href too, so cmd-click opens it in a new tab. */
+function AgentLink({ caseId, label = "Agent log" }: { caseId: string; label?: string }) {
+  const href = `/agents/${encodeURIComponent(caseId)}`;
+  return (
+    <a className="meta__link" href={href} onClick={(e) => { if (!e.metaKey && !e.ctrlKey) { e.preventDefault(); go(href); } }}>
+      {label} <ArrowUpRight size={14} />
+    </a>
+  );
 }
