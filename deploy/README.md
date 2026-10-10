@@ -106,3 +106,13 @@ Web variables (read at build time): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY
 Schema and seed data still come from a laptop against the same Supabase database
 (`python -m db.migrate`, `python -m db.seed --reset`, `python -m db.seed_demo`). ElevenLabs webhook tools point at
 `https://<hub domain>/webhooks/...` (see `DEMO.md`).
+
+## v2 on Railway: api_v2 + web_v2 in one service
+
+| Service | Dockerfile | Serves |
+| --- | --- | --- |
+| `v2` | `deploy/Dockerfile.v2` (`deploy/railway.v2.json`) | `api_v2.app:app` on `/api/v2/*` plus the built `web_v2` at `/`; healthcheck `/api/v2/health` |
+
+Variables: `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY` (the preprocess classifier), `PORT=8100`, optional `V2_API_TOKEN`
+(then also `VITE_V2_API_TOKEN` with the same value, read at build time). Cases come from `cases/` in the image;
+set `V2_CASES_DIR` to override. No database and no login (see `V2.md`).
