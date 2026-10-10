@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import {
-  fmtTime, go, hub, useLive, type Action, type AgentEvent, type AgentRun, type Case, type CaseEvent, type Profile,
+  caseLabel, fmtTime, go, hub, useLive, useRefs, type Action, type AgentEvent, type AgentRun, type Case, type CaseEvent, type Profile,
 } from "./lib";
 import { Composer, Timeline } from "./Timeline";
 import SwipeDeck from "./SwipeDeck";
@@ -60,7 +60,7 @@ export default function Ops({ profile, initialCase }: { profile: Profile; initia
               <li key={c.id} className="case-row" aria-current={c.id === selected ? "true" : undefined}
                 onClick={() => setSelected(c.id)}>
                 <div className="case-row__top">
-                  <span className="case-row__title">#{c.id} {c.title}</span>
+                  <span className="case-row__title">{caseLabel(c)}&nbsp; {c.title}</span>
                   <Status status={c.status} />
                 </div>
                 {c.decision_summary && <div className="case-row__summary">AI: {c.decision_summary}</div>}
@@ -125,6 +125,7 @@ function CaseDetail({ caseId, runs, profile }: { caseId: string; runs: AgentRun[
   const [tab, setTab] = useState<"timeline" | "actions" | "agent">("timeline");
   const [busy, setBusy] = useState(false);
   const run = runs.find((r) => r.session_id === c?.session_id);
+  const { shipmentRef } = useRefs();
 
   if (!c) return <p className="text-muted empty">Loading…</p>;
   const rerun = async () => { setBusy(true); try { await hub(`/api/cases/${caseId}/run`, {}); } finally { setBusy(false); } };
@@ -132,17 +133,17 @@ function CaseDetail({ caseId, runs, profile }: { caseId: string; runs: AgentRun[
   return (
     <div className="detail">
       <div className="detail__head">
-        <h2 className="headline-md">#{c.id}&nbsp; {c.title}</h2>
+        <h2 className="headline-md">{caseLabel(c)}&nbsp; {c.title}</h2>
         <button className="btn btn--secondary" disabled={busy} onClick={rerun}>{busy ? "Waking agent…" : "Ask agent to re-assess"}</button>
       </div>
       <div className="meta">
         <Status status={c.status} />
-        {c.shipment_id && <span>Shipment {c.shipment_id}</span>}
+        {c.shipment_id && <span>Shipment {shipmentRef(c.shipment_id)}</span>}
         {c.source_name && <span>Raised by {c.source_name}</span>}
         {run && <span>{runText(run)}</span>}
         {run?.list_cost_cents != null && <span>${(run.list_cost_cents / 100).toFixed(2)}</span>}
         {run && <a className="meta__link" href={run.trace_url} target="_blank" rel="noreferrer">Trace <ArrowUpRight size={14} /></a>}
-        <AgentLink caseId={c.id} />
+        <AgentLink caseId={caseLabel(c)} />
       </div>
       {c.decision && <DecisionPanel decision={c.decision} />}
       <div className="tabs detail__tabs" role="tablist">
@@ -160,7 +161,7 @@ function CaseDetail({ caseId, runs, profile }: { caseId: string; runs: AgentRun[
         </>
       )}
       {tab === "actions" && <ActionsTable actions={actions} />}
-      {tab === "agent" && <><AgentLink caseId={caseId} label="Open the full live log" /><AgentLog events={agentEvents} /></>}
+      {tab === "agent" && <><AgentLink caseId={caseLabel(c)} label="Open the full live log" /><AgentLog events={agentEvents} /></>}
     </div>
   );
 }
