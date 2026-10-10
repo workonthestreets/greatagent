@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -122,3 +123,56 @@ def known_context(folder: Path) -> KnownContext:
     linked = sorted({a for e in events for a in _ATTACHMENT.findall(e) if (folder / a).is_file()})
     return KnownContext(folder.name, m.group(1) if m else "", details, _section(index, "Initial request"),
                         events, linked)
+
+
+_EVENT_DATE = re.compile(r"^## (\d{4})-(\d{2})-(\d{2})\b", re.MULTILINE)
+_FROM = re.compile(r"^- \*\*From:\*\*\s*(.+)$", re.MULTILINE)
+_TO = re.compile(r"^- \*\*To:\*\*\s*(.+)$", re.MULTILINE)
+_ORG = re.compile(r"^(?:[A-Z][A-Za-z&'-]*)(?: [A-Z][A-Za-z&'-]*){0,4}$")  # "Plover Arc Logistics"
+_MONTHS = ("January", "February", "March", "April", "May", "June", "July", "August", "September",
+           "October", "November", "December")
+_UNSAYABLE = re.compile(r"@|\d{6,}|[£$€]|\b\d+(\.\d+)?\s?(GBP|EUR|USD|pounds?|euros?|dollars?)\b", re.IGNORECASE)
+NOT_FOUND = ("I can't find that reference in our records. Could you read it again, or I can log it so "
+             "the desk can check.")
+
+
+def _org(party: str) -> str:
+    """The organisation in a "Team, Organisation" party line, or '' for a person, a role or our own desk."""
+    org = party.rsplit(",", 1)[-1].strip() if "," in party else ""
+    return org if _ORG.match(org) and "desk" not in org.lower() else ""
+
+
+def _first_sentence(body: str) -> str:
+    text = " ".join(line.strip() for line in body.splitlines() if line.strip() and not line.startswith(("-", "#", "<")))
+    return re.split(r"(?<=[.!?])\s", text, maxsplit=1)[0].strip()
+
+
+def spoken_summary(ctx: KnownContext, safe: Callable[[str], bool]) -> str:
+    """What the caller may hear about their parcel: references, the businesses involved and the latest
+    update from one of them, all from the record as it stood before the desk acted. No outcome, no next
+    action, no amounts; the update's first sentence is dropped unless `safe` passes it."""
+    refs = list(dict.fromkeys([ctx.primary] + _REF.findall("\n".join([ctx.details, *ctx.events]))))
+    refs = [r for r in refs if r][:4]
+    said = f"I can see {refs[0]}" + (f", with {' and '.join(refs[1:])}" if len(refs) > 1 else "") + "."
+    orgs = list(dict.fromkeys(o for e in ctx.events for m in (_FROM, _TO) for o in [_org(x) for x in m.findall(e)] if o))
+    if orgs:
+        said += (f" The business on it is {orgs[0]}." if len(orgs) == 1
+                 else f" The businesses on it are {' and '.join(orgs[:3])}.")
+    for event in reversed(ctx.events):  # the latest update a business sent; a caller's own message is no news
+        sender = _FROM.search(event)
+        org = _org(sender.group(1)) if sender else ""
+        if not org:
+            continue
+        d = _EVENT_DATE.search(event)
+        when = f" on {int(d.group(3))} {_MONTHS[int(d.group(2)) - 1]}" if d else ""
+        said += f" The latest update was from {org}{when}"
+        body = event.split(sender.group(0), 1)[1]
+        body = _TO.sub("", body)
+        first = _first_sentence(body)
+        factual = not first.endswith("?") and not re.match(r"(please|kindly|can you|could you)\b", first, re.IGNORECASE)
+        if first and factual and len(first) <= 200 and not _UNSAYABLE.search(first) and safe(first):
+            said += f": {first}"
+        else:
+            said += "."
+        break
+    return said
