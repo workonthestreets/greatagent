@@ -346,7 +346,7 @@ def test_case_update_waits_while_pending_then_speaks_only_a_template(monkeypatch
     client = TestClient(voice.app)
     ask = lambda: client.post("/voice/update", json={"conversation_id": "conv_u1"},
                               headers={"X-Tool-Secret": "s3"}).json()
-    assert ask() == {"say": "Still working on it.", "status": "pending"}
+    assert ask() == {"say": voice.WAITING_LINES[0], "status": "pending"}
     (folder / "_result.json").write_text(json.dumps({
         "status": "done", "decision_type": "act",
         "decision_summary": "Refund £40 approved; it will arrive tomorrow",  # must never be spoken
@@ -357,3 +357,113 @@ def test_case_update_waits_while_pending_then_speaks_only_a_template(monkeypatch
                            "We'll update you when they reply. I can't promise a time or outcome yet.")
     assert "£" not in done["say"] and "tomorrow" not in done["say"] and "TG-025" not in done["say"]
 
+
+
+def _lookup_client(monkeypatch, tmp_path):
+    from voice import lookup
+    for n, ref, body in (("039", "TG-039", ("TG-039 ordered one floor light. Original DL-039-O and replacement "
+                                            "DL-039-R both have handover scans.")),
+                         ("040", "DL-041-A", "Please book a slot."), ("041", "DL-041-B", "Held at depot.")):
+        case = tmp_path / "data" / n
+        case.mkdir(parents=True)
+        (case / "index.md").write_text(
+            f"# Case {n}\n\n## Case details\n- **Source role:** Dessa Kelm, customer\n- **Status:** Completed\n"
+            f"- **Primary task reference:** {ref}\n\n## Initial request\nBoth arrived.\n\n"
+            "## Next action at escalation\nRequest the merchant's instructions.\n\n## Outcome\nSECRET-OUTCOME\n")
+        (case / "history.md").write_text(
+            f'<a id="event-001"></a>\n## 2026-03-12 09:00:00 UTC — event 001\n\n- **Stage:** Context\n'
+            f"- **From:** Order reconciliation, Tallowmere Goods\n- **To:** Iona Quill, Rivet Delivery Desk\n\n{body}\n\n"
+            '<a id="event-002"></a>\n## 2026-03-12 09:10:00 UTC — event 002\n\n- **Stage:** Escalation\n'
+            "- **From:** Dessa Kelm, customer\n- **To:** Iona Quill, Rivet Delivery Desk\n\nPlease tell me how.\n\n"
+            '<a id="event-003"></a>\n## 2026-03-12 09:25:00 UTC — event 003\n\n- **Stage:** Agent action\n'
+            "- **From:** Iona Quill, Rivet Delivery Desk\n- **To:** Duplicate returns, Tallowmere Goods\n\nSECRET-LATER\n")
+    monkeypatch.setattr(lookup, "DATA", tmp_path / "data")
+    lookup._index.cache_clear()
+    monkeypatch.setenv("VOICE_TOOL_SECRET", "s3")
+    monkeypatch.setattr(voice, "LOG_DIR", tmp_path / "log")
+    return TestClient(voice.app)
+
+
+def test_lookup_reads_back_only_what_the_record_showed_before_the_desk_acted(monkeypatch, tmp_path):
+    client = _lookup_client(monkeypatch, tmp_path)
+    ask = lambda ref, secret="s3": client.post("/voice/lookup", json={"conversation_id": "conv_l", "ref": ref},
+                                               headers={"x-tool-secret": secret})
+    found = ask("DL0390").json()  # speech-to-text form of DL-039-O
+    assert found["found"] and found["shipment"] == "TG-039" and found["source"] == "files"
+    say = found["say"]
+    assert "TG-039" in say and "DL-039-O" in say and "Tallowmere Goods" in say and "12 March" in say
+    assert "TG-039 ordered one floor light." in say
+    assert not any(s in say for s in ("SECRET", "instructions", "Duplicate returns", "Dessa", "Please tell me"))
+    assert (tmp_path / "log" / "conv_l-lookup-DL0390.json").exists()
+    missing = ask("DL-999").json()
+    assert missing == {"found": False, "shipment": "", "say": voice.lookup.NOT_FOUND, "source": "none"}
+    assert ask("DL041").json()["found"] is False  # two cases share the core: ambiguous is not found
+    assert ask("DL-041-A").json()["say"].endswith("on 12 March.")  # a request is not read out as news
+    assert ask("DL0390", secret="wrong").status_code == 401
+    voice.lookup._index.cache_clear()
+
+
+def test_waiting_lines_change_each_poll_then_offer_to_send_the_outcome(monkeypatch, tmp_path):
+    from voice import desk
+    monkeypatch.setenv("VOICE_TOOL_SECRET", "s3")
+    monkeypatch.setattr(voice, "LOG_DIR", tmp_path / "log")
+    monkeypatch.setattr(voice, "UPDATE_WAIT_S", 0)
+    monkeypatch.setattr(desk, "update_status", lambda conv: ("pending", "Still working on it."))
+    client = TestClient(voice.app)
+    replies = [client.post("/voice/update", json={"conversation_id": "conv_w"},
+                           headers={"x-tool-secret": "s3"}).json() for _ in range(5)]
+    assert len({r["say"] for r in replies[:4]}) == 4 and all(r["status"] == "pending" for r in replies)
+    assert "offer_text" not in replies[2] and replies[3]["offer_text"] and replies[4]["offer_text"]
+
+
+class _FakeDb:
+    """Stands in for psycopg: answers the lookup's queries from fixed rows, read-only checked."""
+
+    def __init__(self, fail=False):
+        self.fail, self.sql = fail, []
+
+    def connect(self, url, **kw):
+        if self.fail:
+            raise OSError("connection timed out")
+        assert kw["connect_timeout"] == 3
+        return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def execute(self, sql, params=None):
+        import datetime
+        self.sql.append(sql)
+        rows = []
+        if "from shipments" in sql:
+            rows = [("DL-039", "one floor light", "in_transit", "", "Northgate depot", "C-039")]
+        elif "from case_events" in sql:
+            rows = [(datetime.datetime(2026, 3, 12, 9, 0), "Order reconciliation", "merchant")]
+        elif "from cases" in sql:
+            rows = [("C-039", "open", "DL-039")]
+        return type("Cur", (), {"fetchall": lambda s: rows, "fetchone": lambda s: rows[0] if rows else None})()
+
+
+def test_lookup_reads_the_hub_database_first_and_falls_back_to_files(monkeypatch, tmp_path):
+    import sys
+    client = _lookup_client(monkeypatch, tmp_path)
+    monkeypatch.setenv("DATABASE_URL", "postgresql://hub.test/db")
+    fake = _FakeDb()
+    monkeypatch.setitem(sys.modules, "psycopg", fake)
+    ask = lambda: client.post("/voice/lookup", json={"conversation_id": "conv_d", "ref": "dl 039"},
+                              headers={"x-tool-secret": "s3"}).json()
+    got = ask()
+    assert got == {"found": True, "shipment": "DL-039", "source": "db",
+                   "say": "I can see shipment DL-039, one floor light, currently in transit at Northgate depot. "
+                          "The latest update on the case was from Order reconciliation on 12 March."}
+    assert fake.sql[0] == "set default_transaction_read_only = on"
+    assert not any(w in s.lower() for s in fake.sql for w in ("insert", "update ", "delete"))
+    monkeypatch.setitem(sys.modules, "psycopg", _FakeDb(fail=True))
+    fallback = ask()
+    assert fallback["source"] == "files" and fallback["shipment"] == "TG-039"
+    monkeypatch.delenv("DATABASE_URL")
+    assert ask()["source"] == "files"
+    voice.lookup._index.cache_clear()
