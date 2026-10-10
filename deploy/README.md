@@ -10,9 +10,9 @@ A second service runs Mailpit as the demo inbox.
   `{"ok":true,"agent":"deskagent"}`.
 - Railway project `greatagent-voice` has 2 services: `voice` (volume at `/data`) and `mailpit`
   (demo inbox, behind a password). Ask Kash for access.
-- The ElevenLabs post-call webhook already points at the voice line, and a test call came
-  back `200`. The demo agent's tools still point at the laptop tunnel until someone runs
-  `setup_agent` against the address above (section 3).
+- The "Delivery desk - DEMO" agent's tools (`report_delivery_issue`, `get_case_update`) and the
+  workspace post-call webhook all point at the voice line. A test call returned `200` on
+  `/voice/tool` and `/voice/update`. The laptop tunnel is no longer used.
 - It was deployed with the Railway CLI (`railway up` from a checkout), not GitHub-connect, so
   **merging to `main` does not redeploy it**. Redeploy with `railway up` from an up-to-date `main`.
 
