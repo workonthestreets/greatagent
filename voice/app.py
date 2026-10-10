@@ -86,9 +86,24 @@ def checked_contact(update_by: str, contact: str) -> tuple[str, str]:
         email = re.sub(r"\s+dot\s+", ".", spoken_form).replace(" ", "")
         return ("email", email) if _EMAIL.match(email) else ("", "")
     if how in ("text", "call"):
-        digits = re.sub(r"[^\d+]", "", contact)
-        return (how, digits) if 10 <= sum(c.isdigit() for c in digits) <= 15 else ("", "")
+        number = uk_number(contact)
+        ok = number.startswith("07") if how == "text" else bool(number)  # texts need a mobile
+        return (how, number) if ok else ("", "")
     return "", ""
+
+
+def uk_number(spoken: str) -> str:
+    """A UK number as 11 digits starting 0 (+44 / 44 folded to 0), or '' if it isn't one.
+
+    A 10-digit "0770 900 321" the caller agreed to on a misread is still wrong, so it fails here."""
+    digits = re.sub(r"\D", "", spoken)
+    if digits.startswith("44") and len(digits) == 12:
+        digits = "0" + digits[2:]
+    return digits if len(digits) == 11 and digits.startswith("0") else ""
+
+
+ASK_NUMBER_AGAIN = ("Sorry, that number doesn't look right. UK mobile numbers have eleven digits and start "
+                    "with zero seven. Could you give it to me again?")
 
 
 def read_back(how: str, contact: str) -> str:
@@ -235,6 +250,10 @@ def _auth(x_tool_secret: str) -> None:
 @app.post("/voice/tool")
 def tool(report: CallReport, x_tool_secret: str = Header("")) -> dict:
     _auth(x_tool_secret)
+    if (report.update_by.strip().lower() in ("text", "call") and report.contact.strip()
+            and not checked_contact(report.update_by, report.contact)[0] and not is_hazard(report.issue)):
+        # a wrong number is asked for again before anything is logged; a hazard never waits on it
+        return {"say": ASK_NUMBER_AGAIN, "status": "need_contact"}
     logged = LOG_DIR / f"{_safe(report.conversation_id)}.json"
     if logged.exists():
         record = json.loads(logged.read_text())
