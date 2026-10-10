@@ -139,29 +139,30 @@ def main(argv: list[str] | None = None) -> int:
     if "secret_id" not in ids:
         ids["secret_id"] = call("POST", "/secrets", key, {"type": "new", "name": "delivery-voice-tool-secret",
                                                           "value": secret})["secret_id"]
-    cfg = {"tool_config": tool_config(args.public_url, ids["secret_id"])}
-    if "tool_id" in ids:
-        call("PATCH", f"/tools/{ids['tool_id']}", key, cfg)
-    else:
-        ids["tool_id"] = call("POST", "/tools", key, cfg)["id"]
-    prompt, tool_ids, path = PROMPT, [ids["tool_id"]], "/voice/tool"
+    # the one-shot demo agent and the live-assist agent are separate ElevenLabs agents, each with
+    # its own tool, so provisioning one never re-points the other
     if args.assist:
+        tool_key, agent_key, name = "assist_tool_id", "assist_agent_id", "delivery-desk-assist"
         cfg = {"tool_config": turn_tool_config(args.public_url, ids["secret_id"])}
-        if "assist_tool_id" in ids:
-            call("PATCH", f"/tools/{ids['assist_tool_id']}", key, cfg)
-        else:
-            ids["assist_tool_id"] = call("POST", "/tools", key, cfg)["id"]
-        prompt, tool_ids, path = ASSIST_PROMPT, [ids["assist_tool_id"]], "/voice/turn"
-    agent = {"name": "delivery-desk", "conversation_config": {"agent": {
-        "first_message": "Delivery support, how can I help?", "language": "en",
-        "prompt": {"prompt": prompt, "llm": VOICE_LLM, "temperature": 0, "tool_ids": tool_ids}}}}
-    if "agent_id" in ids:
-        call("PATCH", f"/agents/{ids['agent_id']}", key, agent)
+        prompt, path = ASSIST_PROMPT, "/voice/turn"
     else:
-        ids["agent_id"] = call("POST", "/agents/create", key, agent)["agent_id"]
+        tool_key, agent_key, name = "tool_id", "agent_id", "delivery-desk"
+        cfg = {"tool_config": tool_config(args.public_url, ids["secret_id"])}
+        prompt, path = PROMPT, "/voice/tool"
+    if tool_key in ids:
+        call("PATCH", f"/tools/{ids[tool_key]}", key, cfg)
+    else:
+        ids[tool_key] = call("POST", "/tools", key, cfg)["id"]
+    agent = {"name": name, "conversation_config": {"agent": {
+        "first_message": "Delivery support, how can I help?", "language": "en",
+        "prompt": {"prompt": prompt, "llm": VOICE_LLM, "temperature": 0, "tool_ids": [ids[tool_key]]}}}}
+    if agent_key in ids:
+        call("PATCH", f"/agents/{ids[agent_key]}", key, agent)
+    else:
+        ids[agent_key] = call("POST", "/agents/create", key, agent)["agent_id"]
     IDS.write_text(json.dumps(ids, indent=2) + "\n")
-    print(f"agent {ids['agent_id']} → tools {tool_ids} → {args.public_url}{path}")
-    print(f"test it: https://elevenlabs.io/app/agents/agents/{ids['agent_id']}")
+    print(f"{name} {ids[agent_key]} → tool {ids[tool_key]} → {args.public_url}{path}")
+    print(f"test it: https://elevenlabs.io/app/agents/agents/{ids[agent_key]}")
     return 0
 
 
