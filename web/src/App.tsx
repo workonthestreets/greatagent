@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { isStaff, supabase, useSession, type Profile } from "./lib";
+import { isStaff, signOut, supabase, useSession, type Profile } from "./lib";
 import Login from "./Login";
 import Ops from "./Ops";
 import PartyView from "./PartyView";
@@ -24,7 +24,7 @@ export default function App() {
 
   if (session === undefined) return <div className="center muted">Loading…</div>;
   if (!session) return <Login />;
-  if (error) return <div className="center">{error} <button onClick={() => supabase.auth.signOut()}>Sign out</button></div>;
+  if (error) return <div className="center">{error} <button onClick={() => signOut()}>Sign out</button></div>;
   if (!profile) return <div className="center muted">Loading profile…</div>;
 
   return (
@@ -34,7 +34,7 @@ export default function App() {
         <div className="who">
           <span className="pill">{ROLE_LABEL[profile.role]}</span>
           <span>{profile.party_name || profile.display_name || profile.email}</span>
-          <button className="ghost" onClick={() => supabase.auth.signOut()}>Sign out</button>
+          <button className="ghost" onClick={() => signOut()}>Sign out</button>
         </div>
       </header>
       {isStaff(profile.role) ? <Ops profile={profile} /> : <PartyView profile={profile} />}
