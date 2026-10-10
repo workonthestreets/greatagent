@@ -1,0 +1,21 @@
+[project]
+name = "greatagent"
+version = "0.1.0"
+description = "Operational case agent for the Dwelly hackathon"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.7",
+    "anthropic>=0.60",
+    "fastapi>=0.143.0",
+    "uvicorn>=0.54.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.ruff]
+line-length = 110
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
