@@ -69,6 +69,24 @@ D103's change cutoff is about 45 minutes after seeding (printed by the script), 
 
 A typical run takes 30–70 s (the planner plus reviewer, each calling Claude). Cut the wait in the edit.
 
+## The two screens
+
+The web app (`web/`) is styled on the Meridian design system (`web/design/meridian/`, licensed for use in this project; fonts Fraunces and Inter from Google Fonts, Lucide icons inline). Each view has one pastel band as its focal point:
+
+- **Desk** (`coordinator@greatagent.demo`): headline, the six desk figures, the approvals band (charcoal draft cards with Approve / Reject, shown only while drafts are pending), the case list, and the case detail with the decision panel. The panel names the decision in words: Acting, Asking for information, Handed to a human, Holding, nothing to send, or Declined, with the "Not doing" and "Next" lines under it.
+- **Customer portal** (`customer@greatagent.demo`, shown at phone width next to the desk): headline, the band with the latest desk message (the same text the voice line reads out) and a Reply button, shipments, the case list and the thread.
+
+The login page carries both entry points as two cards on its band ("Sign in as coordinator", "Sign in as customer").
+
+### Preview without Supabase
+
+```bash
+cd web && npm run preview:demo      # http://127.0.0.1:3100/?view=login | ops | ops-hold | party
+web/preview/shoot.sh [out_dir]      # headless-Chrome screenshots at 1440 and 390 px
+```
+
+The preview swaps `src/lib.ts` for `preview/mock-lib.ts` (fixture cases D103, D101 and a held D104), so it renders both sides with no backend and no sign-in. Use it to rehearse the take or to check a styling change.
+
 ## Fallbacks
 
 1. **Voice fails:** log in as `customer@greatagent.demo` and type the same question in the portal. It takes the same path through `/api/cases/D103/messages`.

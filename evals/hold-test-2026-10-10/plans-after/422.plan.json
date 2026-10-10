@@ -1,0 +1,80 @@
+{
+  "situation": "Hafenmarkt Frankfurt (Birgit Aumann) needs a clear yes/no before 21:00 CEST tonight (25 Oct) for its buyer list. The desk promised her on 23 Oct a 'final go from our side once the packhouse has released the goods'. At 20:06 QA (Giuseppe Cutuli) released 14 boxes / 112.0 kg net, seal time 19:55, truck collecting 06:35 Sunday. The cold-chain timeline checks out against the airline's and the packaging validation's constraints, so the promised final go can now be given, with accurate status wording.",
+  "direct_answer": "To Birgit (yes or no before 21:00): Yes from the forwarding side. The goods are packed and released and booked on SX 3418 on Sunday 26 Oct (scheduled arrival Frankfurt 11:25 local). They are not yet flown, and the desk will confirm loading and departure on Sunday morning. To Giuseppe ('confirm to Hafenmarkt that everything is in order'): done, with the status stated exactly as it is (released and booked, not yet flown).",
+  "facts": [
+    "VERIFIED (airline, event 002): SX 3418 Sun 26 Oct, dep CTA 08:40, arr FRA 11:25 local; active-cool unit 2-8 C released for build-up 07:15, build-up closes 07:40; boxes not inside by then go on next day's flight; no airline cold room at Catania; space up to 150 kg.",
+    "VERIFIED (packaging validation KP-RS8-02, event 003): product core <=4 C for 12 h 00 min from seal time at 25 C ambient; box must be inside a 2-8 C space before the 12 h are used up; one re-icing allowed under QA signature.",
+    "VERIFIED (desk, event 004): booking in place on SX 3418, AWB 417-55820193, ~112 kg / 14 boxes; consignee cold-room pickup at airport handler from 12:30; desk promised a final go once packhouse released the goods.",
+    "VERIFIED (packhouse, event 005): Trasporti Simeto truck collects 06:35 Sunday; ~35 min to the airline station.",
+    "VERIFIED (QA, event 007): packing finished, QA released, 14 boxes, 112.0 kg net, all labels seal time 19:55; pallet in packhouse cold room until truck collection.",
+    "CLAIM/DEADLINE (consignee, event 006): Birgit needs a clear yes/no before 21:00 tonight."
+  ],
+  "conflicts": [],
+  "missing_information": [
+    "Actual loading into the active-cool unit and actual departure of SX 3418 (only knowable Sunday morning).",
+    "Whether the Simeto driver has been reminded that build-up closes 07:40 (packhouse booked the truck; not a blocker)."
+  ],
+  "risk_flags": [
+    "Tight cold-chain window: 12 h validation from seal 19:55 ends 07:55 Sunday; boxes are out of a 2-8 C space from 06:35 collection (truck not stated as refrigerated) until loaded into the unit (07:15-07:40).",
+    "Truck delay over ~30 min (arrival after 07:40) means the boxes miss build-up and go on the next day's flight, which would miss the Sunday 14:00 counter.",
+    "Over-claiming risk: 'everything is in order' must not be presented as a guaranteed delivery; packed/released and booked is not flown or delivered."
+  ],
+  "authority_map": {
+    "Packing release / cold-chain packaging / re-icing": "Ittica Aci Trezza QA (Giuseppe Cutuli)",
+    "Truck collection timing": "Ittica Aci Trezza (Concetta Lo Faro) / Trasporti Simeto",
+    "Flight space, active-cool unit, build-up cutoff": "Scirocco Air Cargo Catania (Sandro Mirabella)",
+    "Final go from the forwarder to the consignee": "Levante Cargo Desk (promised in event 004)",
+    "Whether to put prawns on the Sunday buyer list": "Hafenmarkt Frankfurt (Birgit Aumann)"
+  },
+  "wait_check": {
+    "new_since_last_promise": "Yes. The desk promised Birgit (event 004) 'a final go from our side once the packhouse has released the goods'. Event 007 (20:06): 'Packing finished and QA released.' The trigger for the promised update has now happened, which changes what she must be told.",
+    "pending_promise": "No pending future-dated promise. The promise was conditioned on the packhouse release, which has occurred, and Birgit's 21:00 buyer-list deadline is 54 minutes away.",
+    "inbound_is_chase_only": "No. Event 007 is a new fact (QA release with seal time 19:55), not a chase.",
+    "verdict": "proceed"
+  },
+  "decision_type": "act",
+  "decision_summary": "Deliver the promised final go to Birgit on WhatsApp before 21:00: released and booked on SX 3418 (status worded exactly, not flown yet). Confirm to QA that it was sent and restate the 07:40 build-up cutoff. Schedule a Sunday-morning check on loading and departure.",
+  "rationale": "Timeline check: seal 19:55 + 12 h 00 min = 07:55 Sun 26 Oct (validation limit). Truck collects 06:35 + 35 min = arrival ~07:10. Unit is released 07:15 and build-up closes 07:40, so boxes are inside the 2-8 C unit between 07:15 and 07:40, before 07:55. Margins: 07:55 - 07:40 = 15 min to the validation limit even at the latest loading time, and 07:40 - 07:10 = 30 min of road-delay buffer before build-up close. Arrival FRA 11:25, handler cold-room pickup from 12:30, counter from 14:00. All constraints are met on the record, so the promised final go is due now and must reach Birgit before her 21:00 cutoff. Rule 4 requires stating it as released + booked, not delivered, and not promising the arrival outright. Giuseppe asked for the confirmation, so a short reply closes his loop and puts the hard 07:40 cutoff in writing to the party that controls the truck handover.",
+  "alternatives_rejected": [
+    "Hold until the flight departs: misses Birgit's 21:00 decision point and breaks the event-004 promise, whose trigger (packhouse release) has occurred.",
+    "Say no / request re-icing: not needed. The validated window (to 07:55) covers loading by the 07:40 build-up close, and re-icing is QA's call anyway.",
+    "Confirm 'everything is in order, prawns will be on your counter': over-claims delivery and the arrival outcome.",
+    "Contacting the airline again: booking and cutoffs are already confirmed in writing, so nothing new is needed from them tonight."
+  ],
+  "actions": [
+    {
+      "tool": "send_message",
+      "recipient": "Birgit Aumann (Hafenmarkt Frankfurt GmbH)",
+      "channel": "WhatsApp",
+      "send_by": "2025-10-25 21:00 CEST",
+      "message": "Hi Ms Aumann, here is our final go: yes from our side. The packhouse finished packing and QA released the goods tonight: 14 boxes, 112.0 kg net, sealed at 19:55. The truck collects them at 06:35 tomorrow (Sunday 26 Oct) for the airline. They are booked on SX 3418, AWB 417-55820193, departing Catania 08:40 and scheduled to arrive in Frankfurt at 11:25 local time. Your cold-room pickup at the airport handler is open from 12:30. Please note the goods have not flown yet and the flight times are the airline's schedule. We will confirm on Sunday morning once the boxes are loaded and the flight has departed. Kind regards, Ottavia Greco, Levante Cargo Desk"
+    },
+    {
+      "tool": "send_message",
+      "recipient": "Giuseppe Cutuli (QA manager, Ittica Aci Trezza)",
+      "channel": "Email",
+      "message": "Dear Giuseppe, thank you. We have given Hafenmarkt the final go (released and booked on SX 3418 tomorrow, AWB 417-55820193). For the record, tomorrow's timing: truck collection 06:35, about 07:10 at the Scirocco station; the active-cool unit opens for build-up at 07:15 and build-up closes at 07:40. Boxes not inside the unit by 07:40 go on the next day's flight. With seal time 19:55 the 12 h validation runs to 07:55, so the boxes need to be in the unit by 07:40 at the latest. Please let us know straight away if the truck collection slips. Kind regards, Ottavia Greco, Levante Cargo Desk"
+    },
+    {
+      "tool": "schedule_follow_up",
+      "recipient": "Levante Cargo Desk (Ottavia Greco)",
+      "when": "2025-10-26 07:20 CEST",
+      "note": "Check with Scirocco Catania (Sandro Mirabella) that the 14 boxes of AWB 417-55820193 are being built into the active-cool unit (build-up closes 07:40, validation limit 07:55). After the 08:40 departure, send Birgit the loaded/departed confirmation. If the truck is late, contact QA (re-icing is their decision) and the airline, and tell Birgit at once."
+    },
+    {
+      "tool": "record_case_note",
+      "recipient": "internal",
+      "note": "25 Oct 20:06 QA release: 14 boxes / 112.0 kg, seal 19:55, so the 12 h validation ends 07:55 Sun. Truck 06:35 to ~07:10 at the station; unit build-up 07:15-07:40. Feasible, about 15 min margin to the validation limit. Final go sent to Birgit before her 21:00 buyer-list deadline, worded as released and booked, not flown. Giuseppe told the timing and the 07:40 cutoff."
+    }
+  ],
+  "not_doing": [
+    "Not promising delivery, the arrival time or a counter-ready outcome. Status is released and booked only.",
+    "Not instructing re-icing or opening boxes, which is QA's decision and would void the validation if done for any other reason.",
+    "Not contacting the airline tonight. Booking and cutoffs are already confirmed in writing.",
+    "Not giving any temperature/safety judgement beyond quoting the validation sheet."
+  ],
+  "closes_when": "SX 3418 departs with the 14 boxes in the active-cool unit, Birgit is told, and Hafenmarkt collects from the handler cold room on Sunday.",
+  "follow_up": "2025-10-26 07:20 CEST: confirm build-up with Scirocco before the 07:40 close, then send Birgit the departure confirmation after 08:40.",
+  "confidence": 0.8,
+  "human_handover_notes": "None required. If the truck slips past ~07:30, Ottavia should get the airline and QA involved immediately (next-day flight or re-icing are their decisions) and inform Birgit."
+}

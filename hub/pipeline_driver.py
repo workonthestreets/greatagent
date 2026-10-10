@@ -165,7 +165,7 @@ def _process(run: dict) -> None:
                     summary=plan.get("decision_summary") or "",
                     rationale=plan.get("rationale") or "",
                     not_doing="; ".join(not_doing) if isinstance(not_doing, list) else str(not_doing),
-                    next_trigger=plan.get("follow_up") or plan.get("closes_when") or "")
+                    next_trigger=plan.get("follow_up") or plan.get("proof_standard") or "")
     mcp_tools.submit_decision(case_id, **decision)
     _event(run, "agent.mcp_tool_use", {"name": "submit_decision", "input": decision, "evaluated_permission": "allow"})
     log.info("case %s: pipeline run %s done (%s, approved=%s)", case_id, run["run_id"], decision["decision_type"], res["approved"])

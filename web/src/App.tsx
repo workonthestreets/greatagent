@@ -3,13 +3,20 @@ import { isStaff, signOut, supabase, useSession, type Profile } from "./lib";
 import Login from "./Login";
 import Ops from "./Ops";
 import PartyView from "./PartyView";
+import { Mark } from "./icons";
 
 const ROLE_LABEL: Record<string, string> = {
   admin: "Admin", coordinator: "Desk coordinator", customer: "Customer", driver: "Driver",
   depot: "Depot / pickup point", merchant: "Merchant / partner",
 };
 
-export default function App() {
+const VIEW_NAME: Record<string, string> = {
+  admin: "Desk", coordinator: "Desk", customer: "My deliveries", driver: "My stops",
+  depot: "Shipments at my site", merchant: "Cases on my orders",
+};
+
+/** `initialCase` preselects a case (used by the screenshot preview); undefined in production. */
+export default function App({ initialCase }: { initialCase?: string } = {}) {
   const session = useSession();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState("");
@@ -22,22 +29,34 @@ export default function App() {
     });
   }, [session]);
 
-  if (session === undefined) return <div className="center muted">Loading…</div>;
+  if (session === undefined) return <div className="page framed app"><p className="center text-muted state">Loading…</p></div>;
   if (!session) return <Login />;
-  if (error) return <div className="center">{error} <button onClick={() => signOut()}>Sign out</button></div>;
-  if (!profile) return <div className="center muted">Loading profile…</div>;
+  if (error) return (
+    <div className="page framed app">
+      <div className="center state">
+        <p>{error}</p>
+        <button className="btn btn--secondary" onClick={() => signOut()}>Sign out</button>
+      </div>
+    </div>
+  );
+  if (!profile) return <div className="page framed app"><p className="center text-muted state">Loading profile…</p></div>;
 
   return (
-    <div className="app">
-      <header className="topbar">
-        <div className="brand">Rivet Delivery Desk</div>
-        <div className="who">
-          <span className="pill">{ROLE_LABEL[profile.role]}</span>
-          <span>{profile.party_name || profile.display_name || profile.email}</span>
-          <button className="ghost" onClick={() => signOut()}>Sign out</button>
+    <div className="page framed app">
+      <nav className="nav">
+        <div className="nav__links">
+          <a className="nav__link nav__link--current" href="#top">{VIEW_NAME[profile.role]}</a>
+          <span className="nav__who">{profile.party_name || profile.display_name || profile.email}</span>
         </div>
-      </header>
-      {isStaff(profile.role) ? <Ops profile={profile} /> : <PartyView profile={profile} />}
+        <span className="nav__mark" aria-label="Rivet Delivery Desk" role="img"><Mark /></span>
+        <div className="nav__auth">
+          <span className="nav__role">{ROLE_LABEL[profile.role]}</span>
+          <button className="btn btn--secondary" onClick={() => signOut()}>Sign out</button>
+        </div>
+      </nav>
+      {isStaff(profile.role)
+        ? <Ops profile={profile} initialCase={initialCase} />
+        : <PartyView profile={profile} initialCase={initialCase} />}
     </div>
   );
 }

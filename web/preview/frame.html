@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Preview frame</title>
+    <style>
+      html, body { margin: 0; background: #f3f1e9; }
+      iframe { display: block; border: 0; }
+    </style>
+  </head>
+  <body>
+    <!-- Headless Chrome will not lay a window out narrower than ~500px, so phone widths render inside an exact-width iframe. -->
+    <iframe id="f" title="preview"></iframe>
+    <script>
+      const p = new URLSearchParams(location.search);
+      const f = document.getElementById("f");
+      f.style.width = (p.get("w") || "390") + "px";
+      f.style.height = (p.get("h") || "1600") + "px";
+      f.src = "/?view=" + encodeURIComponent(p.get("view") || "party");
+    </script>
+  </body>
+</html>
