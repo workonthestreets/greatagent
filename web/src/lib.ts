@@ -18,7 +18,7 @@ export type CaseEvent = {
 export type Action = {
   id: number; case_id: string; tool: string; args: Record<string, unknown>; status: string;
   policy: { level: string; rule: string; match: string; negated_context?: boolean }[]; result: unknown;
-  decided_by: string | null; created_at: string;
+  decided_by: string | null; created_at: string; mcp_event_id: string | null; session_id: string | null;
 };
 export type AgentEvent = { id: number; case_id: string; session_id: string; type: string; payload: any; created_at: string };
 export type AgentRun = { session_id: string; case_id: string; status: string; stop_reason: string | null; list_cost_cents: number | null; trace_url: string };
@@ -81,3 +81,22 @@ export async function signOut(): Promise<void> {
     window.location.reload();
   }
 }
+
+/** Minimal client-side routing: the current path, and go() to change it without a reload. */
+export function usePath(): string {
+  const [path, setPath] = useState(window.location.pathname);
+  useEffect(() => {
+    const onPop = () => setPath(window.location.pathname);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  return path;
+}
+
+export function go(path: string): void {
+  if (path === window.location.pathname) return;
+  window.history.pushState(null, "", path);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
+export type AgentLive = { event_id: string; session_id: string; case_id: string; kind: string; text: string; done: boolean; started_at: string };

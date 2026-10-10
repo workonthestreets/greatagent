@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 import secrets
+import threading
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -13,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from mcp.server.transport_security import TransportSecuritySettings
 
-from . import api, webhooks
+from . import api, driver, webhooks
 from .config import settings
 from .mcp_tools import mcp
 
@@ -29,8 +30,17 @@ mcp_app = mcp.streamable_http_app(
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    if settings.engine == "managed":
+        threading.Thread(target=_resume, daemon=True, name="resume-runs").start()
     async with mcp.session_manager.run():
         yield
+
+
+def _resume() -> None:
+    try:
+        driver.resume_open_runs()
+    except Exception:  # noqa: BLE001 - never block startup on this
+        logging.getLogger("hub").exception("resuming open runs failed")
 
 
 app = FastAPI(title="greatagent hub", lifespan=lifespan)

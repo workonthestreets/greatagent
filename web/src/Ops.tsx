@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  fmtTime, hub, useLive, type Action, type AgentEvent, type AgentRun, type Case, type CaseEvent, type Profile,
+  fmtTime, go, hub, useLive, type Action, type AgentEvent, type AgentRun, type Case, type CaseEvent, type Profile,
 } from "./lib";
 import { Composer, Timeline } from "./Timeline";
 
@@ -134,6 +134,7 @@ function CaseDetail({ caseId, runs, profile }: { caseId: string; runs: AgentRun[
         {run && <span>Agent: {run.status}{run.stop_reason ? ` (${run.stop_reason})` : ""}
           {run.list_cost_cents != null && ` · $${(run.list_cost_cents / 100).toFixed(2)}`}
           {" · "}<a href={run.trace_url} target="_blank" rel="noreferrer">trace</a></span>}
+        <AgentLink caseId={c.id} />
       </div>
       {c.decision && (
         <div className="decision">
@@ -156,7 +157,7 @@ function CaseDetail({ caseId, runs, profile }: { caseId: string; runs: AgentRun[
         </>
       )}
       {tab === "actions" && <ActionsTable actions={actions} />}
-      {tab === "agent" && <AgentLog events={agentEvents} />}
+      {tab === "agent" && <><AgentLink caseId={caseId} label="Open the full live agent view" /><AgentLog events={agentEvents} /></>}
     </div>
   );
 }
@@ -219,4 +220,11 @@ function describe(e: AgentEvent) {
     default:
       return null;
   }
+}
+
+function AgentLink({ caseId, label = "agent view" }: { caseId: string; label?: string }) {
+  const href = `/agents/${encodeURIComponent(caseId)}`;
+  return (
+    <a href={href} onClick={(e) => { if (!e.metaKey && !e.ctrlKey) { e.preventDefault(); go(href); } }}>{label} →</a>
+  );
 }
