@@ -243,3 +243,48 @@ def test_shipment_lookup_adds_only_pre_escalation_context(monkeypatch, tmp_path)
     assert desk.lookup_info(folder) == {"matched": True, "source_case": "025", "primary": "DL-025",
                                         "events_used": 2}
     lookup._index.cache_clear()
+
+
+def test_hub_mode_sends_one_request_and_falls_back_on_error(monkeypatch, tmp_path):
+    from voice import desk, hub
+    monkeypatch.setenv("VOICE_TOOL_SECRET", "s3")
+    monkeypatch.setenv("VOICE_AGENT", "hub")
+    monkeypatch.setenv("HUB_URL", "http://hub.test")
+    monkeypatch.setenv("HUB_WEBHOOK_SECRET", "hubsecret")
+    monkeypatch.setattr(voice, "LOG_DIR", tmp_path)
+    monkeypatch.setattr(desk, "CASES_DIR", tmp_path / "cases")
+    started, sent = [], []
+    monkeypatch.setattr(desk, "start", lambda conv, folder: started.append(conv))
+
+    class Reply:
+        def __init__(self, body): self.body = body
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def read(self): return json.dumps(self.body).encode()
+
+    def fake_urlopen(req, timeout):
+        sent.append((req.full_url, req.get_header("X-hub-secret"), json.loads(req.data), timeout))
+        if "get_latest_update" in req.full_url:
+            return Reply({"latest": {"body": "We have asked the carrier to trace DL-204."}})
+        return Reply({"case_id": "C-000123", "say": "hub's own words"})
+    monkeypatch.setattr(hub.urllib.request, "urlopen", fake_urlopen)
+    client = TestClient(voice.app)
+    body = {"conversation_id": "conv_hub1", "caller_name": "Ana", "order_ref": "DL-204",
+            "issue": "Parcel never came.", "update_by": "text", "contact": "07700 900123"}
+    reply = client.post("/voice/tool", json=body, headers={"X-Tool-Secret": "s3"}).json()
+    url, secret, payload, timeout = sent[0]
+    assert url == "http://hub.test/webhooks/ask_agent" and secret == "hubsecret" and timeout == 3
+    assert payload["caller_phone"] == "07700900123" and "Parcel never came." in payload["request"]
+    assert "case C-000123" in reply["say"] and "hub's own words" not in reply["say"] and started == []
+    update = client.post("/voice/update", json={"conversation_id": "conv_hub1"},
+                         headers={"X-Tool-Secret": "s3"}).json()["say"]
+    assert update == "The latest update on your case is: We have asked the carrier to trace DL-204."
+
+    def down(req, timeout):
+        raise OSError("connection refused")
+    monkeypatch.setattr(hub.urllib.request, "urlopen", down)
+    fallback = client.post("/voice/tool", json=body | {"conversation_id": "conv_hub2"},
+                           headers={"X-Tool-Secret": "s3"}).json()
+    assert fallback["status"] == "logged" and started == ["conv_hub2"] and "C-" not in fallback["say"]
+    assert hub._UNSAFE_TO_SPEAK.search("Your refund of £40 has been approved")
+

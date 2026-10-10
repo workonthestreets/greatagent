@@ -10,7 +10,8 @@ after every caller utterance, each turn's decision comes from the same fixed tem
 call continues only while the next step is a question the caller can answer.
 
 VOICE_AGENT picks who decides /voice/tool calls: `deskagent` (default; the team's reviewed agent,
-run after the call from a case folder, see voice/desk.py) or `triage` (inline, the older path).
+run after the call from a case folder, see voice/desk.py), `hub` (the team's hub owns the case,
+voice/hub.py; falls back to deskagent) or `triage` (inline, the older path).
 
 Run: VOICE_TOOL_SECRET=... uv run uvicorn voice.app:app --port 8000
 """
@@ -32,7 +33,7 @@ from pydantic import BaseModel, Field
 from scorer.cases import AgentInput
 from triage.decide import code_flags, decide
 from triage.outbox import deliver
-from voice import desk
+from voice import desk, hub
 
 LOG_DIR = Path(os.getenv("VOICE_LOG_DIR", "runs/voice"))
 DECIDE_BUDGET_S = 14  # ElevenLabs gives a webhook tool 20 s by default; leave room for the network
@@ -250,7 +251,7 @@ def tool(report: CallReport, x_tool_secret: str = Header("")) -> dict:
         logged.write_text(json.dumps(record, indent=2, default=str))
         return {"say": f"Thanks, I've updated that. {update_line(report.update_by, report.contact)}.",
                 "status": "contact_updated"}
-    if os.getenv("VOICE_AGENT", "deskagent") == "deskagent":
+    if os.getenv("VOICE_AGENT", "deskagent") in ("deskagent", "hub"):
         return capture_for_desk(report)
     future = _pool.submit(_decide_and_log, report)
     try:
@@ -294,6 +295,10 @@ def capture_for_desk(report: CallReport) -> dict:
     folder = desk.write_case_folder(report.conversation_id, report.caller_name, report.order_ref,
                                     report.issue, how, stored)
     case = desk.short_id(report.conversation_id)
+    hub_case = None
+    if os.getenv("VOICE_AGENT") == "hub":  # hub owns the case; on any hub failure the local desk decides
+        hub_case = hub.hand_over(folder, report.caller_name, report.order_ref, report.issue, how, stored)
+        case = hub_case or case
     found = desk.lookup_info(folder)
     seen = f"I can see shipment {found['primary']}. " if found.get("matched") and found.get("primary") else ""
     if is_hazard(report.issue):
@@ -302,9 +307,11 @@ def capture_for_desk(report: CallReport) -> dict:
     else:
         say = (f"Thank you. {seen}I've logged this as case {case} for our delivery desk. "
                f"{update_line(report.update_by, report.contact)}; I can't promise a time or outcome yet.")
-    _log(report.conversation_id, "", {"agent": "deskagent", "case_dir": str(folder), "say": say, "issue": report.issue,
+    _log(report.conversation_id, "", {"agent": "hub" if hub_case else "deskagent", "case_dir": str(folder),
+                                      "say": say, "issue": report.issue, "hub_case_id": hub_case,
                                       "contact": {"update_by": how, "contact": stored}})
-    desk.start(report.conversation_id, folder)
+    if not hub_case:
+        desk.start(report.conversation_id, folder)
     return {"say": say, "status": "logged", "case": case}
 
 
@@ -320,8 +327,14 @@ class UpdateQuery(BaseModel):
 
 @app.post("/voice/update")
 def latest_update(q: UpdateQuery, x_tool_secret: str = Header("")) -> dict:
-    """What deskagent decided for an earlier call, as a fixed template."""
+    """What was decided for an earlier call: a fixed template, or hub's latest message (checked)."""
     _auth(x_tool_secret)
+    logged = LOG_DIR / f"{_safe(q.conversation_id)}.json"
+    record = json.loads(logged.read_text()) if logged.exists() else {}
+    if record.get("hub_case_id"):
+        contact = record.get("contact") or {}
+        phone = contact.get("contact") if contact.get("update_by") in ("text", "call") else None
+        return {"say": hub.latest_update(record["hub_case_id"], phone)}
     return {"say": desk.update_line(q.conversation_id)}
 
 

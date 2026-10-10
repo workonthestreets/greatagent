@@ -79,3 +79,18 @@ case folders under `VOICE_SHIPMENT_DATA`, default the public Delivery cases), th
 sees starts with the desk's own record up to the escalation — Case details and the events staged
 Context/Escalation, never later events or labels — and the call is appended as the latest event.
 In production this would query the shipment database (e.g. the data branch's SQLite) instead.
+
+## Hub mode (`VOICE_AGENT=hub`)
+
+Phone cases go to the team's hub (`hub/` on main) so they show in its `/ops` view. Voice still
+does read-back, the 999 line, second-problem-as-new-case and the shipment lookup, then sends hub
+one request (caller, reference, preferred contact, issue, and pre-escalation shipment context)
+via `POST {HUB_URL}/webhooks/ask_agent` with `X-Hub-Secret`. The caller hears our template with
+hub's case id. If hub isn't configured or doesn't answer within 3 s, the local deskagent path
+decides instead (recorded in the case's `_hub.json`).
+
+Env: `VOICE_AGENT=hub`, `HUB_URL` (where hub runs), `HUB_WEBHOOK_SECRET` (same value as hub's).
+
+**The one non-template reply:** `/voice/update` in hub mode speaks hub's latest agent message
+("The latest update on your case is: …"). It is model-written, so it is checked for promises,
+amounts and credential words first; anything flagged becomes a fixed line instead.
