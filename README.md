@@ -57,7 +57,7 @@ _Great Agent from Gingerbread King · Real-World Agents Hackathon, London, 10 Oc
 7. [🚧 Known limitations](#limitations)
 8. [🔭 What we'd build next](#next)
 
-Also: [📁 Repository layout](#layout) · [🗃 Data and database](#data)
+Also: [📁 Repository layout](#layout) · [🗃 Data and database](#data) · [👥 Team](#team)
 
 ---
 
@@ -658,6 +658,20 @@ The SQLite database is laid out on the system model in `user/andrey/drafts/deliv
 - `synthetic_cases/` holds 100 generated evaluation cases (201-300) with gold labels. `data/delivery/database/delivery_eval.sqlite` is the evaluation database (public, stress and synthetic cases), kept separate from `delivery.sqlite`. Benchmark results are in `evals/benchmark-2026-10-10/`.
 
 </details>
+
+## <a name="team"></a>👥 Team
+
+<p align="center">
+  <img src="docs/team.jpg" width="440" alt="The team at their table at the Real-World Agents Hackathon in London">
+</p>
+
+<div align="center">
+
+**Team Gingerbread!** · Delivery & Logistics track · Real-World Agents Hackathon, London, 10 Oct 2026
+
+Kashif Nazir · Matsvei Danisheuski · Roman Degtyarev · Andrey Zharkov · Brandon Wooding
+
+</div>
 
 ---
 
