@@ -66,4 +66,29 @@ With `HUB_DEV_AUTH=1`, `/api` accepts `X-Dev-User: <email>` instead of a Supabas
   - Every run keeps its input plus `ANSWER.md` / `REASONING.md` / `trace.json` under `runs/live/<run>/`.
   - No public URL is needed for the agent itself, only for ElevenLabs.
 
+## Rewards and party actions
+
+Migration `db/migrations/002_rewards.sql` adds `medals`, `profile_medals`, `coin_ledger`, `coin_balances` (view), `merch_items` and `merch_orders`, with RLS and realtime. It is idempotent: re-running keeps balances, medals, orders and stock.
+
+```bash
+.venv/bin/python -m db.migrate          # applies 001 + 002 (add --local for plain Postgres)
+.venv/bin/python -m db.seed_rewards     # +120 welcome coins to each admin/coordinator without one; safe on live
+```
+
+`db.seed` and `db.seed_demo` also credit the welcome coins (once per profile). Do not re-run the full seed on live; use `db.seed_rewards`.
+
+Coins (`hub/rewards.py`): approve +15, reject with a reason +10, reject without one +5, redeem -price. Medals are awarded once from the `actions` table: decisions (1/10/50), reasoned rejections, clearing the queue, five decisions within 10 minutes of the draft.
+
+| Endpoint | Who | What |
+|---|---|---|
+| `POST /api/actions/{id}/approve`, `/reject` | staff | now also return `rewards: {coins, balance, new_medals}` (or `null` if rewards failed; the decision stands) |
+| `GET /api/rewards/me` | staff | balance, earned total, medals with progress, orders |
+| `GET /api/rewards/team` | admin | leaderboard of staff by balance |
+| `GET /api/merch` | staff | shop items |
+| `POST /api/merch/{item_id}/redeem` | staff | 409 `not enough coins` / `out of stock`; else order + debit + stock -1 |
+| `POST /api/shipments/{id}/status` | driver, depot | `{status, note}` on their own shipment; posts to the case and wakes the agent |
+| `POST /api/cases/{id}/merchant_decision` | merchant | `{decision: approve_replacement\|approve_refund\|decline, note}`; posts to the case and wakes the agent |
+
+Tests: `python3 tests/test_rewards.py` (no database needed).
+
 Demo cases with times relative to now: `python -m db.seed_demo [--wake D101]` (see `DEMO.md`). Pipeline engine test against local Postgres: `python tests/test_pipeline_driver.py`.

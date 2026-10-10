@@ -20,6 +20,7 @@ import httpx
 import psycopg
 from psycopg.types.json import Jsonb
 
+from db.seed_rewards import welcome_staff
 from deskagent.loader import discover_cases, load_case, split_sections
 from hub.config import ROOT, settings
 
@@ -156,6 +157,7 @@ def main() -> None:
                        display_name = excluded.display_name, phone = coalesce(excluded.phone, profiles.phone)""",
                 (uid, acc["email"], acc["name"], acc["role"], acc["party"], phone if acc["role"] == "customer" else None))
             print(f"  {acc['role']:<12} {acc['email']:<28} {acc['party'] or ''}")
+        print(f"welcome coins: credited {welcome_staff(conn)} staff profile(s)")
         print(f"demo password: {password}")
 
 

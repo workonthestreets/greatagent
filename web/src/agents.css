@@ -1,0 +1,208 @@
+/* /agents: the agent's live run log. Meridian tokens only; reuses .view, .stats, .split, .case-row, .meta, .status. */
+
+.afeed {
+  list-style: none;
+  margin: var(--space-md) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.afeed__item {
+  min-width: 0;
+  padding: 10px var(--space-md);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: var(--space-sm);
+}
+
+/* Model calls and thinking markers are rhythm, not content: quieter rows. */
+.afeed__item--model {
+  padding-block: 6px;
+  background: transparent;
+}
+
+.afeed__item--say {
+  box-shadow: inset 2px 0 0 var(--color-primary);
+}
+
+.afeed__item--wake {
+  box-shadow: inset 2px 0 0 var(--color-secondary);
+}
+
+.afeed__item--ask {
+  border-color: var(--color-primary);
+}
+
+.afeed__item--bad,
+.afeed__item--error {
+  box-shadow: inset 2px 0 0 var(--color-error);
+}
+
+.afeed__item--live {
+  border-style: dashed;
+}
+
+.afeed__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-xs) var(--space-md);
+  min-width: 0;
+}
+
+.afeed__toggle {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.afeed__toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+.afeed__kind,
+.afeed__label {
+  font-size: var(--text-label-sm);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-secondary);
+}
+
+.afeed__tool {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.afeed__headline {
+  flex: 1 1 12ch;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-body-sm);
+  color: var(--color-secondary);
+}
+
+.afeed__time {
+  margin-left: auto;
+  font-size: var(--text-body-sm);
+  color: var(--color-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.afeed__body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--text-body-md);
+  line-height: 1.5;
+  color: var(--color-on-surface);
+}
+
+.afeed__note {
+  margin: 0;
+}
+
+.afeed__cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.afeed__pre {
+  margin: var(--space-xs) 0 0;
+  font-family: var(--font-ui);
+  padding: var(--space-sm);
+  max-height: 22em;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--text-body-sm);
+  line-height: 1.45;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.afeed__pre--raw {
+  color: var(--color-secondary);
+}
+
+.afeed__status {
+  text-align: center;
+  font-size: var(--text-label-sm);
+  color: var(--color-secondary);
+  padding-block: 2px;
+}
+
+.afeed__approve {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.afeed__approve .input {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.afeed__raw {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--text-body-sm);
+  color: var(--color-secondary);
+  cursor: pointer;
+}
+
+.live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  vertical-align: middle;
+  animation: agents-pulse 1.2s ease-in-out infinite;
+}
+
+.afeed__caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  margin-left: 2px;
+  background: var(--color-primary);
+  vertical-align: text-bottom;
+  animation: agents-pulse 1s steps(2) infinite;
+}
+
+@keyframes agents-pulse {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot,
+  .afeed__caret {
+    animation: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .afeed__cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

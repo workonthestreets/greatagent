@@ -128,6 +128,7 @@ def test_voice_tools_accept_tracking_refs_and_say_honest_status():
         seed_case(conn, spec)
     try:
         assert _case_ref("dl-103-t") == CASE and _case_ref(f" {CASE.lower()} ") == CASE and _case_ref("DL-NOPE") is None
+        assert _case_ref("DL 103 T") == CASE and _case_ref("dl103t") == CASE   # spoken / spaced forms
         assert "couldn't find" in get_latest_update(CaseIn(case_id="DL-NOPE"))["say"]
         db.query("insert into agent_runs (session_id, case_id, status) values ('pipeline-test-run', %s, 'running')", (CASE,))
         assert "still working" in get_latest_update(CaseIn(case_id="DL-103-T"))["say"]
@@ -185,6 +186,35 @@ def test_record_case_mirrors_a_voice_decision_without_waking_the_agent():
     finally:
         for cid in made:
             db.query("delete from cases where id = %s", (cid,))
+
+
+def test_spoken_update_is_short_and_keeps_the_status_sentence():
+    from hub.webhooks import spoken_update
+    recorded = (
+        "DL-103: your request to move the delivery\n\nHello Vessa,\n\nThanks for getting in touch about DL-103. We have "
+        "asked the delivery company's dispatch team to move your delivery from today (15:00-18:00 UTC) to tomorrow, "
+        "11 October, 09:00-12:00 UTC. The change is not confirmed yet. We will update you here as soon as dispatch "
+        "confirms it.\n\nKind regards,\nIona Quill, Rivet Delivery Desk")
+    s = spoken_update(recorded)
+    assert s.startswith("We have asked") and "The change is not confirmed yet." in s and len(s) <= 220, s
+    assert not any(w in s for w in ("Hello", "Kind regards", "Thanks for getting", "Iona", "DL-103: your request"))
+    sorry = "Update\n\nHello Mira,\n\nI'm sorry, your delivery has not been moved yet. " + "Filler sentence here. " * 12 + \
+            "The new slot is not confirmed until dispatch confirms it.\n\nKind regards,\nIona"
+    t = spoken_update(sorry)   # an apology that carries the status stays; the late status sentence is still kept
+    assert t.startswith("I'm sorry, your delivery has not been moved yet.") and t.endswith("until dispatch confirms it."), t
+    live = ("DL-103 rebooking update\n\nHello Vessa, thank you for calling. Your delivery DL-103 has not been moved yet. "
+            "We asked them to move the delivery to tomorrow, 11 October, 09:00-12:00 UTC. This is a request, not a "
+            "confirmation. We will let you know as soon as they confirm or tell us they can't.\n\nKind regards,\nIona Quill")
+    u = spoken_update(live)    # rehearsal message on Supabase: greeting on the same line as the first sentence
+    assert u.startswith("Your delivery DL-103 has not been moved yet.") and u.endswith("not a confirmation."), u
+    assert len(u.split()) <= 30, len(u.split())
+
+
+def test_ask_agent_says_logged_and_not_confirmed():
+    import inspect
+    from hub import webhooks
+    src = inspect.getsource(webhooks.ask_agent)
+    assert "I've logged your request as case" in src and "Nothing is confirmed yet" in src
 
 
 def test_render_case_keeps_event_format():

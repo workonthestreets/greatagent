@@ -1,0 +1,104 @@
+{
+  "situation": "Shipper Joyce Mwangi (Mt. Kenya Blooms) asks the desk at 16:02 EAT on 30 Sep to finalise arrival handling for AWB 706-48213390 (40 boxes roses, 612 kg, BX742 NBO 23:40 EAT 30 Sep -> AMS 07:20 CEST 1 Oct) with the AMS handler and the trucker. On 29 Sep she redirected the consignment from Veldhuizen/Aalsmeer to Nordstrand Blumenhandel GmbH, Großmarkt Hamburg Halle 3, window Thu 1 Oct 14:00-18:00 CEST, with Nordstrand paying onward trucking. Nothing has been finalised: the AMS pre-alert (15:48 EAT) still shows consignee Veldhuizen, no delivery instruction, status awaiting instruction; the Dijkstra Hamburg vehicle (EUR 1,180) is only held until 17:00 CEST / 18:00 EAT and nobody with payment authority has accepted it; the old Aalsmeer booking DK-88213 is still open. Manifest/instruction cutoff at AMS hub is 19:00 EAT today.",
+  "direct_answer": "Joyce, we cannot finalise it in one step yet: the Hamburg truck costs EUR 1,180 and Nordstrand (the payer) has not accepted that price, and the air waybill still names Veldhuizen as consignee. We have asked Jonas to accept the quote before 17:00 CEST (18:00 EAT), asked Baobab to amend the consignee on your instruction, and cancelled the Aalsmeer truck. The AMS delivery instruction goes out as soon as the truck is confirmed, before the 19:00 EAT manifest close.",
+  "facts": [
+    "VERIFIED (Baobab Reservations, event 003): AWB 706-48213390, BX742 dep Wed 30 Sep 23:40 EAT, arr Thu 1 Oct 07:20 CEST, 40 pcs 612.0 kg, 2-4 C, consignee on AWB Veldhuizen Bloemen BV, Aalsmeer; acceptance until 20:30 EAT on day of flight.",
+    "VERIFIED (AMS Perishable Hub, event 009): pre-alert data and delivery instructions accepted until manifest closes 19:00 EAT 30 Sep; afterwards changes via airline station at a handling fee; free cold-store time 6 hours from arrival.",
+    "VERIFIED (AMS pre-alert, event 019, 15:48 EAT): consignee Veldhuizen, notify party none, delivery instruction none, status awaiting instruction.",
+    "VERIFIED (Dijkstra planning, event 013): AMS -> Hamburg Großmarkt Halle 3 reefer van EUR 1,180 flat; driver can leave AMS 10:30 CEST if cargo released by then, arrival about 16:00; vehicle held until 17:00 CEST (18:00 EAT) today, then back to pool.",
+    "VERIFIED (Dijkstra, events 005/012/018): DK-88213 AMS -> Aalsmeer, Thu 1 Oct 09:30 CEST, EUR 410, provisional; to amend or cancel reply to the booking message; provisional bookings without final instruction released 24 hours before pickup.",
+    "CLAIM/INSTRUCTION (shipper Joyce, event 010): roses no longer go to Veldhuizen; buyer Nordstrand Blumenhandel GmbH; deliver Großmarkt Hamburg, Halle 3, Banksstraße 28, 20097 Hamburg, Thu 1 Oct 14:00-18:00 CEST; Nordstrand pays onward trucking; drop the Aalsmeer plan completely.",
+    "VERIFIED (Jonas Brandt, Nordstrand, event 016): confirms Halle 3, Thursday 14:00-18:00; driver must phone 30 min before arrival or gate stays closed; CMR or delivery note must travel with driver. Jonas has NOT commented on the EUR 1,180 price.",
+    "VERIFIED (Pieter Veldhuizen, event 015): Veldhuizen released the Thursday slot.",
+    "VERIFIED (KEPHIS, events 006/007): phytosanitary certificate PC-2026-0091744 issued, destination Netherlands (duplicate notification).",
+    "NOT RELEVANT: events 008/014 concern lilies AWB 706-48213408 (rebooked to BX744 Fri 2 Oct); event 004 is a newsletter."
+  ],
+  "conflicts": [
+    "AWB/pre-alert consignee is still Veldhuizen Bloemen BV, but the shipper has redirected the goods to Nordstrand in Hamburg and Veldhuizen has released its slot. The AMS handler will deal with the AWB consignee until Baobab amends it.",
+    "DK-88213: the 13:22 EAT reminder says it is still provisional, but by Dijkstra's own 24-hours-before-pickup rule (pickup Thu 09:30 CEST = 10:30 EAT Thu; minus 24 h = Wed 30 Sep 10:30 EAT) it may already have been released. Status unclear; an explicit cancellation removes the ambiguity."
+  ],
+  "missing_information": [
+    "Nordstrand's written acceptance of the Dijkstra quote EUR 1,180 (and billing details for Dijkstra), needed before 17:00 CEST / 18:00 EAT.",
+    "Nordstrand Blumenhandel GmbH's full consignee details (legal name/address) for the AWB amendment.",
+    "Who handles EU import customs clearance at AMS for Nordstrand (no customs broker appears in the record); the AMS release by 10:30 CEST depends on it.",
+    "The receiving contact phone (+49 40 5550 0187, given by Joyce) is for the driver's 30-min call; Dijkstra will need it once booked."
+  ],
+  "risk_flags": [
+    "Hard deadlines today: Dijkstra vehicle hold 18:00 EAT; AMS instruction/manifest cutoff 19:00 EAT; after that changes cost an airline handling fee.",
+    "Perishable (2-4 C) cargo; free cold store only 6 h after 07:20 CEST arrival (i.e. to 13:20 CEST) - if no truck is booked, roses sit at AMS.",
+    "Committing EUR 1,180 on behalf of Nordstrand without its acceptance would be spending a third party's money.",
+    "Wrong consignee on AWB could block release to Dijkstra or cause delivery to Aalsmeer."
+  ],
+  "authority_map": [
+    {"decision": "Accept/pay Hamburg trucking EUR 1,180", "owner": "Nordstrand Blumenhandel GmbH (Jonas Brandt) - payer per shipper's instruction"},
+    {"decision": "Book/cancel truck, pickup time, vehicle hold", "owner": "Dijkstra Koeltransport planning / booking system"},
+    {"decision": "Cancel Aalsmeer plan DK-88213", "owner": "Shipper Joyce Mwangi has instructed it (event 010); Dijkstra executes"},
+    {"decision": "Amend consignee on AWB 706-48213390", "owner": "Baobab Air Cargo (issuing carrier), on the shipper's request"},
+    {"decision": "Delivery instruction / release at AMS", "owner": "AMS Perishable Hub (until 19:00 EAT), then airline station"},
+    {"decision": "EU import customs clearance", "owner": "Consignee's appointed customs broker (not named in record)"}
+  ],
+  "wait_check": {
+    "new_since_last_promise": "Yes. The desk has made no promise to Joyce; her 16:02 EAT message is a new request to finalise handling, and the 15:48 EAT pre-alert shows 'Delivery instruction: none. Status: awaiting instruction. Manifest closes 19:00 EAT.'",
+    "pending_promise": "None. No party has given a pending update time to the requester; the open times are hard cutoffs (Dijkstra hold until 17:00 CEST / 18:00 EAT, manifest 19:00 EAT) that require action before them.",
+    "inbound_is_chase_only": "No. It is a fresh instruction to act, with deadlines inside the next 3 hours.",
+    "verdict": "proceed"
+  },
+  "decision_type": "act",
+  "decision_summary": "Ask Nordstrand (Jonas) to accept the EUR 1,180 Dijkstra Hamburg quote before 17:00 CEST, ask Baobab to amend the AWB consignee on the shipper's instruction, cancel the Aalsmeer booking DK-88213 per Joyce, and hold the AMS delivery instruction until the truck is confirmed (before 19:00 EAT).",
+  "rationale": "Timing: current time ~16:05 EAT. Dijkstra hold ends 17:00 CEST = 18:00 EAT, i.e. 1 h 55 min away; manifest closes 19:00 EAT, 2 h 55 min away. Cargo arrives 07:20 CEST; Dijkstra leaves 10:30 CEST (3 h 10 min after arrival, inside the 6 h free cold store ending 13:20 CEST); arrival ~16:00 CEST is inside Nordstrand's 14:00-18:00 window. The desk cannot book EUR 1,180 for Nordstrand without its acceptance (Joyce said Nordstrand pays; Jonas has not seen/accepted the price), so the critical path is Jonas's acceptance. Joyce, as shipper, explicitly instructed dropping Aalsmeer, which is standing authority to cancel DK-88213 and to request the consignee change from Baobab; Baobab owns the amendment itself. The AMS delivery instruction must name the booked trucker, so it is sent only after Dijkstra confirms - still before 19:00 EAT. Joyce is copied on the Jonas message so she sees exactly what is outstanding; no separate status mail needed.",
+  "alternatives_rejected": [
+    "Book the Dijkstra Hamburg truck now: commits EUR 1,180 on Nordstrand's behalf without its acceptance.",
+    "Send AMS hub a delivery instruction now: the trucker is not yet booked and the AWB consignee is still Veldhuizen; an instruction now could be wrong.",
+    "Confirm DK-88213 to Aalsmeer as the final instruction: shipper explicitly cancelled the Aalsmeer plan and Veldhuizen released the slot.",
+    "Hold/no action: deadlines at 18:00 and 19:00 EAT would be missed.",
+    "Escalate to human now: the path is clear and owners are named; escalate only if Jonas does not accept by 17:45 EAT."
+  ],
+  "actions": [
+    {
+      "tool": "send_message",
+      "recipient": "Jonas Brandt <j.brandt@nordstrand-blumen.example>",
+      "cc": "Joyce Mwangi <joyce@mtkenyablooms.example>",
+      "channel": "email",
+      "subject": "AWB 706-48213390 - Hamburg trucking quote, please accept by 17:00 CEST today",
+      "body": "Dear Jonas,\n\nFor the 40 boxes of roses (AWB 706-48213390, flight BX742 arriving Amsterdam Thu 1 Oct 07:20 CEST) going to Großmarkt Hamburg, Halle 3:\n\nDijkstra Koeltransport has quoted a reefer van from the AMS cargo terminal to Halle 3 at EUR 1,180 flat. The driver can leave AMS at 10:30 CEST if the cargo is released by then, which gives an arrival of about 16:00 CEST, inside your 14:00-18:00 window. Dijkstra holds the vehicle only until 17:00 CEST today; after that it goes back into their pool.\n\nAs Joyce has advised that Nordstrand pays the onward trucking, we need from you, before 17:00 CEST today:\n1. Your written acceptance of the EUR 1,180 quote, and the billing name/address Dijkstra should invoice.\n2. Nordstrand Blumenhandel GmbH's full legal name and address for the consignee change on the air waybill.\n3. The name and contact of the customs broker who will clear the roses into the EU at Amsterdam for you.\n\nNothing is booked yet - this is a request, not a confirmation. Once you accept, we will book Dijkstra, pass them the receiving contact for the 30-minute call-ahead, ensure the CMR travels with the driver, and send the delivery instruction to the Amsterdam handler before the 19:00 EAT (18:00 CEST) cutoff.\n\nJoyce, copying you: the Aalsmeer truck is being cancelled as you instructed, and we are asking Baobab to amend the consignee on the AWB from Veldhuizen to Nordstrand on your instruction of 29 Sep.\n\nKind regards,\nWanjiru Kamau\nLakeshore Perishables Desk"
+    },
+    {
+      "tool": "send_message",
+      "recipient": "Baobab Air Cargo Reservations <res@baobabcargo.example>",
+      "channel": "email",
+      "subject": "AWB 706-48213390 / BX742 30 Sep - consignee amendment request before manifest close",
+      "body": "Dear Baobab Reservations,\n\nOn the instruction of the shipper, Mt. Kenya Blooms Ltd (Joyce Mwangi, 29 Sep 16:37 EAT), please amend the consignee on AWB 706-48213390 (BX742, 30 Sep 23:40 EAT NBO-AMS, 40 pcs, 612.0 kg, roses) from Veldhuizen Bloemen BV, Aalsmeer, to Nordstrand Blumenhandel GmbH, Hamburg. Full consignee legal details will follow as soon as we receive them from the buyer.\n\nThe AMS Perishable Hub manifest closes at 19:00 EAT today. Please let us know what you need from the shipper to process this and whether it can be done before that cutoff. This is a request; we will treat it as done only on your confirmation.\n\nKind regards,\nWanjiru Kamau\nLakeshore Perishables Desk"
+    },
+    {
+      "tool": "send_message",
+      "recipient": "Dijkstra Koeltransport booking system <noreply@dijkstra-koel.example> (reply to DK-88213 message) and Dijkstra Koeltransport planning <planning@dijkstra-koel.example>",
+      "channel": "email",
+      "subject": "Cancel DK-88213 (AMS-Aalsmeer, Thu 1 Oct 09:30 CEST) / Hamburg quote AWB 706-48213390",
+      "body": "Hello,\n\nOn the shipper's instruction, please cancel provisional booking DK-88213 (AMS cargo terminal to Aalsmeer auction, Veldhuizen Bloemen, Thu 1 Oct 09:30 CEST, EUR 410), if it has not already been released. Please confirm the cancellation.\n\nRegarding your quote of this morning for AMS to Großmarkt Hamburg Halle 3 (EUR 1,180 flat, departure AMS 10:30 CEST): we are waiting for the buyer's acceptance and will confirm or release before your 17:00 CEST hold expires. Please do not treat this as a booking yet.\n\nKind regards,\nWanjiru Kamau\nLakeshore Perishables Desk"
+    },
+    {
+      "tool": "record_case_note",
+      "recipient": "case file 419",
+      "body": "16:05 EAT: Joyce asked to finalise arrival handling. Status: AMS pre-alert (15:48) shows consignee Veldhuizen, no delivery instruction. Asked Jonas (cc Joyce) to accept Dijkstra EUR 1,180 Hamburg quote + consignee details + customs broker by 17:00 CEST/18:00 EAT. Asked Baobab Reservations for consignee amendment on shipper's instruction. Cancelled DK-88213 per Joyce (possibly already auto-released at 10:30 EAT under Dijkstra 24h rule - conflict with 13:22 reminder). AMS delivery instruction NOT sent yet - send once Dijkstra Hamburg booking confirmed, before 19:00 EAT. Lilies AWB 706-48213408 (events 008/014) unrelated - rebooked to BX744 Fri 2 Oct. KEPHIS cert PC-2026-0091744 duplicate notice only."
+    },
+    {
+      "tool": "schedule_follow_up",
+      "recipient": "Wanjiru Kamau (desk)",
+      "when": "2026-09-30 17:30 +03:00",
+      "body": "Check Jonas acceptance of EUR 1,180 and Baobab consignee reply. If accepted: book Dijkstra Hamburg (with receiving contact +49 40 5550 0187 for 30-min call-ahead, CMR with driver) before 18:00 EAT, then send AMS Perishable Hub delivery instruction before 19:00 EAT. If no acceptance by 17:45 EAT: escalate to Wanjiru/supervisor and phone Joyce - Dijkstra hold lapses 18:00 EAT, manifest 19:00 EAT."
+    }
+  ],
+  "not_doing": [
+    "Not booking the Dijkstra Hamburg truck or accepting EUR 1,180 on Nordstrand's behalf.",
+    "Not sending the AMS delivery instruction until the trucker is confirmed and the consignee position is clear.",
+    "Not telling anyone the consignee change is done - Baobab must confirm.",
+    "Not promising Joyce or Jonas a delivery time; 16:00 CEST is Dijkstra's estimate conditional on release by 10:30 CEST.",
+    "Not acting on the lilies (AWB 706-48213408) messages - separate shipment already rebooked by Baobab.",
+    "Not opening the KEPHIS download link or any other links.",
+    "Not appointing or naming a customs broker for Nordstrand."
+  ],
+  "closes_when": "Dijkstra confirms the Hamburg booking, Baobab confirms the consignee amendment, DK-88213 is confirmed cancelled, and the AMS Perishable Hub has the delivery instruction before 19:00 EAT 30 Sep.",
+  "follow_up": "2026-09-30 17:30 +03:00 - check Jonas acceptance and Baobab reply; book Dijkstra before 18:00 EAT and send AMS instruction before 19:00 EAT; escalate at 17:45 EAT if no acceptance.",
+  "confidence": 0.75,
+  "human_handover_notes": "If Jonas does not accept by 17:45 EAT, Wanjiru must decide with Joyce whether the shipper underwrites the EUR 1,180 to keep the Dijkstra vehicle, or let the hold lapse (roses would then sit at AMS cold store; 6 h free from 07:20 CEST). Customs broker for EU import is not in the record and may block the 10:30 CEST release."
+}

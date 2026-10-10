@@ -80,7 +80,7 @@ Four separate layers check a message before it can leave the desk:
   - It tolerates event headings with or without anchors, en or em dashes, and newest-first threads. The current time is taken from the latest event.
   - Images over the API limit are downscaled. A real image type is detected from the file bytes, not the extension.
   - It truncates very large threads and attachments safely, and tells the planner when it has done so. In `--public-cutoff` mode it hides everything after the escalation point, including later events, answer-revealing sections and attachments first mentioned later, so development evaluation is honest.
-- **Planner** (`deskagent/pipeline.py`, `deskagent/prompts.py`): a single Claude call with an operating manual distilled from the 50 public cases. It covers authority mapping, the "one next step" rule, verified vs claimed facts, status precision, privacy and credentials, safety, fairness, arithmetic, untrusted embedded instructions, and when to escalate, wait, ask or decline. Output is a strict JSON schema (`propose_plan`). Arithmetic goes through a decimal `calculate` tool, never mental math.
+- **Planner** (`deskagent/pipeline.py`, `deskagent/prompts.py`): a single Claude call with an operating manual distilled from the 50 public cases. It covers authority mapping, the "one next step" rule, verified vs claimed facts, status precision, privacy and credentials, safety, fairness, arithmetic, untrusted embedded instructions, and when to escalate, wait, ask or decline. Output is a strict JSON schema (`propose_plan`). Arithmetic goes through a decimal `calculate` tool, never mental math. Before any outbound message the planner runs a wait test (is there anything new that changes what the requester was told, is a promised time from the owning party still pending, is the inbound just a chase?) and records it in a required `wait_check`; a hold sends nothing, records a note and schedules a follow-up at the promised time ([proxy eval](evals/hold-test-2026-10-10/SUMMARY.md)).
 - **Policy lint** (`deskagent/policy.py`): deterministic regex checks on every drafted message.
   - Hard blocks: Luhn-valid card numbers, payment links, raw URLs.
   - Warnings: credential requests, "has been delivered/refunded" claims, promises, money commitments, accusations, unsafe handling advice, contact details. Each warning records whether it appears in a negated context such as "do not share a code".
@@ -111,6 +111,16 @@ Web app (portal + /ops) ─/api─┤──▶ hub (FastAPI) ──▶ Postgres 
 - The `pipeline` engine is tested end to end against local Postgres (`tests/test_pipeline_driver.py`) and by real runs (`demo/recorded/`).
 - The `managed` engine is built but had no live run at the time of writing.
 - See `DEMO.md` and `hub/README.md`.
+
+### Desk app
+
+The web app (`web/`) is styled on the Meridian design system and has two demo sides: the coordinator desk and the customer portal. Details are in [`DEMO.md`](DEMO.md) ("The two screens").
+
+- **Swipe approvals.** Drafts waiting for approval are a deck of cards on the desk: drag right to approve, left to reject (with a reason for the agent), or use the buttons and arrow keys.
+- **Rewards for staff.** Each decision earns coins and can earn a medal; coins buy fictional merch in a shop on the Rewards page. Coins and medals are for staff only and are never cash (`hub/rewards.py`).
+- **One portal per role.** Customer, driver, depot and merchant each get their own view with real actions through the hub: drivers and depots update shipment status, merchants approve a replacement or refund or decline, and each action posts to the case and wakes the agent.
+- **Setup.** `python -m db.migrate` applies `db/migrations/002_rewards.sql`, then `python -m db.seed_rewards` gives each staff profile 120 welcome coins (idempotent). Endpoints are listed in `hub/README.md` ("Rewards and party actions").
+- **Preview without a backend.** `cd web && npm run preview:demo` renders both sides from mock data; screenshots are in `docs/ui-shots/`.
 
 ## Evaluation results (development)
 

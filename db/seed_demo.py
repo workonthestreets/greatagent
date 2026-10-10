@@ -18,6 +18,7 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from db.seed import event_kind, party_role
+from db.seed_rewards import welcome_staff
 from hub.config import settings
 
 DESK = "Iona Quill, Rivet Delivery Desk"
@@ -137,6 +138,7 @@ def main() -> None:
             note = f"; change cutoff {spec['cutoff']:%H:%M} UTC, record before then" if spec["cutoff"] else ""
             print(f"seeded {spec['id']}: {spec['title']}{note}")
         print(f"demo customer party: {customer}")
+        print(f"welcome coins: credited {welcome_staff(conn)} staff profile(s)")
     wake = [s.strip().upper() for s in args.wake.split(",") if s.strip()]
     if wake:
         from hub import db, driver

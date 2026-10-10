@@ -111,7 +111,9 @@ def search_docs(query: str) -> str:
 @mcp.tool()
 def send_message(case_id: str, to_party: str, channel: str, subject: str, body: str) -> str:
     """Send a message to one party on the case (use the exact party name from get_case). It is delivered as written,
-    on the given channel (e.g. "Customer portal", "Email", "SMS", "Depot channel")."""
+    on the given channel, named exactly as the case record names it (the desk's channels: Email, Customer portal,
+    Business portal, Dispatch chat, Depot work queue, Call transcript, Warehouse work queue, Safety incident queue,
+    Freight portal, Broker portal, Pickup-point portal)."""
     case = _case(case_id)
     args = {"to_party": to_party, "channel": channel, "subject": subject, "body": body}
     record_text = " ".join(e["body"] for e in db.query("select body from case_events where case_id = %s", (case_id,)))

@@ -46,19 +46,24 @@ class FakeMessages:
 
 GOOD_PLAN = {
     "situation": "Recipient cannot make the morning slot; dispatch offered two alternatives.",
-    "direct_answer": "",
     "facts": [{"fact": "Booked 2026-02-03 09:00-12:00 UTC", "source": "event 001", "status": "verified"}],
     "conflicts": [], "missing_information": ["Which alternative the recipient prefers"], "risk_flags": [],
+    "case_parameters": {"requester_type": "consumer", "issue_type": "reschedule", "shipment_stage": "booked_not_dispatched",
+                        "owner_org_type": "customer", "verification_state": "authenticated_session", "urgency": "none",
+                        "risk_flags": [], "evidence_conflict": False, "money_involved": False, "customer_input_required": True,
+                        "queue": "awaiting_customer", "human_gate": "none"},
     "authority_map": [{"party": "Dispatch", "controls": "booking changes"}],
+    "wait_check": {"new_since_last_promise": "Dispatch offered two alternative slots (event 002)", "pending_promise": "none",
+                   "inbound_is_chase_only": False, "verdict": "proceed"},
     "decision_type": "request_information",
     "decision_summary": "Ask the recipient to choose between the two dispatcher-offered slots.",
     "rationale": "Dispatch controls bookings and has offered two slots; we need the recipient's choice.",
-    "alternatives_rejected": [{"option": "Book a slot ourselves", "why_not": "Dispatch controls booking"}],
-    "actions": [{"tool": "send_message", "to_name": "Vessa Lorne", "to_role": "recipient", "channel": "Customer portal",
+    "actions": [{"tool": "send_message", "to_name": "Vessa Lorne", "to_role": "recipient", "recipient_function": "customer_self",
+                 "action_class": "ask_customer", "channel": "Customer portal",
                  "subject": "DL-001 new slot", "body": "Dispatch can offer 2026-02-03 15:00-18:00 UTC or 2026-02-04 10:00-13:00 UTC at no charge. Which should I request?",
                  "purpose": "get choice"}],
-    "not_doing": ["Not promising an exact arrival time"], "closes_when": "Dispatch confirms the chosen slot",
-    "follow_up": "When the recipient replies, send the choice to dispatch.", "confidence": "high",
+    "not_doing": ["Not promising an exact arrival time"], "proof_standard": "customer_confirmation",
+    "follow_up": "When the recipient replies, send the choice to dispatch.",
 }
 BAD_PLAN = dict(GOOD_PLAN, actions=[dict(GOOD_PLAN["actions"][0], body="Pay the fee at https://pay.example.com/x and we guarantee 15:07 arrival.")])
 APPROVE = {"checks": {k: True for k in ["authority_respected", "facts_grounded", "no_overclaim", "privacy_security_ok", "safety_ok",
@@ -198,8 +203,8 @@ def test_unknown_tool_is_recovered_to_human():
 
 def test_handover_does_not_keep_stale_closing_text():
     from deskagent.pipeline import escalation_plan
-    p = escalation_plan(dict(GOOD_PLAN, direct_answer="Your slot is 15:00."), "reviewer said no")
-    assert "human" in p["closes_when"].lower() and "NOT sent" in p["direct_answer"]
+    p = escalation_plan(dict(GOOD_PLAN, proof_standard="booking_reference"), "reviewer said no")
+    assert p["proof_standard"] == "" and "supervisor" in p["follow_up"].lower()
     assert p["not_doing"][0].startswith("Not sending")
 
 

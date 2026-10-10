@@ -32,3 +32,5 @@ web_v2/dist/
 web_v2/.env
 web_v2/.env.local
 web_v2/tsconfig.tsbuildinfo
+# a newcomer's own ElevenLabs ids (python -m voice.setup_agent --ids ...)
+voice/agent_ids.local.json

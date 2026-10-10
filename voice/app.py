@@ -31,9 +31,9 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from scorer.cases import AgentInput
-from triage.decide import code_flags, decide
+from triage.decide import _INJECTION, _PROMISE, _SECRET, code_flags, decide
 from triage.outbox import deliver
-from voice import desk, hub
+from voice import desk, hub, lookup
 
 LOG_DIR = Path(os.getenv("VOICE_LOG_DIR", "runs/voice"))
 DECIDE_BUDGET_S = 14
@@ -86,9 +86,24 @@ def checked_contact(update_by: str, contact: str) -> tuple[str, str]:
         email = re.sub(r"\s+dot\s+", ".", spoken_form).replace(" ", "")
         return ("email", email) if _EMAIL.match(email) else ("", "")
     if how in ("text", "call"):
-        digits = re.sub(r"[^\d+]", "", contact)
-        return (how, digits) if 10 <= sum(c.isdigit() for c in digits) <= 15 else ("", "")
+        number = uk_number(contact)
+        ok = number.startswith("07") if how == "text" else bool(number)  # texts need a mobile
+        return (how, number) if ok else ("", "")
     return "", ""
+
+
+def uk_number(spoken: str) -> str:
+    """A UK number as 11 digits starting 0 (+44 / 44 folded to 0), or '' if it isn't one.
+
+    A 10-digit "0770 900 321" the caller agreed to on a misread is still wrong, so it fails here."""
+    digits = re.sub(r"\D", "", spoken)
+    if digits.startswith("44") and len(digits) == 12:
+        digits = "0" + digits[2:]
+    return digits if len(digits) == 11 and digits.startswith("0") else ""
+
+
+ASK_NUMBER_AGAIN = ("Sorry, that number doesn't look right. UK mobile numbers have eleven digits and start "
+                    "with zero seven. Could you give it to me again?")
 
 
 def read_back(how: str, contact: str) -> str:
@@ -235,6 +250,10 @@ def _auth(x_tool_secret: str) -> None:
 @app.post("/voice/tool")
 def tool(report: CallReport, x_tool_secret: str = Header("")) -> dict:
     _auth(x_tool_secret)
+    if (report.update_by.strip().lower() in ("text", "call") and report.contact.strip()
+            and not checked_contact(report.update_by, report.contact)[0] and not is_hazard(report.issue)):
+        # a wrong number is asked for again before anything is logged; a hazard never waits on it
+        return {"say": ASK_NUMBER_AGAIN, "status": "need_contact"}
     logged = LOG_DIR / f"{_safe(report.conversation_id)}.json"
     if logged.exists():
         record = json.loads(logged.read_text())
@@ -341,7 +360,56 @@ def latest_update(q: UpdateQuery, x_tool_secret: str = Header("")) -> dict:
     while status == "pending" and time.time() < deadline:
         time.sleep(1)
         status, say = desk.update_status(q.conversation_id)
-    return {"say": say, "status": status}
+    if status != "pending":
+        return {"say": say, "status": status}
+    n = _polls[q.conversation_id] = _polls.get(q.conversation_id, 0) + 1
+    out = {"say": WAITING_LINES[min(n, len(WAITING_LINES)) - 1], "status": status}
+    if n >= len(WAITING_LINES):
+        out["offer_text"] = True  # the agent may offer to end the call and send the outcome instead
+    return out
+
+
+# What a caller hears while deskagent is still deciding, one line per get_case_update poll, so the
+# wait never sounds stuck. Generic stages only: none of them claims a step the desk hasn't taken.
+WAITING_LINES = (
+    "The desk has your case and is working out the right team to contact.",
+    "They're checking the shipment details now.",
+    "They're drafting the next message now.",
+    "Nearly there. If you'd rather not wait, we can send you the outcome instead.",
+)
+_polls: dict[str, int] = {}  # conversation id -> pending polls so far
+
+
+class LookupQuery(BaseModel):
+    conversation_id: str = Field(max_length=200)
+    ref: str = Field(max_length=100)
+
+
+def _sayable(sentence: str) -> bool:
+    """The same promise, credential and injection checks every drafted message passes."""
+    return not (_PROMISE.search(sentence) or _SECRET.search(sentence) or _INJECTION.search(sentence))
+
+
+@app.post("/voice/lookup")
+def shipment_lookup(q: LookupQuery, x_tool_secret: str = Header("")) -> dict:
+    """What the records already say about a caller's reference, read from the case as it stood before
+    the desk acted. No model call: an exact or unique match only, and an ambiguous reference is not found."""
+    _auth(x_tool_secret)
+    folder, db_error = None, None
+    try:  # the hub database first, so cases loaded there need no code change here
+        found = lookup.db_lookup(q.ref, _sayable)
+    except Exception as exc:  # noqa: BLE001 - unreachable, slow or broken: the case files still answer
+        found, db_error = None, type(exc).__name__
+    if found:
+        out = {**found, "source": "db"}
+    elif (folder := lookup.find_shipment(q.ref)) is not None:
+        ctx = lookup.known_context(folder)
+        out = {"found": True, "shipment": ctx.primary, "say": lookup.spoken_summary(ctx, _sayable), "source": "files"}
+    else:
+        out = {"found": False, "shipment": "", "say": lookup.NOT_FOUND, "source": "none"}
+    _log(q.conversation_id, f"-lookup-{lookup.norm(q.ref)[:20] or 'blank'}",
+         {"ref": q.ref, "source_case": folder.name if folder else None, "db_error": db_error, **out})
+    return out
 
 
 @app.post("/voice/turn")
