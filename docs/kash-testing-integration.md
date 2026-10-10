@@ -89,6 +89,44 @@ The inline fast path (`process_case(review=False)` mid-call, probably 5–15 s) 
 documented but is not recommended; the better second demo, if time allows, is the
 outbound leg — a case stuck awaiting info triggers a *call back* to the customer.
 
+### 1b. v2: live assist — a call that keeps going while the caller can still help
+
+The one-shot above ends every call the same way. The fuller version keeps the call open
+**only while the case's next action is one the caller can satisfy** — and deskagent
+already computes that: every action has a recipient.
+
+```mermaid
+flowchart TD
+    T["caller speaks"] --> D["decide(case facts + collected turns)"]
+    D -->|"next action needs info the<br/>caller can give"| ASK["fixed ask template<br/>(whitelist only)"]
+    ASK --> T
+    D -->|"next action = third party<br/>carrier / depot / merchant"| END1["'I'll chase them, we'll<br/>email you' — END CALL"]
+    D -->|"escalate_to_human"| END2["'passing to our team lead'<br/>— END CALL"]
+    D -->|"hazard"| END3["safety template<br/>— END CALL"]
+```
+
+What it needs beyond the one-shot:
+
+- **`POST /voice/turn`** — the ElevenLabs tool fires on every caller turn, not once per
+  call. Call state (`conversation_id` → facts collected so far) lives in a per-call JSON
+  file, same pattern as the existing transcript logs.
+- **Ask whitelist — the safety-critical piece.** "Ask the caller for X" can't be
+  free text, or a prompt-injection or model slip asks for a gate code on a recorded
+  line. The question is a fixed template keyed by an enum (slot preference, access
+  instructions, callback contact, photo upload, order ref). Credentials, codes and
+  payment details are simply not in the enum, so they can never be requested — the same
+  guarantee `spoken()` gives answers, applied to questions.
+- **Termination is deterministic:** `escalate` or a non-caller recipient → closing
+  template and the call ends; a caller-recipient action → the whitelisted ask and the
+  loop continues.
+- **Latency is unchanged:** the per-turn decide still has to fit the ~20 s webhook
+  budget, so the turn loop uses the fast deterministic agent (or a small call);
+  `deskagent` remains the post-call decision of record — the voice loop can only
+  collect, acknowledge and hand over, never commit.
+
+Implemented in `kash.testing/voice/` behind `VOICE_ASSIST` / `setup_agent.py --assist`;
+the one-shot `report_delivery_issue` path stays the default for the 60 s demo.
+
 ### 2. `scorer/` → independent second-opinion gate (keep in `kash.testing/` or move to `scoring/`)
 
 `eval.py` is a nuanced LLM judge; `scorer` is a cheap deterministic check — *did the

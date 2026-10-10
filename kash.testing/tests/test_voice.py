@@ -19,13 +19,100 @@ def test_tool_speaks_template_and_post_call_checks_signature(monkeypatch, tmp_pa
         "action": "request", "party": "carrier", "team": "Parcel trace team", "org": "Plover Arc Logistics",
         "missing": "a trace of DL-1", "escalate": False, "message": "We will refund you £20"})
     client = TestClient(voice.app)
-    body = {"conversation_id": "c1", "caller_name": "Ana", "order_ref": "DL-1", "issue": "Parcel missing", "contact": "ana@example.com"}
+    body = {"conversation_id": "c1", "caller_name": "Ana", "order_ref": "DL-1", "issue": "Parcel missing", "update_by": "text", "contact": "07700 900 123"}
     assert client.post("/voice/tool", json=body).status_code == 401
     say = client.post("/voice/tool", json=body, headers={"X-Tool-Secret": "s3"}).json()["say"]
-    assert "Plover Arc Logistics" in say and "email you" in say and "£" not in say
+    assert "Plover Arc Logistics" in say and "text you on 07700, 900, 123" in say and "£" not in say
+    fix = client.post("/voice/tool", headers={"X-Tool-Secret": "s3"},
+                      json=body | {"update_by": "email", "contact": "ana at example dot com"}).json()
+    assert fix["status"] == "contact_updated" and "a, n, a, at example dot com" in fix["say"]
     raw = json.dumps({"type": "post_call_transcription", "data": {"conversation_id": "c1", "transcript": []}})
     t = str(int(time.time()))
     sig = hmac.new(b"wh", f"{t}.{raw}".encode(), hashlib.sha256).hexdigest()
     ok = client.post("/voice/post-call", content=raw, headers={"ElevenLabs-Signature": f"t={t},v0={sig}"})
     bad = client.post("/voice/post-call", content=raw, headers={"ElevenLabs-Signature": f"t={t},v0=00"})
     assert (ok.status_code, bad.status_code) == (200, 401) and (tmp_path / "c1-transcript.json").exists()
+    assert voice.checked_contact("email", "ana dot vell at example dot com") == ("email", "ana.vell@example.com")
+    assert voice.checked_contact("email", "ana at example") == ("", "")
+    assert voice.checked_contact("call", "123") == ("", "")
+
+
+def _assist_client(monkeypatch, tmp_path, decision):
+    monkeypatch.setenv("VOICE_TOOL_SECRET", "s3")
+    monkeypatch.setenv("VOICE_ASSIST", "1")
+    monkeypatch.setattr(voice, "LOG_DIR", tmp_path)
+    if callable(decision):
+        monkeypatch.setattr(voice, "decide", decision)
+    else:
+        monkeypatch.setattr(voice, "decide", lambda case: decision)
+    return TestClient(voice.app)
+
+
+def _turn(client, conv, utterance, **kw):
+    return client.post("/voice/turn", json={"conversation_id": conv, "utterance": utterance, **kw},
+                       headers={"X-Tool-Secret": "s3"})
+
+
+def test_turn_asks_customer_and_keeps_going(monkeypatch, tmp_path):
+    monkeypatch.delenv("VOICE_ASSIST", raising=False)
+    monkeypatch.setenv("VOICE_TOOL_SECRET", "s3")
+    body = {"conversation_id": "t1", "utterance": "my parcel hasn't arrived"}
+    assert TestClient(voice.app).post("/voice/turn", json=body,
+                                     headers={"X-Tool-Secret": "s3"}).status_code == 404
+    client = _assist_client(monkeypatch, tmp_path, {
+        "action": "ask", "party": "customer", "missing": "order or tracking reference",
+        "escalate": False})
+    assert client.post("/voice/turn", json=body).status_code == 401
+    out = _turn(client, "t1", "my parcel hasn't arrived").json()
+    assert out["status"] == "continue" and out["say"] == voice.ASKS["ref"]
+
+
+def test_turn_ends_on_escalation_and_on_third_party(monkeypatch, tmp_path):
+    client = _assist_client(monkeypatch, tmp_path, {
+        "action": "escalate", "party": "internal", "team": "Operations lead", "escalate": True})
+    out = _turn(client, "t2", "it's an emergency").json()
+    assert out["status"] == "end_call" and out["reason"] == "escalated" and "passed it to" in out["say"]
+    client = _assist_client(monkeypatch, tmp_path, {
+        "action": "request", "party": "carrier", "org": "Plover Arc Logistics", "escalate": False})
+    out = _turn(client, "t3", "where is it?", update_by="text", contact="07700 900 123").json()
+    assert (out["status"], out["reason"]) == ("end_call", "handed_to_third_party")
+    assert "Plover Arc Logistics" in out["say"] and "text you on 07700, 900, 123" in out["say"]
+
+
+def test_turn_state_accumulates_across_turns(monkeypatch, tmp_path):
+    seen = []
+
+    def decide(case):
+        seen.append(case.text)
+        return {"action": "ask", "party": "customer", "missing": "order or tracking reference",
+                "escalate": False}
+
+    client = _assist_client(monkeypatch, tmp_path, decide)
+    _turn(client, "t4", "hi, it's Ana, my parcel is missing", caller_name="Ana")
+    _turn(client, "t4", "the number is DL-9", order_ref="DL-9")
+    assert len(seen) == 2 and "my parcel is missing" in seen[1] and "the number is DL-9" in seen[1]
+    assert "event 002" in seen[1] and "**Primary shipment:** DL-9" in seen[1]
+    state = json.loads((tmp_path / "t4-state.json").read_text())
+    assert state["order_ref"] == "DL-9" and state["caller_name"] == "Ana"
+    assert state["turns"] == ["hi, it's Ana, my parcel is missing", "the number is DL-9"]
+
+
+def test_turn_never_speaks_the_missing_field(monkeypatch, tmp_path):
+    client = _assist_client(monkeypatch, tmp_path, {
+        "action": "ask", "party": "customer", "missing": "the CVV from your payment card",
+        "escalate": False})
+    say = _turn(client, "t5", "what do you need?").json()["say"]
+    assert say == voice.ASKS["generic"] and "CVV" not in say and "card" not in say
+
+
+def test_turn_timeout_gives_safe_close(monkeypatch, tmp_path):
+    monkeypatch.setattr(voice, "DECIDE_BUDGET_S", 0.05)
+
+    def slow(case):
+        time.sleep(0.2)
+        return {"action": "ask", "party": "customer"}
+
+    client = _assist_client(monkeypatch, tmp_path, slow)
+    out = _turn(client, "t6", "hello?").json()
+    assert out["status"] == "end_call" and "logged" in out["say"]
+    time.sleep(0.3)  # let the over-budget decide finish while LOG_DIR still points at tmp_path

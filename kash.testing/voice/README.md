@@ -34,3 +34,29 @@ the agent's email arriving. Without it, emails are only written to disk.
 
 If the decision takes longer than 14 s, the caller hears "logged for the delivery team"
 and the decision still finishes and is logged.
+
+## Live assist mode (`POST /voice/turn`)
+
+Opt-in multi-turn mode: the service runs with `VOICE_ASSIST` set, and the agent is provisioned
+with `uv run --env-file <env> python -m voice.setup_agent --public-url <tunnel> --assist`, which
+registers a `handle_caller_turn` webhook tool and a prompt that calls it after **every** caller
+message, speaks the returned `say` verbatim, and wraps up when `status` is `end_call`.
+
+Per call the service keeps `runs/voice/<conv>-state.json` — caller name, order reference, update
+contact and every utterance so far. Each turn re-runs `agent.decide` on the whole call history
+(each utterance is an event), so a late reference or correction changes the next answer.
+
+The reply is always a fixed template:
+
+- escalation → the usual escalation wording, `status: "end_call"`, `reason: "escalated"`
+- decision asks the customer → one question from a whitelist (`ASKS` in `voice/app.py`:
+  reference, confirm details, contact, delivery slot, access notes, photo, or a generic
+  "tell me more"), `status: "continue"`
+- any other party → "I'm asking \<who\> to look into this…", `status: "end_call"`,
+  `reason: "handed_to_third_party"`
+- decision over the 14 s budget → the safe "logged for the delivery team" close, `end_call`
+
+The whitelist is the safety property: the question is picked by matching keywords in the
+decision's `missing` field against fixed keys — unmatched text falls back to the generic ask and
+is never spoken. Credentials have no key (no PIN, CVV or password template exists), so the voice
+agent cannot be made to ask for one. `/voice/tool` and the 60-second demo flow are unchanged.
