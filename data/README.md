@@ -58,7 +58,17 @@ data/
 
 - Built by `data/pipeline/build_db.py` from `cases.jsonl`, the hand-curated `data/pipeline/facts_delivery.py` (orders, shipments, parcels, destinations, promised windows, requested action, operational effect, deadline per case) and the 20 stress cases from the repo (`inputs/stress_raw.jsonl`, loaded with `labelled = 0` and `N/A` parameters).
 - DDL in `data/delivery/database/schema.sql`; field-by-field mapping, coverage and the draft's gaps in `data/delivery/human/RECONCILIATION.md`.
+- `data/delivery/database/delivery_eval.sqlite`: the same model with the 100 synthetic evaluation cases added (`source_set = synthetic_new`, 170 cases in all), built by step 5 of `run_all.sh`; DDL in `schema_eval.sql`, mapping in `data/delivery/synthetic/RECONCILIATION_eval.md`. The agent and the peer guards in `data/pipeline_qa` (frozen at 70 cases) read `delivery.sqlite`; evaluation work reads the eval database, so the two never mix.
 - Quick start: `sqlite3 data/delivery/database/delivery.sqlite "SELECT * FROM v_shipment_dashboard WHERE case_id='DEL-020'"` or, in Python, `sqlite3.connect('data/delivery/database/delivery.sqlite')`.
+
+## Evaluation
+
+- `synthetic_cases/` (repo root): 100 generated cases, 201 to 300, labelled by construction; `synthetic_cases/README.md` explains the recipes, the twists and the labels. Gold labels: `pipeline/gold_labels_synthetic.csv`; per-case sidecar `_labels.json` (ignored by the agent's loader).
+- `pipeline/score_answers.py`: deterministic scorer for desk-agent plans (Roman's `propose_plan` objects, from `run.py`/`eval.py` result files or a plans JSONL) against the gold labels: routing to the gold owner, action family, strict channels, hard violations with negation guards, post-cutoff reference leakage; breakdowns by source set, complexity level, queue, action class, twist and human gate. Writes `scores.json`, `cases.csv`, `benchmark.md`.
+- `pipeline/proxy_eval_prepare.py` and `proxy_eval_collect.py`: render each case exactly as `deskagent/loader.py` shows it at the cutoff and gather plans written by Claude Code agents running the planner manual, for environments without an API key. Reported as a proxy of the planner stage only.
+- `pipeline/synth_recipes.py`, `synth_integrate.py`, `synth_facts.py`: the generation, validation and facts steps for the synthetic set; `run_all.sh` parses and loads it when `synthetic_cases/` exists (`delivery/synthetic/` outputs, `source_set = synthetic_new` in `database/delivery_eval.sqlite`).
+- `pipeline/proxy_eval_judge_prepare.py` and `proxy_eval_grades.py`: render the input of Roman's judge (`eval.py: judge()`: the case as seen, the plan rendered like `ANSWER.md`, the hidden reference or `_reference.md`) for each proxy plan, and aggregate the resulting `submit_grade` objects into `scores.json` / `eval_report.md` in the same layout as `evals/public-50` and `evals/stress-v*`. Proxy grades are declared as such: proposed actions are graded as executed.
+- Benchmark results: `evals/benchmark-2026-10-10/` (per-case scores and summaries per configuration and set).
 
 ## Record layout (cases.jsonl)
 

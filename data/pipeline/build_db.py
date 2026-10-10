@@ -215,10 +215,15 @@ def main():
     ap.add_argument('--out', required=True)
     ap.add_argument('--stress', default=None, help='raw parser output for unlabelled cases (loaded with N/A labels)')
     ap.add_argument('--stress-labels', default=None, help='CSV with complexity_level, complexity_name, stress_theme per stress case')
+    ap.add_argument('--extra-cases', default=None, help='a second normalized cases.jsonl (e.g. the synthetic set)')
+    ap.add_argument('--extra-facts', default=None, help='facts module for the extra set')
+    ap.add_argument('--extra-source-set', default='synthetic_new')
     ap.add_argument('--schema-out', default=None)
     ap.add_argument('--recon-out', default=None)
     args = ap.parse_args()
     facts = load_module(args.facts, 'facts').CASE_FACTS
+    if args.extra_facts and os.path.exists(args.extra_facts):
+        facts = {**facts, **load_module(args.extra_facts, 'facts_extra').CASE_FACTS}
     import csv as _csv
     stress_labels = {}
     if args.stress_labels and os.path.exists(args.stress_labels):
@@ -238,70 +243,72 @@ def main():
 
     rows = defaultdict(list)
 
-    # ---------- labelled delivery cases ----------
-    for line in open(args.cases, encoding='utf-8'):
-        r = json.loads(line)
-        cid = r['case_id']; p = r['at_escalation']['params']; d = r['decision']; m = r['meta']; f = facts[cid]
-        primary = m['primary_ref']
-        msgs = []
-        for e in r['events']:
-            mid = f"{cid}-M{e['event_id']}"
-            msgs.append({'message_id': mid, 'case_id': cid, 'seq': e['seq'], 'timestamp': e['timestamp'], 'stage': e['stage'], 'channel': na(e['channel']),
-                         'from_actor_id': actor_id(e['from']), 'from_raw': e['from']['raw'], 'from_org_type': e['from']['org_type'],
-                         'to_actor_ids': '|'.join(actor_id(t) for t in e['to']) or NA, 'direction': e['direction'],
-                         'visible_at_escalation': 1 if e['visible_at_escalation'] else 0, 'body': e['body'],
-                         'refs': na(e['refs']), 'amounts_gbp': na(e['amounts_gbp'])})
-        rows['messages'] += msgs
-        rows['events'] += extract_events(cid, primary, msgs)
-        rows['evidence'] += extract_evidence(cid, primary, msgs, r['attachments'])
-        # orders / shipments / parcels from the hand-curated facts
-        if f['order_id'] != NA:
-            rows['orders'].append({'order_id': f['order_id'], 'merchant_id': f['merchant_id'], 'customer_id': f['customer_id'],
-                                   'order_status': f['order_status'], 'case_id': cid, 'note': 'hand-curated from the case text'})
-        for s in f['shipments']:
-            rows['shipments'].append({**s, 'case_id': cid, 'order_id': f['order_id']})
-        for pc in f['parcels']:
-            rows['parcels'].append({**pc, 'case_id': cid})
-        # case
-        req = r['parties']['requester']; rec = d['recipient']
-        gold_msg = next((x for x in msgs if x['stage'] == 'agent_action'), None)
-        later = [x for x in msgs if gold_msg and x['seq'] > gold_msg['seq'] and x['from_org_type'] != 'desk']
-        if rec.get('org_type') == 'customer':
-            confirm = next((x for x in later if x['from_org_type'] == 'customer'), None)
-        else:
-            confirm = next((x for x in later if x['from_org_type'] != 'customer'), None) or (later[0] if later else None)
-        rows['cases'].append({
-            'case_id': cid, 'source_set': 'public', 'labelled': 1, 'title': r['title'],
-            'created_at': na(m['created']), 'escalated_at': na(m['escalated']), 'updated_at': na(m['updated']), 'completed_at': na(m['completed']),
-            'case_type': p['issue_type'], 'case_category': ('exception' if p['requester_type'] in ('carrier_ops', 'merchant_ops', 'customs_broker') or p['issue_type'] in ('service_disruption', 'safety_hazard') else ('dispute' if p['evidence_conflict'] else ('investigation' if d['queue'] == 'investigations' else 'request'))),
-            'raised_by': req['raw'], 'raised_by_type': ('Depot' if 'depot' in req['raw'].lower() else RAISED_BY.get(p['requester_type'], NA)), 'raised_by_actor_id': actor_id(req),
-            'channel': na(r['at_escalation']['escalation_channel']), 'channel_class': CHANNEL_CLASS.get(r['at_escalation']['escalation_channel'], NA),
-            'linked_object_id': na(primary), 'linked_object_type': linked_type(primary),
-            'request_or_claim': r['at_escalation']['initial_request'], 'requested_action_by_raiser': f['requested_action'],
-            'recorded_next_action': na(d['next_action_text']), 'recorded_action_message_id': f"{cid}-M{d['recorded_action_event']}" if d['recorded_action_event'] else NA,
-            'case_state_at_escalation': {'awaiting_customer': 'waiting', 'awaiting_counterparty': 'waiting', 'investigations': 'investigating'}.get(d['queue'], 'open'),
-            'case_state_final': 'resolved (coordination task only)', 'operational_effect': f['operational_effect'],
-            'priority': NA, 'urgency': p['urgency'], 'cutoff_utc': na(p['cutoff_utc']), 'deadline': f['deadline'],
-            'owner': na(d['recipient_raw']), 'owner_group': OWNER_GROUP.get(d['recipient_function'], NA), 'owner_function': d['recipient_function'], 'owner_actor_id': actor_id(rec) if rec.get('raw') else NA,
-            'gold_channel': na(d['channel']), 'action_class': d['action_class'], 'proof_standard': d['proof_standard'], 'queue': d['queue'], 'human_gate': d['human_gate'],
-            'resolution': na(r['disclosed_after_escalation']['outcome']), 'boundaries': na(r['disclosed_after_escalation']['boundaries']),
-            'context_summary': na(r['disclosed_after_escalation']['context_summary']), 'grading_reference': 'see recorded_next_action and boundaries',
-            'segment': p['segment'], 'requester_type': p['requester_type'], 'shipment_stage': p['shipment_stage'], 'owner_org_type': p['owner_org_type'],
-            'customer_input_required': 1 if p['customer_input_required'] else 0, 'risk_flags': na(p['risk_flags']), 'money_involved': 1 if p['money_involved'] else 0,
-            'amount_gbp_known': na(p['amount_gbp_known']), 'verification_state': p['verification_state'], 'evidence_conflict': 1 if p['evidence_conflict'] else 0,
-            'refs_at_escalation': na(r['at_escalation']['refs']), 'n_messages': len(msgs), 'source_dir': m.get('source_dir', NA),
-            'complexity_level': na(p.get('complexity_level')), 'complexity_name': na(p.get('complexity_name')), 'stress_theme': NA, 'label_source': 'recorded_action (event 003) + hand labels'})
-        if gold_msg:
-            rows['tasks'].append({'task_id': f'{cid}-T01', 'case_id': cid, 'task_type': d['action_class'], 'description': gold_msg['body'],
-                                  'assignee': na(d['recipient_raw']), 'assignee_org_type': na(rec.get('org_type')), 'channel': na(gold_msg['channel']),
-                                  'created_at': gold_msg['timestamp'], 'completed_at': confirm['timestamp'] if confirm else NA,
-                                  'status': 'confirmed' if confirm else 'open', 'source_message_id': gold_msg['message_id'], 'is_gold_action': 1,
-                                  'confirmation_message_id': confirm['message_id'] if confirm else NA})
-        for role, a in (('requester', req), ('agent', r['parties']['agent']), ('context_author', r['parties']['context_author']), ('recipient', rec)):
-            if a and a.get('raw'):
-                rows['case_actors'].append({'case_id': cid, 'actor_id': actor_id(a), 'role_in_case': role})
-        for a in r['parties']['actors']:
-            rows['case_actors'].append({'case_id': cid, 'actor_id': actor_id(a), 'role_in_case': 'participant'})
+    # ---------- labelled delivery cases (public, plus an optional extra labelled set) ----------
+    labelled_inputs = [(args.cases, 'public')] + ([(args.extra_cases, args.extra_source_set)] if args.extra_cases and os.path.exists(args.extra_cases) else [])
+    for src_path, src_set in labelled_inputs:
+      for line in open(src_path, encoding='utf-8'):
+          r = json.loads(line)
+          cid = r['case_id']; p = r['at_escalation']['params']; d = r['decision']; m = r['meta']; f = facts[cid]
+          primary = m['primary_ref']
+          msgs = []
+          for e in r['events']:
+              mid = f"{cid}-M{e['event_id']}"
+              msgs.append({'message_id': mid, 'case_id': cid, 'seq': e['seq'], 'timestamp': e['timestamp'], 'stage': e['stage'], 'channel': na(e['channel']),
+                           'from_actor_id': actor_id(e['from']), 'from_raw': e['from']['raw'], 'from_org_type': e['from']['org_type'],
+                           'to_actor_ids': '|'.join(actor_id(t) for t in e['to']) or NA, 'direction': e['direction'],
+                           'visible_at_escalation': 1 if e['visible_at_escalation'] else 0, 'body': e['body'],
+                           'refs': na(e['refs']), 'amounts_gbp': na(e['amounts_gbp'])})
+          rows['messages'] += msgs
+          rows['events'] += extract_events(cid, primary, msgs)
+          rows['evidence'] += extract_evidence(cid, primary, msgs, r['attachments'])
+          # orders / shipments / parcels from the hand-curated facts
+          if f['order_id'] != NA:
+              rows['orders'].append({'order_id': f['order_id'], 'merchant_id': f['merchant_id'], 'customer_id': f['customer_id'],
+                                     'order_status': f['order_status'], 'case_id': cid, 'note': 'hand-curated from the case text'})
+          for s in f['shipments']:
+              rows['shipments'].append({**s, 'case_id': cid, 'order_id': f['order_id']})
+          for pc in f['parcels']:
+              rows['parcels'].append({**pc, 'case_id': cid})
+          # case
+          req = r['parties']['requester']; rec = d['recipient']
+          gold_msg = next((x for x in msgs if x['stage'] == 'agent_action'), None)
+          later = [x for x in msgs if gold_msg and x['seq'] > gold_msg['seq'] and x['from_org_type'] != 'desk']
+          if rec.get('org_type') == 'customer':
+              confirm = next((x for x in later if x['from_org_type'] == 'customer'), None)
+          else:
+              confirm = next((x for x in later if x['from_org_type'] != 'customer'), None) or (later[0] if later else None)
+          rows['cases'].append({
+              'case_id': cid, 'source_set': src_set, 'labelled': 1, 'title': r['title'],
+              'created_at': na(m['created']), 'escalated_at': na(m['escalated']), 'updated_at': na(m['updated']), 'completed_at': na(m['completed']),
+              'case_type': p['issue_type'], 'case_category': ('exception' if p['requester_type'] in ('carrier_ops', 'merchant_ops', 'customs_broker') or p['issue_type'] in ('service_disruption', 'safety_hazard') else ('dispute' if p['evidence_conflict'] else ('investigation' if d['queue'] == 'investigations' else 'request'))),
+              'raised_by': req['raw'], 'raised_by_type': ('Depot' if 'depot' in req['raw'].lower() else RAISED_BY.get(p['requester_type'], NA)), 'raised_by_actor_id': actor_id(req),
+              'channel': na(r['at_escalation']['escalation_channel']), 'channel_class': CHANNEL_CLASS.get(r['at_escalation']['escalation_channel'], NA),
+              'linked_object_id': na(primary), 'linked_object_type': linked_type(primary),
+              'request_or_claim': r['at_escalation']['initial_request'], 'requested_action_by_raiser': f['requested_action'],
+              'recorded_next_action': na(d['next_action_text']), 'recorded_action_message_id': f"{cid}-M{d['recorded_action_event']}" if d['recorded_action_event'] else NA,
+              'case_state_at_escalation': {'awaiting_customer': 'waiting', 'awaiting_counterparty': 'waiting', 'investigations': 'investigating'}.get(d['queue'], 'open'),
+              'case_state_final': 'resolved (coordination task only)', 'operational_effect': f['operational_effect'],
+              'priority': NA, 'urgency': p['urgency'], 'cutoff_utc': na(p['cutoff_utc']), 'deadline': f['deadline'],
+              'owner': na(d['recipient_raw']), 'owner_group': OWNER_GROUP.get(d['recipient_function'], NA), 'owner_function': d['recipient_function'], 'owner_actor_id': actor_id(rec) if rec.get('raw') else NA,
+              'gold_channel': na(d['channel']), 'action_class': d['action_class'], 'proof_standard': d['proof_standard'], 'queue': d['queue'], 'human_gate': d['human_gate'],
+              'resolution': na(r['disclosed_after_escalation']['outcome']), 'boundaries': na(r['disclosed_after_escalation']['boundaries']),
+              'context_summary': na(r['disclosed_after_escalation']['context_summary']), 'grading_reference': 'see recorded_next_action and boundaries',
+              'segment': p['segment'], 'requester_type': p['requester_type'], 'shipment_stage': p['shipment_stage'], 'owner_org_type': p['owner_org_type'],
+              'customer_input_required': 1 if p['customer_input_required'] else 0, 'risk_flags': na(p['risk_flags']), 'money_involved': 1 if p['money_involved'] else 0,
+              'amount_gbp_known': na(p['amount_gbp_known']), 'verification_state': p['verification_state'], 'evidence_conflict': 1 if p['evidence_conflict'] else 0,
+              'refs_at_escalation': na(r['at_escalation']['refs']), 'n_messages': len(msgs), 'source_dir': m.get('source_dir', NA),
+              'complexity_level': na(p.get('complexity_level')), 'complexity_name': na(p.get('complexity_name')), 'stress_theme': NA, 'label_source': ('recorded_action (event 003) + hand labels' if src_set == 'public' else 'generation recipe (gold by construction)')})
+          if gold_msg:
+              rows['tasks'].append({'task_id': f'{cid}-T01', 'case_id': cid, 'task_type': d['action_class'], 'description': gold_msg['body'],
+                                    'assignee': na(d['recipient_raw']), 'assignee_org_type': na(rec.get('org_type')), 'channel': na(gold_msg['channel']),
+                                    'created_at': gold_msg['timestamp'], 'completed_at': confirm['timestamp'] if confirm else NA,
+                                    'status': 'confirmed' if confirm else 'open', 'source_message_id': gold_msg['message_id'], 'is_gold_action': 1,
+                                    'confirmation_message_id': confirm['message_id'] if confirm else NA})
+          for role, a in (('requester', req), ('agent', r['parties']['agent']), ('context_author', r['parties']['context_author']), ('recipient', rec)):
+              if a and a.get('raw'):
+                  rows['case_actors'].append({'case_id': cid, 'actor_id': actor_id(a), 'role_in_case': role})
+          for a in r['parties']['actors']:
+              rows['case_actors'].append({'case_id': cid, 'actor_id': actor_id(a), 'role_in_case': 'participant'})
 
     # ---------- unlabelled stress cases (raw parser output) ----------
     n_stress = 0
@@ -390,7 +397,7 @@ def main():
     rows['case_actors'] = ca
 
     # ---------- reconciliation (Andrey's fields -> this database) ----------
-    labelled = [c for c in rows['cases'] if c['labelled'] == 1]
+    labelled = [c for c in rows['cases'] if c['labelled'] == 1 and c['source_set'] == 'public']
     lab_ids = {c['case_id'] for c in labelled}
 
     def cov(table, field, key='case_id'):

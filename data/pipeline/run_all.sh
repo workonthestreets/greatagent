@@ -32,4 +32,17 @@ STRESS_ARG=""; [ -f "$D/inputs/stress_raw.jsonl" ] && STRESS_ARG="--stress $D/in
 $PY "$HERE/build_db.py" --cases "$D/agent/cases.jsonl" --facts "$HERE/facts_delivery.py" --out "$D/database/delivery.sqlite" \
     --schema-out "$D/database/schema.sql" --recon-out "$D/human/RECONCILIATION.md" --stress-labels "$HERE/labels_stress.csv" $STRESS_ARG
 
+# 5. Synthetic evaluation set (synthetic_cases/201-300, labels in gold_labels_synthetic.csv), when present.
+#    It goes into a separate evaluation database (public + stress + synthetic_new) so that delivery.sqlite,
+#    the database the agent reads and the peer guards in data/pipeline_qa freeze at 70 cases, stays unchanged.
+if [ -d "$ROOT/synthetic_cases" ]; then
+  mkdir -p "$D/synthetic"
+  $PY "$HERE/parse_cases.py" "$ROOT/synthetic_cases" "$D/synthetic/raw_cases.jsonl" --case-prefix SYN
+  $PY "$HERE/normalize_delivery.py" "$D/synthetic/raw_cases.jsonl" "$HERE/gold_labels_synthetic.csv" "$D/synthetic"
+  $PY "$HERE/synth_facts.py" "$ROOT/synthetic_cases/_recipes.jsonl" "$HERE/facts_synthetic.py"
+  $PY "$HERE/build_db.py" --cases "$D/agent/cases.jsonl" --facts "$HERE/facts_delivery.py" --out "$D/database/delivery_eval.sqlite" \
+      --schema-out "$D/database/schema_eval.sql" --recon-out "$D/synthetic/RECONCILIATION_eval.md" --stress-labels "$HERE/labels_stress.csv" $STRESS_ARG \
+      --extra-cases "$D/synthetic/agent/cases.jsonl" --extra-facts "$HERE/facts_synthetic.py" --extra-source-set synthetic_new
+fi
+
 echo "done: $(wc -l < "$D/agent/cases.jsonl") delivery cases, $(wc -l < "$D/agent/events.jsonl") events, database at $D/database/delivery.sqlite"

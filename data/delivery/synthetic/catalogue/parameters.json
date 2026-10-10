@@ -1,0 +1,960 @@
+{
+  "tiers": {
+    "min": "smallest state that routes every public case to the right owner and action class",
+    "standard": "what a production graph should carry in state",
+    "max": "the normal upper bound; beyond this, fields belong in the event log, not in decision state"
+  },
+  "counts": {
+    "min": 7,
+    "standard": 8,
+    "max": 10
+  },
+  "parameters": [
+    {
+      "name": "requester_type",
+      "tier": "min",
+      "role": "input",
+      "source": "Source role + event 002 From",
+      "type": "enum",
+      "definition": "Who escalates: consumer, business counterparty, carrier ops, merchant ops, customs broker.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 5,
+      "entropy_bits": 1.255,
+      "variability_index": 0.189,
+      "top_values": [
+        [
+          "consumer",
+          74
+        ],
+        [
+          "business_counterparty",
+          15
+        ],
+        [
+          "carrier_ops",
+          4
+        ],
+        [
+          "customs_broker",
+          4
+        ],
+        [
+          "merchant_ops",
+          3
+        ]
+      ]
+    },
+    {
+      "name": "issue_type",
+      "tier": "min",
+      "role": "input",
+      "source": "events 001-002 (classified)",
+      "type": "enum",
+      "definition": "Problem family the request belongs to.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 14,
+      "entropy_bits": 3.549,
+      "variability_index": 0.534,
+      "top_values": [
+        [
+          "tracking_visibility",
+          18
+        ],
+        [
+          "reschedule",
+          14
+        ],
+        [
+          "money_and_billing",
+          12
+        ],
+        [
+          "return_processing",
+          8
+        ],
+        [
+          "address_or_access",
+          7
+        ],
+        [
+          "safety_hazard",
+          7
+        ]
+      ]
+    },
+    {
+      "name": "shipment_stage",
+      "tier": "min",
+      "role": "input",
+      "source": "event 001 Context",
+      "type": "enum",
+      "definition": "Where the goods physically are and what the last record says.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 15,
+      "entropy_bits": 3.407,
+      "variability_index": 0.513,
+      "top_values": [
+        [
+          "at_depot",
+          19
+        ],
+        [
+          "delivered",
+          18
+        ],
+        [
+          "booked_not_dispatched",
+          12
+        ],
+        [
+          "return_approved",
+          11
+        ],
+        [
+          "delivered_partial",
+          9
+        ],
+        [
+          "customs_hold",
+          8
+        ]
+      ]
+    },
+    {
+      "name": "owner_org_type",
+      "tier": "min",
+      "role": "input",
+      "source": "event 001 Context (stated in 50/50)",
+      "type": "enum",
+      "definition": "Which organisation owns the next decision (same vocabulary as actor.org_type); the desk never owns it.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 6,
+      "entropy_bits": 1.746,
+      "variability_index": 0.263,
+      "top_values": [
+        [
+          "carrier",
+          56
+        ],
+        [
+          "merchant",
+          24
+        ],
+        [
+          "business_counterparty",
+          9
+        ],
+        [
+          "customer",
+          8
+        ],
+        [
+          "pickup_point",
+          2
+        ],
+        [
+          "international_carrier",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "customer_input_required",
+      "tier": "min",
+      "role": "derived",
+      "source": "events 001-002",
+      "type": "bool",
+      "definition": "A choice, confirmation or missing datum from the customer/counterparty gates the next step.",
+      "coverage": 17,
+      "coverage_pct": 17.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.658,
+      "variability_index": 0.099,
+      "top_values": [
+        [
+          "False",
+          83
+        ],
+        [
+          "True",
+          17
+        ]
+      ]
+    },
+    {
+      "name": "urgency",
+      "tier": "min",
+      "role": "input",
+      "source": "events 001-002 (cutoff phrases)",
+      "type": "enum",
+      "definition": "Only when an explicit cutoff makes the state irreversible (return-to-sender timer, driver departure, dispatch sweep, offer/extension expiry, hazard). A future booking date alone is none. immediate = within ~2h; deadline_today = later today; deadline_bound = a dated cutoff beyond today. Low inter-annotator reliability (kappa 0.28) until this definition is applied.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 3,
+      "entropy_bits": 0.667,
+      "variability_index": 0.1,
+      "top_values": [
+        [
+          "none",
+          86
+        ],
+        [
+          "immediate",
+          12
+        ],
+        [
+          "deadline_bound",
+          2
+        ]
+      ]
+    },
+    {
+      "name": "risk_flags",
+      "tier": "min",
+      "role": "derived",
+      "source": "events 001-002 (keywords + policy)",
+      "type": "set",
+      "definition": "safety, physical_handling, privacy_third_party, credentials (visible text forbids requesting/sending codes, credentials or payment links), money, fraud_dispute, authority, consumption. All flags except credentials (kappa 0.31) reached kappa >= 0.70 between two annotators.",
+      "coverage": 56,
+      "coverage_pct": 56.0,
+      "n_distinct": 16,
+      "entropy_bits": 2.824,
+      "variability_index": 0.425,
+      "top_values": [
+        [
+          "(none)",
+          44
+        ],
+        [
+          "money",
+          15
+        ],
+        [
+          "authority",
+          11
+        ],
+        [
+          "fraud_dispute",
+          7
+        ],
+        [
+          "money|authority",
+          4
+        ],
+        [
+          "credentials",
+          3
+        ]
+      ]
+    },
+    {
+      "name": "primary_ref",
+      "tier": "standard",
+      "role": "input",
+      "source": "Case details",
+      "type": "id",
+      "definition": "Shipment or task reference the whole case hangs on.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 100,
+      "entropy_bits": 6.644,
+      "variability_index": 1.0,
+      "top_values": [
+        [
+          "DL-201",
+          1
+        ],
+        [
+          "DL-202",
+          1
+        ],
+        [
+          "DL-203",
+          1
+        ],
+        [
+          "DL-204",
+          1
+        ],
+        [
+          "DL-205",
+          1
+        ],
+        [
+          "DL-206",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "verification_state",
+      "tier": "standard",
+      "role": "input",
+      "source": "event 001 Context / channel",
+      "type": "enum",
+      "definition": "verified_by_operator, authenticated_session, internal_party, asserted_only.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 3,
+      "entropy_bits": 0.99,
+      "variability_index": 0.149,
+      "top_values": [
+        [
+          "authenticated_session",
+          66
+        ],
+        [
+          "verified_by_operator",
+          33
+        ],
+        [
+          "asserted_only",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "recipient_function",
+      "tier": "standard",
+      "role": "output",
+      "source": "gold: index Recipient",
+      "type": "enum",
+      "definition": "Functional role of the party the agent writes to.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 16,
+      "entropy_bits": 3.709,
+      "variability_index": 0.558,
+      "top_values": [
+        [
+          "trace",
+          14
+        ],
+        [
+          "merchant_authorisation",
+          12
+        ],
+        [
+          "dispatch_scheduling",
+          11
+        ],
+        [
+          "counterparty_business",
+          9
+        ],
+        [
+          "billing",
+          9
+        ],
+        [
+          "customer_self",
+          8
+        ]
+      ]
+    },
+    {
+      "name": "action_class",
+      "tier": "standard",
+      "role": "output",
+      "source": "gold: event 003",
+      "type": "enum",
+      "definition": "What the agent asks for.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 8,
+      "entropy_bits": 2.854,
+      "variability_index": 0.43,
+      "top_values": [
+        [
+          "request_operator_action",
+          23
+        ],
+        [
+          "request_physical_trace",
+          17
+        ],
+        [
+          "request_review_or_investigation",
+          16
+        ],
+        [
+          "request_authorisation_or_decision",
+          14
+        ],
+        [
+          "ask_counterparty",
+          9
+        ],
+        [
+          "ask_customer",
+          8
+        ]
+      ]
+    },
+    {
+      "name": "channel",
+      "tier": "standard",
+      "role": "output",
+      "source": "gold: index Channel",
+      "type": "enum",
+      "definition": "Channel of the agent message.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 7,
+      "entropy_bits": 1.307,
+      "variability_index": 0.197,
+      "top_values": [
+        [
+          "Email",
+          78
+        ],
+        [
+          "Customer portal",
+          6
+        ],
+        [
+          "Business portal",
+          5
+        ],
+        [
+          "Depot work queue",
+          3
+        ],
+        [
+          "Warehouse work queue",
+          3
+        ],
+        [
+          "Safety incident queue",
+          3
+        ]
+      ]
+    },
+    {
+      "name": "money_involved",
+      "tier": "standard",
+      "role": "input",
+      "source": "events 001-002 (GBP, charge, credit, refund)",
+      "type": "bool",
+      "definition": "Any charge, credit, refund or authority limit in play.",
+      "coverage": 22,
+      "coverage_pct": 22.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.76,
+      "variability_index": 0.114,
+      "top_values": [
+        [
+          "False",
+          78
+        ],
+        [
+          "True",
+          22
+        ]
+      ]
+    },
+    {
+      "name": "evidence_conflict",
+      "tier": "standard",
+      "role": "derived",
+      "source": "events 001-002",
+      "type": "bool",
+      "definition": "A record contradicts a party statement or another record.",
+      "coverage": 15,
+      "coverage_pct": 15.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.61,
+      "variability_index": 0.092,
+      "top_values": [
+        [
+          "False",
+          85
+        ],
+        [
+          "True",
+          15
+        ]
+      ]
+    },
+    {
+      "name": "proof_standard",
+      "tier": "standard",
+      "role": "output",
+      "source": "gold: event 003 wording",
+      "type": "enum",
+      "definition": "What evidence the agent should demand before calling the step done.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 15,
+      "entropy_bits": 3.638,
+      "variability_index": 0.548,
+      "top_values": [
+        [
+          "operator_confirmation",
+          15
+        ],
+        [
+          "approval_reference",
+          15
+        ],
+        [
+          "booking_reference",
+          10
+        ],
+        [
+          "physical_scan",
+          9
+        ],
+        [
+          "credit_note",
+          8
+        ],
+        [
+          "approved_statement",
+          7
+        ]
+      ]
+    },
+    {
+      "name": "options_offered",
+      "tier": "max",
+      "role": "input",
+      "source": "event 001 Context",
+      "type": "list",
+      "definition": "Concrete alternatives the owner has already offered.",
+      "coverage": 35,
+      "coverage_pct": 35.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.934,
+      "variability_index": 0.141,
+      "top_values": [
+        [
+          "False",
+          65
+        ],
+        [
+          "True",
+          35
+        ]
+      ]
+    },
+    {
+      "name": "policy_constraints",
+      "tier": "max",
+      "role": "input",
+      "source": "event 001 Context",
+      "type": "list",
+      "definition": "Eligibility rules stated by the owner (hold <= 3 days, one extension, nominee must be adult household member...).",
+      "coverage": 35,
+      "coverage_pct": 35.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.934,
+      "variability_index": 0.141,
+      "top_values": [
+        [
+          "False",
+          65
+        ],
+        [
+          "True",
+          35
+        ]
+      ]
+    },
+    {
+      "name": "constraint_sentences",
+      "tier": "max",
+      "role": "input",
+      "source": "events 001-002",
+      "type": "list",
+      "definition": "Explicit prohibitions and scope limits (do not request codes, do not fill values...).",
+      "coverage": 83,
+      "coverage_pct": 83.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.658,
+      "variability_index": 0.099,
+      "top_values": [
+        [
+          "True",
+          83
+        ],
+        [
+          "False",
+          17
+        ]
+      ]
+    },
+    {
+      "name": "customer_availability",
+      "tier": "max",
+      "role": "input",
+      "source": "event 002",
+      "type": "list",
+      "definition": "Dates/windows the customer offers.",
+      "coverage": 13,
+      "coverage_pct": 13.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.557,
+      "variability_index": 0.084,
+      "top_values": [
+        [
+          "False",
+          87
+        ],
+        [
+          "True",
+          13
+        ]
+      ]
+    },
+    {
+      "name": "cutoff_utc",
+      "tier": "max",
+      "role": "input",
+      "source": "events 001-002",
+      "type": "datetime",
+      "definition": "Hard deadline after which the state changes irreversibly.",
+      "coverage": 14,
+      "coverage_pct": 14.0,
+      "n_distinct": 13,
+      "entropy_bits": 1.077,
+      "variability_index": 0.162,
+      "top_values": [
+        [
+          "(none)",
+          86
+        ],
+        [
+          "2026-04-22T16:00:00Z",
+          2
+        ],
+        [
+          "2026-04-26T10:00:00Z",
+          2
+        ],
+        [
+          "2026-04-05T18:00:00Z",
+          1
+        ],
+        [
+          "2026-04-11T18:00:00Z",
+          1
+        ],
+        [
+          "2026-04-16T11:30:00Z",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "amount_gbp_known",
+      "tier": "max",
+      "role": "input",
+      "source": "events 001-002",
+      "type": "number",
+      "definition": "Amount or authority limit visible at escalation.",
+      "coverage": 22,
+      "coverage_pct": 22.0,
+      "n_distinct": 11,
+      "entropy_bits": 1.442,
+      "variability_index": 0.217,
+      "top_values": [
+        [
+          "(none)",
+          78
+        ],
+        [
+          "4.5",
+          5
+        ],
+        [
+          "48.0",
+          3
+        ],
+        [
+          "32.0",
+          3
+        ],
+        [
+          "12.0",
+          3
+        ],
+        [
+          "60.0",
+          2
+        ]
+      ]
+    },
+    {
+      "name": "boundaries",
+      "tier": "max",
+      "role": "output",
+      "source": "gold: index Boundaries",
+      "type": "text",
+      "definition": "What the final reply must say is NOT established.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 1,
+      "entropy_bits": -0.0,
+      "variability_index": -0.0,
+      "top_values": [
+        [
+          "True",
+          100
+        ]
+      ]
+    },
+    {
+      "name": "queue",
+      "tier": "max",
+      "role": "output",
+      "source": "labelled",
+      "type": "enum",
+      "definition": "Operational queue the case enters after the agent action.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 9,
+      "entropy_bits": 2.947,
+      "variability_index": 0.444,
+      "top_values": [
+        [
+          "carrier_ops",
+          23
+        ],
+        [
+          "merchant_authorisation",
+          19
+        ],
+        [
+          "carrier_trace",
+          17
+        ],
+        [
+          "awaiting_counterparty",
+          9
+        ],
+        [
+          "billing_review",
+          9
+        ],
+        [
+          "investigations",
+          7
+        ]
+      ]
+    },
+    {
+      "name": "complexity_level",
+      "tier": "max",
+      "role": "input",
+      "source": "hand-assigned from Andrey's easy-to-hard ladder (system model, section 6)",
+      "type": "enum 1-7",
+      "definition": "Level 1 simple status, 2 shipment data correction, 3 multi-parcel orders, 4 evidence and downstream decisions, 5 conflicting reports, 6 safety and regulatory holds, 7 reconciliation across related shipments.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 7,
+      "entropy_bits": 2.802,
+      "variability_index": 0.422,
+      "top_values": [
+        [
+          "4 Evidence and downstream decisions",
+          16
+        ],
+        [
+          "6 Safety and regulatory holds",
+          16
+        ],
+        [
+          "1 Simple status",
+          14
+        ],
+        [
+          "2 Shipment data correction",
+          14
+        ],
+        [
+          "5 Conflicting reports",
+          14
+        ],
+        [
+          "7 Reconciliation across related shipments",
+          14
+        ]
+      ]
+    },
+    {
+      "name": "human_gate",
+      "tier": "max",
+      "role": "output",
+      "source": "labelled",
+      "type": "enum",
+      "definition": "hard = the message commits or credits money with an amount, concerns safety or a delivered-not-received/loss dispute, or relies on a signing authority; soft = third-party privacy or a disputed record framed neutrally; none = routine relay, option request or customer question. Low inter-annotator reliability (kappa 0.35); treat as a policy knob.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 3,
+      "entropy_bits": 1.218,
+      "variability_index": 0.183,
+      "top_values": [
+        [
+          "none",
+          64
+        ],
+        [
+          "hard",
+          28
+        ],
+        [
+          "soft",
+          8
+        ]
+      ]
+    }
+  ],
+  "enums": {
+    "requester_type": [
+      "consumer",
+      "business_counterparty",
+      "carrier_ops",
+      "merchant_ops",
+      "customs_broker"
+    ],
+    "issue_type": [
+      "address_or_access",
+      "cancel_or_reship",
+      "customs_and_import",
+      "damage_or_condition",
+      "freight_booking",
+      "loss_or_misdelivery",
+      "money_and_billing",
+      "redirect_or_hold",
+      "reschedule",
+      "return_processing",
+      "safety_hazard",
+      "service_disruption",
+      "tracking_visibility",
+      "wrong_or_duplicate_item"
+    ],
+    "shipment_stage": [
+      "at_depot",
+      "at_pickup_point",
+      "booked_not_dispatched",
+      "cleared_pending_handover",
+      "customs_hold",
+      "delivered",
+      "delivered_disputed",
+      "delivered_partial",
+      "misdelivered",
+      "on_route",
+      "pre_collection",
+      "return_approved",
+      "return_in_transit",
+      "return_received",
+      "returned_to_sender"
+    ],
+    "owner_org_type": [
+      "customer",
+      "business_counterparty",
+      "carrier",
+      "merchant",
+      "pickup_point",
+      "international_carrier"
+    ],
+    "urgency": [
+      "none",
+      "deadline_bound",
+      "deadline_today",
+      "immediate"
+    ],
+    "risk_flags": [
+      "safety",
+      "physical_handling",
+      "privacy_third_party",
+      "credentials",
+      "money",
+      "fraud_dispute",
+      "authority",
+      "consumption"
+    ],
+    "verification_state": [
+      "verified_by_operator",
+      "authenticated_session",
+      "internal_party",
+      "asserted_only"
+    ],
+    "recipient_function": [
+      "billing",
+      "counterparty_business",
+      "customer_self",
+      "depot_physical",
+      "dispatch_scheduling",
+      "freight_planning",
+      "investigation_review",
+      "merchant_authorisation",
+      "merchant_fulfilment",
+      "pickup_point_operator",
+      "recovery_collection",
+      "routing_redirect",
+      "safety",
+      "support_records",
+      "trace",
+      "warehouse_execution"
+    ],
+    "action_class": [
+      "ask_customer",
+      "ask_counterparty",
+      "request_operator_action",
+      "request_options_for_customer",
+      "request_physical_trace",
+      "request_record_or_statement",
+      "request_review_or_investigation",
+      "request_authorisation_or_decision",
+      "escalate_safety"
+    ],
+    "proof_standard": [
+      "approval_reference",
+      "approved_statement",
+      "booking_reference",
+      "credit_note",
+      "document_from_party",
+      "handover_scan",
+      "incident_reference",
+      "investigation_reference",
+      "operator_confirmation",
+      "physical_scan",
+      "receipt_document",
+      "record_document",
+      "review_finding",
+      "review_reference",
+      "signed_count"
+    ],
+    "queue": [
+      "safety",
+      "investigations",
+      "billing_review",
+      "urgent_cutoff",
+      "awaiting_customer",
+      "awaiting_counterparty",
+      "merchant_authorisation",
+      "carrier_trace",
+      "carrier_ops"
+    ],
+    "human_gate": [
+      "none",
+      "soft",
+      "hard"
+    ],
+    "complexity_level": [
+      "1 Simple status",
+      "2 Shipment data correction",
+      "3 Multi-parcel orders",
+      "4 Evidence and downstream decisions",
+      "5 Conflicting reports",
+      "6 Safety and regulatory holds",
+      "7 Reconciliation across related shipments"
+    ]
+  }
+}

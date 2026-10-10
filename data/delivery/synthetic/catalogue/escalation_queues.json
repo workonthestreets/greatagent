@@ -1,0 +1,356 @@
+{
+  "queues": {
+    "safety": {
+      "description": "Hazard to people or goods (leak, spill, out-of-range perishable). Human safety authority takes over; the agent relays facts and gives no handling or consumption advice.",
+      "trigger": {
+        "risk_flags_any": [
+          "safety",
+          "consumption"
+        ],
+        "issue_type": [
+          "safety_hazard"
+        ]
+      },
+      "human_gate": "hard",
+      "channel_rule": "Safety incident queue (carrier) or the merchant food-safety lead by email; never a driver or the customer",
+      "sla": "immediate; no batching",
+      "members": [
+        "SYN-271",
+        "SYN-272",
+        "SYN-273",
+        "SYN-282",
+        "SYN-286"
+      ],
+      "n": 5,
+      "human_gate_distribution": {
+        "hard": 5
+      },
+      "channels_seen": {
+        "Safety incident queue": 3,
+        "Email": 2
+      }
+    },
+    "investigations": {
+      "description": "A record and a party statement conflict (delivered scan vs no receipt; failed-attempt scan vs customer at home). The owner reviews its own record; no fraud, loss or liability conclusion is drawn by the agent.",
+      "trigger": {
+        "evidence_conflict": true,
+        "risk_flags_any": [
+          "fraud_dispute"
+        ]
+      },
+      "human_gate": "hard for delivered-not-received; soft for attempt disputes",
+      "channel_rule": "Email to the carrier review/investigation team",
+      "sla": "register same day; follow up at the next-update time the team gives",
+      "members": [
+        "SYN-257",
+        "SYN-258",
+        "SYN-263",
+        "SYN-264",
+        "SYN-266",
+        "SYN-267",
+        "SYN-268"
+      ],
+      "n": 7,
+      "human_gate_distribution": {
+        "hard": 3,
+        "soft": 4
+      },
+      "channels_seen": {
+        "Email": 7
+      }
+    },
+    "billing_review": {
+      "description": "Any charge, credit, refund or guarantee amount. The desk cannot set prices, waive, pay or multiply amounts; it relays the request with timestamps and terms.",
+      "trigger": {
+        "money_involved": true,
+        "issue_type": [
+          "money_and_billing"
+        ]
+      },
+      "human_gate": "hard when an amount is to be credited; none for a pure explanation",
+      "channel_rule": "Email to the owning billing team; reply to the customer in the verified order thread without payment links",
+      "sla": "same day; follow up on the billing team's stated date",
+      "members": [
+        "SYN-231",
+        "SYN-235",
+        "SYN-236",
+        "SYN-238",
+        "SYN-239",
+        "SYN-245",
+        "SYN-246",
+        "SYN-253",
+        "SYN-254"
+      ],
+      "n": 9,
+      "human_gate_distribution": {
+        "hard": 8,
+        "none": 1
+      },
+      "channels_seen": {
+        "Email": 9
+      }
+    },
+    "urgent_cutoff": {
+      "description": "A hard cutoff within hours (driver waiting at the gate, return-to-sender at 16:00, next outbound sweep). Missing it is irreversible.",
+      "trigger": {
+        "urgency": [
+          "immediate",
+          "deadline_today"
+        ]
+      },
+      "human_gate": "none, but escalate to a human if the party does not answer before the cutoff",
+      "channel_rule": "Call or chat/work queue, never email",
+      "sla": "act within minutes; verify before the cutoff",
+      "members": [
+        "SYN-216",
+        "SYN-222",
+        "SYN-226",
+        "SYN-227",
+        "SYN-228"
+      ],
+      "n": 5,
+      "human_gate_distribution": {
+        "none": 5
+      },
+      "channels_seen": {
+        "Call transcript": 2,
+        "Warehouse work queue": 3
+      }
+    },
+    "awaiting_customer": {
+      "description": "The next step needs the customer to choose, confirm or supply something (slot, apartment number, nominee, checklist, photos). The agent asks exactly for that and nothing else.",
+      "trigger": {
+        "customer_input_required": true,
+        "owner_org_type": [
+          "customer"
+        ]
+      },
+      "human_gate": "none",
+      "channel_rule": "Customer portal (order-linked thread); call only when a cutoff applies",
+      "sla": "wait state with reminder timer; resume on reply",
+      "members": [
+        "SYN-201",
+        "SYN-214",
+        "SYN-215",
+        "SYN-217",
+        "SYN-225",
+        "SYN-241"
+      ],
+      "n": 6,
+      "human_gate_distribution": {
+        "none": 6
+      },
+      "channels_seen": {
+        "Customer portal": 6
+      }
+    },
+    "awaiting_counterparty": {
+      "description": "A business shipper, consignee or signatory must supply data or complete a mandate before the carrier can act.",
+      "trigger": {
+        "customer_input_required": true,
+        "owner_org_type": [
+          "business_counterparty"
+        ]
+      },
+      "human_gate": "hard when a signing authority is involved (mandate)",
+      "channel_rule": "Business portal (verified channel) or email to the named authorised person",
+      "sla": "wait state; chase before the carrier slot lapses",
+      "members": [
+        "SYN-221",
+        "SYN-274",
+        "SYN-275",
+        "SYN-279",
+        "SYN-280",
+        "SYN-281",
+        "SYN-283",
+        "SYN-285",
+        "SYN-289"
+      ],
+      "n": 9,
+      "human_gate_distribution": {
+        "none": 6,
+        "hard": 3
+      },
+      "channels_seen": {
+        "Business portal": 5,
+        "Email": 4
+      }
+    },
+    "merchant_authorisation": {
+      "description": "Replacement, exchange, reshipment, duplicate return, label/token issue, specialist collection, refund review. Only the merchant team with that authority can approve; the agent supplies the accepted evidence and the customer's recorded choice.",
+      "trigger": {
+        "owner_org_type": [
+          "merchant"
+        ],
+        "action_class": [
+          "request_authorisation_or_decision",
+          "request_operator_action"
+        ]
+      },
+      "human_gate": "none (merchant team is the human)",
+      "channel_rule": "Email to the specific merchant team",
+      "sla": "same day; approval reference expected",
+      "members": [
+        "SYN-242",
+        "SYN-243",
+        "SYN-244",
+        "SYN-248",
+        "SYN-249",
+        "SYN-250",
+        "SYN-251",
+        "SYN-252",
+        "SYN-255",
+        "SYN-256",
+        "SYN-260",
+        "SYN-262",
+        "SYN-265",
+        "SYN-269",
+        "SYN-270",
+        "SYN-277",
+        "SYN-287",
+        "SYN-293",
+        "SYN-298"
+      ],
+      "n": 19,
+      "human_gate_distribution": {
+        "none": 13,
+        "hard": 6
+      },
+      "channels_seen": {
+        "Email": 19
+      }
+    },
+    "carrier_trace": {
+      "description": "Physical verification: locate, scan, trace, confirm handover. The agent demands a physical scan or receipt, never a planned or departure status.",
+      "trigger": {
+        "action_class": [
+          "request_physical_trace"
+        ]
+      },
+      "human_gate": "none",
+      "channel_rule": "Depot work queue or email to the trace team",
+      "sla": "scan expected same day; otherwise escalate to investigations",
+      "members": [
+        "SYN-203",
+        "SYN-206",
+        "SYN-212",
+        "SYN-229",
+        "SYN-230",
+        "SYN-233",
+        "SYN-234",
+        "SYN-237",
+        "SYN-240",
+        "SYN-259",
+        "SYN-288",
+        "SYN-292",
+        "SYN-294",
+        "SYN-295",
+        "SYN-296",
+        "SYN-297",
+        "SYN-300"
+      ],
+      "n": 17,
+      "human_gate_distribution": {
+        "none": 16,
+        "soft": 1
+      },
+      "channels_seen": {
+        "Depot work queue": 3,
+        "Email": 14
+      }
+    },
+    "carrier_ops": {
+      "description": "Routine operator execution within stated policy: rebook, hold, redirect, extension, callback note, transfer, recovery, collection, capacity booking, approved wording.",
+      "trigger": {
+        "action_class": [
+          "request_operator_action",
+          "request_options_for_customer",
+          "request_record_or_statement"
+        ],
+        "owner_org_type": [
+          "carrier",
+          "pickup_point"
+        ]
+      },
+      "human_gate": "none unless money or authority flags are present",
+      "channel_rule": "Email to the owning carrier team; dispatch chat when the request originates in chat",
+      "sla": "confirmation expected within the working day",
+      "members": [
+        "SYN-202",
+        "SYN-204",
+        "SYN-205",
+        "SYN-207",
+        "SYN-208",
+        "SYN-209",
+        "SYN-210",
+        "SYN-211",
+        "SYN-213",
+        "SYN-218",
+        "SYN-219",
+        "SYN-220",
+        "SYN-223",
+        "SYN-224",
+        "SYN-232",
+        "SYN-247",
+        "SYN-261",
+        "SYN-276",
+        "SYN-278",
+        "SYN-284",
+        "SYN-290",
+        "SYN-291",
+        "SYN-299"
+      ],
+      "n": 23,
+      "human_gate_distribution": {
+        "none": 17,
+        "soft": 3,
+        "hard": 3
+      },
+      "channels_seen": {
+        "Email": 23
+      }
+    }
+  },
+  "human_gate_cases": {
+    "hard": [
+      "SYN-231",
+      "SYN-235",
+      "SYN-236",
+      "SYN-238",
+      "SYN-239",
+      "SYN-245",
+      "SYN-253",
+      "SYN-254",
+      "SYN-257",
+      "SYN-260",
+      "SYN-262",
+      "SYN-263",
+      "SYN-265",
+      "SYN-267",
+      "SYN-269",
+      "SYN-270",
+      "SYN-271",
+      "SYN-272",
+      "SYN-273",
+      "SYN-275",
+      "SYN-276",
+      "SYN-278",
+      "SYN-279",
+      "SYN-282",
+      "SYN-284",
+      "SYN-285",
+      "SYN-286",
+      "SYN-293"
+    ],
+    "soft": [
+      "SYN-220",
+      "SYN-223",
+      "SYN-258",
+      "SYN-259",
+      "SYN-261",
+      "SYN-264",
+      "SYN-266",
+      "SYN-268"
+    ]
+  }
+}
