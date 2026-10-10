@@ -188,3 +188,25 @@ def test_deskagent_runs_are_capped_but_cases_still_saved(monkeypatch, tmp_path):
     assert capped["status"] == "capped" and (tmp_path / "cases" / "conv-two2" / "index.md").exists()
     assert client.get("/health").json() == {"ok": True, "agent": "deskagent"}
 
+
+def test_second_problem_in_one_call_is_a_new_case_and_hazard_words_get_999(monkeypatch, tmp_path):
+    from voice import desk
+    monkeypatch.setenv("VOICE_TOOL_SECRET", "s3")
+    monkeypatch.setenv("VOICE_AGENT", "deskagent")
+    monkeypatch.setattr(voice, "LOG_DIR", tmp_path)
+    monkeypatch.setattr(desk, "CASES_DIR", tmp_path / "cases")
+    started = []
+    monkeypatch.setattr(desk, "start", lambda conv, folder: started.append(conv))
+    client = TestClient(voice.app)
+    base = {"conversation_id": "conv_w23j", "caller_name": "Cash", "order_ref": "DL204",
+            "update_by": "text", "contact": "07700 900123"}
+    first = client.post("/voice/tool", headers={"X-Tool-Secret": "s3"},
+                        json=base | {"issue": "My parcel hasn't arrived."}).json()
+    again = client.post("/voice/tool", headers={"X-Tool-Secret": "s3"},
+                        json=base | {"issue": "My parcel hasn't arrived."}).json()
+    hazard = client.post("/voice/tool", headers={"X-Tool-Secret": "s3"}, json=base | {
+        "issue": "Another package smells really weird and my son touched it."}).json()
+    assert again.get("repeat") and again["say"] == first["say"]
+    assert started == ["conv_w23j", "conv_w23j-2"]
+    assert "call 999" in hazard["say"] and hazard["say"] != first["say"]
+

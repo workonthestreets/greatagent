@@ -210,7 +210,7 @@ def _decide_and_log(r: CallReport) -> dict:
     d = decide(case)
     mail = deliver(case.case_id, d, LOG_DIR / "outbox" / case.case_id)  # sends only with SEND_EMAIL=1
     how, stored = checked_contact(r.update_by, r.contact)
-    _log(r.conversation_id, "", {"input": case.text, "decision": d, "email": mail,
+    _log(r.conversation_id, "", {"input": case.text, "issue": r.issue, "decision": d, "email": mail,
                                  "contact": {"update_by": how, "contact": stored}})
     return d
 
@@ -234,7 +234,13 @@ def _auth(x_tool_secret: str) -> None:
 def tool(report: CallReport, x_tool_secret: str = Header("")) -> dict:
     _auth(x_tool_secret)
     logged = LOG_DIR / f"{_safe(report.conversation_id)}.json"
-    if logged.exists():  # a second call in the same conversation corrects the contact, nothing else
+    if logged.exists():
+        record = json.loads(logged.read_text())
+        if "issue" in record and _same_issue(record["issue"], report.issue) is False:
+            # a different problem in the same call is a new case of its own, never a repeat
+            report = report.model_copy(update={"conversation_id": _next_case_id(report.conversation_id)})
+            logged = LOG_DIR / f"{_safe(report.conversation_id)}.json"
+    if logged.exists():  # the same problem again: a repeat, or a correction of the contact
         how, stored = checked_contact(report.update_by, report.contact)
         record = json.loads(logged.read_text())
         if record.get("contact") == {"update_by": how, "contact": stored}:  # a repeat, not a correction:
@@ -256,6 +262,29 @@ def tool(report: CallReport, x_tool_secret: str = Header("")) -> dict:
             "escalate": d.get("escalate", False)}
 
 
+# Spoken-word safety net on top of triage's hazard words: what callers actually say about a bad parcel.
+_VOICE_HAZARD = re.compile(r"\b(smell(s|ing|y)?|odou?r|stink(s|ing)?|fizz(ing)?|burn(t|ing|s)?|rash|sting(s|ing)?|"
+                           r"poison(ed|ous)?|swallow(ed)?|touched it|hurt|bleed(ing)?|unwell|sick|dizzy|"
+                           r"can'?t breathe|leak(s|ing|ed)?|fumes|smoke|chemical|injur(y|ed))\b", re.IGNORECASE)
+
+
+def is_hazard(text: str) -> bool:
+    """A code check, no model: any hint of harm gets the emergency line. Errs towards caution."""
+    return "hazard_from_code" in code_flags(text) or bool(_VOICE_HAZARD.search(text))
+
+
+def _same_issue(a: str, b: str) -> bool:
+    words = lambda t: re.sub(r"[^a-z0-9 ]", "", " ".join(t.lower().split()))
+    return words(a) == words(b)
+
+
+def _next_case_id(conversation_id: str) -> str:
+    n = 2
+    while (LOG_DIR / f"{_safe(f'{conversation_id}-{n}')}.json").exists():
+        n += 1
+    return f"{conversation_id}-{n}"
+
+
 def capture_for_desk(report: CallReport) -> dict:
     """Capture line: write the call as a case, let deskagent decide after the call, speak a template now.
 
@@ -265,13 +294,13 @@ def capture_for_desk(report: CallReport) -> dict:
     folder = desk.write_case_folder(report.conversation_id, report.caller_name, report.order_ref,
                                     report.issue, how, stored)
     case = desk.short_id(report.conversation_id)
-    if "hazard_from_code" in code_flags(report.issue):
+    if is_hazard(report.issue):
         say = (f"Thank you. If anyone feels unwell, call 999 now. I've logged this as urgent case {case} "
                f"for our delivery desk, and they'll contact you; I can't give a time or outcome yet.")
     else:
         say = (f"Thank you. I've logged this as case {case} for our delivery desk. "
                f"{update_line(report.update_by, report.contact)}; I can't promise a time or outcome yet.")
-    _log(report.conversation_id, "", {"agent": "deskagent", "case_dir": str(folder), "say": say,
+    _log(report.conversation_id, "", {"agent": "deskagent", "case_dir": str(folder), "say": say, "issue": report.issue,
                                       "contact": {"update_by": how, "contact": stored}})
     desk.start(report.conversation_id, folder)
     return {"say": say, "status": "logged", "case": case}
