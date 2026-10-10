@@ -53,7 +53,7 @@ def test_user_message_hides_ignored_fields_and_keeps_hints():
 
 def test_schema_is_closed_objects_only():
     schema = DeskResponse.model_json_schema()
-    assert schema["properties"]["decision"]["enum"] == ["send_message", "ask_clarification", "escalate_to_human"]
+    assert schema["properties"]["decision"]["enum"] == ["send_message", "ask_clarification", "escalate_to_human", "hold_no_action"]
     with pytest.raises(Exception):
         response(confidence="certain")
 
@@ -75,6 +75,22 @@ def test_checks_catch_unknown_event_and_escalation_shape():
                    handover=dict(summary="s", open_questions=[], not_done=[], risk_flags=[]))
     s = status(checks.run_checks(PRE, esc, EVENTS))
     assert s["body_rule"] == "pass" and s["decision"] == "warn"   # classifier did not ask for review
+
+
+def test_hold_is_a_valid_decision_and_sends_nothing():
+    hold = response(decision="hold_no_action", intent="hold", body=None, claims_made=[],
+                    to=dict(role="carrier", name=None, team="Dispatch", org=None), channel="Email")
+    s = status(checks.run_checks(PRE, hold, EVENTS))
+    assert s["body_rule"] == "pass" and s["intent"] == "pass" and s["decision"] == "pass"
+    assert "role" not in s and "channel" not in s          # recipient/channel checks are skipped for a hold
+    assert status(checks.run_checks(PRE, response(decision="hold_no_action", intent="hold", body="Still working on it."), EVENTS))["body_rule"] == "fail"
+    review = dict(PRE, needs_human_review=True, review_reasons=["x"])
+    assert status(checks.run_checks(review, hold, EVENTS))["decision"] == "warn"
+
+
+def test_prompt_documents_hold_and_wait_test():
+    p = prompt.system_prompt()
+    assert "hold_no_action" in p and "Wait test" in p and "| hold" in p
 
 
 def test_hazard_must_not_go_to_customer():

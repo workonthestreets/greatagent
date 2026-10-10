@@ -1,5 +1,7 @@
 import { nice, pct, type CaseItem, type Run, type Spec } from "./api";
 import type { Runs } from "./App";
+import { ArrowLeft, Check, X } from "./icons";
+import { Conf } from "./ui";
 
 type Row = [string, string | [string, number][] | null | undefined];
 type Tile = {
@@ -83,124 +85,154 @@ const Chevron = () => <svg viewBox="0 0 16 16" width="14" height="14" aria-hidde
 function TileView({ t, isRule }: { t: Tile; isRule: boolean }) {
   const blocks = t.details.filter(([, v]) => v && (!Array.isArray(v) || v.length));
   return (
-    <article className={`tile${isRule ? " rule" : ""}${t.tone ? " " + t.tone : ""}`}>
-      <div className="row"><div className="name">{t.name}</div><div className="ttag">{isRule ? "Rule" : t.tag}</div></div>
-      {t.purpose && <p className="purpose">{t.purpose}</p>}
-      <div className="result"><div className="top-choice">{t.top}</div>{!isRule && t.p != null && <div className="pct">{pct(t.p)}</div>}</div>
+    <article className={`tile${isRule ? " tile--rule" : ""}${t.tone ? " tile--" + t.tone : ""}`}>
+      <div className="tile__top"><h3 className="tile__name">{t.name}</h3><span className="tile__tag">{isRule ? "Rule" : t.tag}</span></div>
+      {t.purpose && <p className="tile__purpose">{t.purpose}</p>}
+      <div className="tile__result"><span className="tile__choice">{t.top}</span>{!isRule && t.p != null && <span className="tile__pct">{pct(t.p)}</span>}</div>
       {!isRule && t.p != null && (
         <>
           <div className="bar"><i style={{ width: `${Math.max(1, t.p * 100)}%` }} />{t.threshold != null && <u style={{ left: `calc(${t.threshold * 100}% - 1px)` }} />}</div>
-          <div className="cap">{t.cap}</div>
+          <p className="tile__cap">{t.cap}</p>
         </>
       )}
       {blocks.length ? (
         <details>
           <summary><span>{isRule ? "Why this decision" : t.tag === "Choice" ? "About this choice" : "About this question"}</span><Chevron /></summary>
-          <div className="more">
+          <div className="tile__more">
             {blocks.map(([label, val]) => (
               <div key={label}>
-                <h4>{label}</h4>
+                <h4 className="mini">{label}</h4>
                 {Array.isArray(val) ? val.map(([k, v]) => <div className="runner" key={k}><span>{nice(k)}</span><span>{pct(v)}</span></div>) : <p>{val}</p>}
               </div>
             ))}
           </div>
         </details>
-      ) : <div style={{ height: 12 }} />}
+      ) : <div className="tile__pad" />}
     </article>
   );
 }
 
-function Section({ title, tiles, isRule }: { title: string; tiles: Tile[]; isRule: boolean }) {
+function Section({ title, hint, count, children }: { title: string; hint?: string; count?: number; children: React.ReactNode }) {
   return (
-    <section>
-      <div className="sec-head"><h2>{title} <span className="muted small">{tiles.length}</span></h2></div>
-      <div className="grid">{tiles.map((t) => <TileView key={t.id} t={t} isRule={isRule} />)}</div>
+    <section className="trace-section">
+      <div className="section-head">
+        <h2 className="section-title">{title}{count != null && <span className="tab__count">{count}</span>}</h2>
+        {hint && <span className="text-muted body-sm">{hint}</span>}
+      </div>
+      {children}
     </section>
   );
 }
 
 const LEVEL = { low: 1, medium: 2, high: 3 } as const;
-const MARK = { pass: "✓", warn: "!", fail: "✕", na: "–" } as const;
 
 export default function Investigate({ runs, cases, selected, onSelect, spec, onBack }: {
   runs: Runs; cases: CaseItem[] | null; selected: string; onSelect: (id: string) => void; spec: Spec | null; onBack: () => void;
 }) {
   const run: Run | undefined = runs[selected];
   const ran = Object.keys(runs).sort();
+  const titleOf = (id: string) => cases?.find((c) => c.id === id)?.title ?? id;
   const picker = ran.length > 1 && (
-    <select value={selected} onChange={(e) => onSelect(e.target.value)}>
-      {ran.map((id) => <option key={id} value={id}>{cases?.find((c) => c.id === id)?.title ?? id}</option>)}
+    <select className="input input--select" aria-label="Case" value={selected} onChange={(e) => onSelect(e.target.value)}>
+      {ran.map((id) => <option key={id} value={id}>{titleOf(id)}</option>)}
     </select>
   );
-  if (!run) return <main><div className="row">{picker}</div><div className="card muted">{selected} has not been run yet. <a onClick={onBack}>Go to Cases</a>, select it and press Run agent.</div></main>;
+  if (!run) {
+    return (
+      <main className="view" id="trace">
+        <header className="view-head">
+          <h1 className="headline-lg">Decision <span className="emphasis">trace</span>.</h1>
+          <p className="text-muted body-lg">{titleOf(selected) || "No case selected"} has not been run yet.</p>
+        </header>
+        <div className="cluster trace-actions">{picker}<button className="btn btn--secondary" onClick={onBack}><ArrowLeft size={16} /> Go to Cases</button></div>
+      </main>
+    );
+  }
+
   const pre = run.preprocess, r = run.response;
   const { model, rule } = buildTiles(run, spec);
   const passed = run.checks.filter((c) => c.status === "pass").length;
-  const worst = run.checks.some((c) => c.status === "fail") ? "bad" : run.checks.some((c) => c.status === "warn") ? "warn" : "";
   const u = run.meta.usage;
+  const top = pre.request;
 
   return (
-    <main>
-      <div className="row"><h1>{cases?.find((c) => c.id === run.case)?.title ?? run.case} <span className="muted small">confidence report</span></h1><div className="demo">{picker}<button className="small" onClick={onBack}>← Back to case</button></div></div>
-      {pre.status === "error" && <div className="card error">Pre-processing failed ({pre.error}). The agent ran on the events alone.</div>}
-      {run.error && <div className="card error">The agent did not return a response: {run.error}</div>}
+    <main className="view" id="trace">
+      <header className="view-head">
+        <h1 className="headline-lg">Decision <span className="emphasis">trace</span>.</h1>
+        <p className="text-muted body-lg">{titleOf(run.case)}: how the classifier read the case, what the agent chose, and where the two agree.</p>
+        <div className="cluster trace-actions">{picker}<button className="btn btn--secondary" onClick={onBack}><ArrowLeft size={16} /> Back to case</button></div>
+      </header>
+      {pre.status === "error" && <p className="error-text empty">Pre-processing failed ({pre.error}). The agent ran on the events alone.</p>}
+      {run.error && <p className="error-text empty">The agent did not return a response: {run.error}</p>}
 
-      <div className="stats">
-        <div className="stat"><div className="stat-v">{r ? <span className={`badge conf-${r.confidence}`}>{r.confidence}</span> : "–"}</div><div className="muted small">Agent confidence (self-reported)</div></div>
-        <div className="stat"><div className="stat-v">{pre.request ? pct(pre.request.confidence) : "–"}</div><div className="muted small">Intent confidence (classifier)</div></div>
-        <div className="stat"><div className="stat-v"><span className={`badge ${pre.needs_human_review ? "bad" : "ok"}`}>{pre.needs_human_review ? "Needed" : "Not needed"}</span></div><div className="muted small">Human review (classifier)</div></div>
-        <div className={`stat ${worst ? "hl-" + worst : ""}`}><div className="stat-v">{passed}/{run.checks.length}</div><div className="muted small">Agreement checks passed</div></div>
-        <div className="stat"><div className="stat-v">{run.meta.total_s != null ? `${run.meta.total_s}s` : "–"}</div><div className="muted small">{run.meta.model ?? "no model"}</div></div>
-        <div className="stat"><div className="stat-v">{u ? (u.input_tokens + u.cache_read_input_tokens + u.output_tokens).toLocaleString() : "–"}</div><div className="muted small">Agent tokens</div></div>
-      </div>
+      <section className="band-block">
+        <div className="spectrum-band" aria-hidden="true" />
+        <div className="spectrum-cards">
+          <article className="card-feature">
+            <p className="card-feature__kicker">Agent confidence</p>
+            <h2 className="headline-md">{r ? nice(r.confidence) : "No response"}</h2>
+            {r && <div className="meter meter--dark" aria-hidden="true">{[1, 2, 3].map((i) => <i key={i} className={i <= LEVEL[r.confidence] ? `on on--${r.confidence}` : ""} />)}</div>}
+            <p className="card-feature__body">The model's own rating of its decision. The API gives no token probabilities, so this is a level, not a percentage: read it next to the checks below.</p>
+          </article>
+          <article className="card-feature">
+            <p className="card-feature__kicker">Classifier intent</p>
+            <h2 className="headline-md">{top ? nice(top.intent) : "Unavailable"}{top && <span className="card-feature__pct"> {pct(top.confidence)}</span>}</h2>
+            {top && <div className="meter meter--dark" aria-hidden="true"><i className="on on--high" style={{ flex: top.confidence }} /><i style={{ flex: 1 - top.confidence }} /></div>}
+            <p className="card-feature__body">
+              {pre.needs_human_review ? `Human review suggested: ${pre.review_reasons.join("; ") || "flagged"}.` : "No human review suggested."}
+              {top?.low_margin ? " The top two intents are a close call." : ""}
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <dl className="stats stats--4">
+        <div className="stat"><dt className="stat__label">Agreement checks passed</dt><dd className="stat__value">{passed}/{run.checks.length}</dd></div>
+        <div className="stat"><dt className="stat__label">Model</dt><dd className="stat__value stat__value--text">{run.meta.model ?? "none"}</dd></div>
+        <div className="stat"><dt className="stat__label">Time</dt><dd className="stat__value">{run.meta.total_s != null ? `${run.meta.total_s}s` : "–"}</dd></div>
+        <div className="stat"><dt className="stat__label">Agent tokens</dt><dd className="stat__value">{u ? (u.input_tokens + u.cache_read_input_tokens + u.output_tokens).toLocaleString() : "–"}</dd></div>
+      </dl>
+
+      <Section title="Classifier: model classifications" count={model.length} hint="What the pre-processing model read from the case">
+        <div className="tile-grid">{model.map((t) => <TileView key={t.id} t={t} isRule={false} />)}</div>
+      </Section>
+      <Section title="Classifier: rule-based decisions" count={rule.length} hint="Looked up from those answers, no model call">
+        <div className="tile-grid">{rule.map((t) => <TileView key={t.id} t={t} isRule />)}</div>
+      </Section>
 
       {r && (
-        <section>
-          <div className="sec-head"><h2>Agent</h2></div>
-          <div className="grid two">
-            <article className="tile">
-              <div className="row"><div className="name">Agent confidence</div><div className="ttag">Self-reported</div></div>
-              <p className="purpose">The model's own rating of its decision. The API gives no token probabilities, so this is a level, not a percentage. Read it next to the agreement checks.</p>
-              <div className="result"><div className="top-choice">{nice(r.confidence)}</div></div>
-              <div className="meter">{[1, 2, 3].map((i) => <i key={i} className={i <= LEVEL[r.confidence] ? `on conf-${r.confidence}` : ""} />)}</div>
-              <div style={{ height: 12 }} />
-            </article>
-            <article className="tile">
-              <div className="row"><div className="name">Rationale</div><div className="ttag">Agent</div></div>
-              <p className="rationale">{r.rationale}</p>
-              <div className="flagrow">
-                {(["safety", "injection_suspected", "authority_boundary"] as const).map((k) =>
-                  <span key={k} className={`tag ${r.flags[k] ? "tag-bad" : ""}`}>{nice(k)}: {r.flags[k] ? "yes" : "no"}</span>)}
-              </div>
-            </article>
-          </div>
-        </section>
+        <Section title="Agent" hint="Its own account of the decision">
+          <article className="tile tile--wide">
+            <div className="tile__top"><h3 className="tile__name">Rationale</h3><Conf level={r.confidence} /></div>
+            <p className="tile__rationale">{r.rationale}</p>
+            <p className="chips">
+              {(["safety", "injection_suspected", "authority_boundary"] as const).map((k) =>
+                <span key={k} className={`chip ${r.flags[k] ? "chip--alert" : ""}`}>{nice(k)}: {r.flags[k] ? "yes" : "no"}</span>)}
+            </p>
+            <div className="tile__pad" />
+          </article>
+        </Section>
       )}
 
       {run.checks.length > 0 && (
-        <section>
-          <div className="sec-head"><h2>Agreement checks <span className="muted small">classifier hints vs agent output</span></h2></div>
+        <Section title="Agreement checks" count={run.checks.length} hint="Classifier hints against the agent's output">
           <ul className="checks">
             {run.checks.map((c) => (
-              <li key={c.id} className={`chk ${c.status}`}>
-                <span className="mark">{MARK[c.status]}</span>
-                <div><strong>{c.label}</strong><div className="muted small">{c.detail}</div></div>
+              <li key={c.id} className={`chk chk--${c.status}`}>
+                <span className="chk__mark" aria-hidden="true">{c.status === "pass" ? <Check size={13} /> : c.status === "fail" ? <X size={13} /> : "!"}</span>
+                <div><div className="chk__label">{c.label}</div><div className="text-muted body-sm">{c.detail}</div></div>
               </li>
             ))}
           </ul>
-        </section>
+        </Section>
       )}
-
-      <Section title="Classifier: model classifications" tiles={model} isRule={false} />
-      <Section title="Classifier: rule-based decisions" tiles={rule} isRule />
 
       {pre.guardrails && pre.guardrails.length > 0 && (
-        <section>
-          <div className="sec-head"><h2>Guardrails given to the agent <span className="muted small">{pre.guardrails.length}</span></h2></div>
-          <ul className="card guardrails">{pre.guardrails.map((g, i) => <li key={i}>{g}</li>)}</ul>
-        </section>
+        <Section title="Guardrails given to the agent" count={pre.guardrails.length}>
+          <ul className="guardrails">{pre.guardrails.map((g, i) => <li key={i}>{g}</li>)}</ul>
+        </Section>
       )}
-      <p className="muted small foot">
+      <p className="text-muted body-sm trace-foot">
         Descriptions from the classifier spec{spec ? "" : " (not loaded: api_v2 unreachable)"}.
         {pre.usage && ` Classifier: ${pre.usage.calls} calls, ${pre.usage.input_tokens.toLocaleString()} input tokens, $${pre.usage.cost_usd.toFixed(5)} via ${pre.usage.provider}.`}
       </p>

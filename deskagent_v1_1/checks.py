@@ -16,7 +16,9 @@ def _c(id_, label, status, detail=""):
     return {"id": id_, "label": label, "status": status, "detail": detail}
 
 
-def expected_intent(pre: dict, escalating: bool) -> str:
+def expected_intent(pre: dict, escalating: bool, holding: bool = False) -> str:
+    if holding:
+        return "hold"
     if escalating:
         return "handover"
     r = pre.get("routing") or {}
@@ -33,19 +35,23 @@ def run_checks(pre: dict, resp, events: List[dict]) -> List[dict]:
     route = pre.get("routing") or {}
     flags = pre.get("flags") or {}
     esc = r.decision == "escalate_to_human"
+    hold = r.decision == "hold_no_action"
     ids = {f"event-{e['event_no']}" for e in events}
     out: List[dict] = []
 
     # decision vs classifier
     want_esc = bool(pre.get("needs_human_review")) or (route.get("target") or {}).get("kind") == "human_review"
-    if esc == want_esc:
+    if hold:
+        out.append(_c("decision", "Escalation matches classifier", "warn" if want_esc else "pass",
+                      "Held, nothing sent (the wait test overrides the classifier's target)." + (f" Classifier asked for human review: {'; '.join(pre.get('review_reasons') or [])}." if want_esc else "")))
+    elif esc == want_esc:
         out.append(_c("decision", "Escalation matches classifier", "pass", "Escalated" if esc else "Sent a message, as the classifier suggested."))
     else:
         out.append(_c("decision", "Escalation matches classifier", "warn",
                       f"Classifier {'asked for human review' if want_esc else 'did not ask for human review'} ({'; '.join(pre.get('review_reasons') or []) or 'no reasons'}), agent chose {r.decision}."))
 
     # recipient
-    if ok and not esc:
+    if ok and not esc and not hold:
         tgt = route.get("target") or {}
         want_role = "customer" if tgt.get("kind") == "customer" else route.get("party")
         out.append(_c("role", "Recipient role matches routing", "pass" if r.to.role == want_role else "warn",
@@ -64,7 +70,7 @@ def run_checks(pre: dict, resp, events: List[dict]) -> List[dict]:
                       f"Classifier: {CHANNELS.get(ck, ck)}. Agent: {r.channel}."))
         if r.to.role == "customer" and r.channel in QUEUES:
             out.append(_c("channel_customer", "No internal queue for a customer", "fail", f"Customer addressed on {r.channel}."))
-    want_intent = expected_intent(pre, esc) if ok else None
+    want_intent = expected_intent(pre, esc, hold) if ok else None
     if want_intent:
         out.append(_c("intent", "Intent matches routing", "pass" if r.intent == want_intent else "warn",
                       f"Expected {want_intent}. Agent: {r.intent}."))
@@ -81,10 +87,10 @@ def run_checks(pre: dict, resp, events: List[dict]) -> List[dict]:
                       f"Recipient role: {r.to.role}."))
 
     # structure
-    out.append(_c("body_rule", "Body and handover match the decision", "pass" if (esc and r.body is None and r.handover) or (not esc and r.body and not r.handover) else "fail",
-                  "Escalation has a handover and no body." if esc else "Message has a body and no handover."))
+    out.append(_c("body_rule", "Body and handover match the decision", "pass" if (esc and r.body is None and r.handover) or (hold and r.body is None and not r.handover) or (not esc and not hold and r.body and not r.handover) else "fail",
+                  "Escalation has a handover and no body." if esc else "A hold sends nothing: no body, no handover." if hold else "Message has a body and no handover."))
     bad = [s for s in [c.source for c in r.claims_made] + list(r.evidence_refs) if s not in ids]
-    out.append(_c("sources", "Every claim cites a real event", "fail" if bad else ("pass" if r.claims_made or esc else "warn"),
+    out.append(_c("sources", "Every claim cites a real event", "fail" if bad else ("pass" if r.claims_made or esc or hold else "warn"),
                   f"Unknown event ids: {', '.join(sorted(set(bad)))}." if bad else f"{len(r.claims_made)} claims, all sourced."))
 
     # message hygiene

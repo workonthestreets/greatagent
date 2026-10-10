@@ -42,10 +42,10 @@ class Flags(BaseModel):
 
 
 class DeskResponse(BaseModel):
-    decision: Literal["send_message", "ask_clarification", "escalate_to_human"]
+    decision: Literal["send_message", "ask_clarification", "escalate_to_human", "hold_no_action"]
     to: To
     channel: str
-    intent: Literal["ask_customer", "request_authority", "relay_update", "route_to_specialist", "handover"]
+    intent: Literal["ask_customer", "request_authority", "relay_update", "route_to_specialist", "handover", "hold"]
     body: Optional[str]
     references: List[str]
     claims_made: List[Claim]

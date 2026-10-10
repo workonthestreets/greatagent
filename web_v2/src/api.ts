@@ -1,7 +1,7 @@
 export type EventRow = { event_no: string; timestamp: string; channel: string; from: string; to: string; body: string };
 export type To = { role: string; name: string | null; team: string | null; org: string | null };
 export type Response = {
-  decision: "send_message" | "ask_clarification" | "escalate_to_human";
+  decision: "send_message" | "ask_clarification" | "escalate_to_human" | "hold_no_action";
   to: To; channel: string; intent: string; body: string | null; references: string[];
   claims_made: { claim: string; source: string }[]; claims_avoided: string[];
   calculations: { expression: string; result: string }[]; evidence_refs: string[];
