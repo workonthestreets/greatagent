@@ -34,3 +34,6 @@ def test_code_nets():
     assert out["party"] == "customer" and "conflicting_refs" in out["flags"]
     out = agent_mod.decide_from_facts(facts(), "The tracking link does not open.")
     assert (out["party"], out["missing"]) == ("customer", "order or tracking reference")
+    spoken = "## Case details\n- **Primary shipment:** DL204\n\nIt never arrived; tracking says DL-204."
+    out = agent_mod.decide_from_facts(facts(conflicting_refs=True), spoken)
+    assert "missing_ref_from_code" not in out["flags"] and "conflicting_refs" not in out["flags"]

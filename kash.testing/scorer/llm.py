@@ -1,7 +1,7 @@
 """Get a structured answer from Claude.
 
 Two routes, picked by LLM_BACKEND:
-  api (default when APP_ANTHROPIC_API_KEY is set): Messages API, schema enforced as a forced tool call.
+  api (default when APP_ANTHROPIC_API_KEY is set): Messages API, schema enforced by structured outputs.
   cli: the local `claude` binary on your Claude Code login (no API key; text only, no images).
 
 `ask_json` takes a JSON Schema dict and returns a dict; `ask` wraps it for pydantic models.
@@ -55,18 +55,39 @@ def _via_api(system: str, user: str, schema: dict, model: str | None) -> dict:
     key = os.getenv("APP_ANTHROPIC_API_KEY")
     if not key:
         raise LLMUnavailable("APP_ANTHROPIC_API_KEY missing")
-    tool = {"name": "answer", "description": "Return the answer.", "input_schema": schema}
+    # Sonnet 5.5 rejects a forced tool_choice; structured outputs enforce the schema instead
     try:
         msg = anthropic.Anthropic(api_key=key).messages.create(
-            model=model or os.getenv("API_MODEL", "claude-sonnet-5-5"), max_tokens=2048,
-            system=system, tools=[tool], tool_choice={"type": "tool", "name": "answer"},
-            messages=[{"role": "user", "content": user}])
+            model=model or os.getenv("API_MODEL", "claude-sonnet-5-5"), max_tokens=4096,
+            system=system, messages=[{"role": "user", "content": user}],
+            output_config={"format": {"type": "json_schema", "schema": _closed(schema)}})
     except anthropic.APIError as e:
         raise LLMUnavailable(str(e)) from e
-    block = next((b for b in msg.content if b.type == "tool_use"), None)
-    if block is None:
-        raise LLMUnavailable("model did not call the answer tool")
-    return dict(block.input)
+    if msg.stop_reason == "refusal":
+        raise LLMUnavailable("model refused")
+    text = next((b.text for b in msg.content if b.type == "text"), None)
+    if text is None:
+        raise LLMUnavailable("no text block in the reply")
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as e:
+        raise LLMUnavailable(f"bad JSON in reply: {e}") from e
+
+
+def _closed(schema: dict) -> dict:
+    """Structured outputs need every object closed (additionalProperties: false), $defs included."""
+    def walk(node: object) -> None:
+        if isinstance(node, dict):
+            if node.get("type") == "object":
+                node.setdefault("additionalProperties", False)
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+    copy = json.loads(json.dumps(schema))
+    walk(copy)
+    return copy
 
 
 def _via_cli(system: str, user: str, schema: dict, model: str | None) -> dict:

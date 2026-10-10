@@ -20,15 +20,26 @@ from pathlib import Path
 
 from agent.decide import NEVER, decide, escalation
 from agent.outbox import deliver
-from scorer.cases import AgentInput, attachment_text, load_case
+from scorer.cases import HIDDEN_DETAILS, AgentInput, attachment_text, load_case
 
-HIDDEN = {"Next action at escalation", "Outcome", "Resolution"}  # labels, if a folder carries them
+# sections that describe how a public case ended; a Reality Test folder may carry them too
+HIDDEN = {"Context", "Overview", "Next action at escalation", "Outcome", "Resolution", "Boundaries and remaining work",
+          "History", "Attachments"}
 
 
 def case_input(folder: Path) -> AgentInput:
+    """What the agent sees: the case up to its decision point, never the recorded ending.
+
+    Delivery events carry `Stage:`; only the Context/Escalation ones come before the agent acts.
+    Folders without stages are assumed to be cut already and are read in full.
+    """
     case = load_case(folder)
-    parts = [f"## {k}\n{v.strip()}" for k, v in case.sections.items() if k not in HIDDEN]
-    for e in case.events:
+    parts = [f"## {k}\n{HIDDEN_DETAILS.sub('', v).strip()}"
+             for k, v in case.sections.items() if k not in HIDDEN]
+    events = case.events
+    if any("Stage" in e.fields for e in events):
+        events = [e for e in events if e.fields.get("Stage", "").lower() in ("context", "escalation")] or events
+    for e in events:
         meta = " | ".join(f"{k}: {v}" for k, v in e.fields.items() if k != "Stage")
         parts.append(f"### {e.head}\n{meta}\n{e.body}\n{attachment_text(folder, e.body)}")
     return AgentInput(f"{case.track}-{case.number}", case.track, "\n\n".join(parts))

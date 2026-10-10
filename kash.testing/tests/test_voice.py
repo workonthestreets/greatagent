@@ -19,10 +19,10 @@ def test_tool_speaks_template_and_post_call_checks_signature(monkeypatch, tmp_pa
         "action": "request", "party": "carrier", "team": "Parcel trace team", "org": "Plover Arc Logistics",
         "missing": "a trace of DL-1", "escalate": False, "message": "We will refund you £20"})
     client = TestClient(voice.app)
-    body = {"conversation_id": "c1", "caller_name": "Ana", "order_ref": "DL-1", "issue": "Parcel missing"}
+    body = {"conversation_id": "c1", "caller_name": "Ana", "order_ref": "DL-1", "issue": "Parcel missing", "contact": "ana@example.com"}
     assert client.post("/voice/tool", json=body).status_code == 401
     say = client.post("/voice/tool", json=body, headers={"X-Tool-Secret": "s3"}).json()["say"]
-    assert "Plover Arc Logistics" in say and "£" not in say
+    assert "Plover Arc Logistics" in say and "email you" in say and "£" not in say
     raw = json.dumps({"type": "post_call_transcription", "data": {"conversation_id": "c1", "transcript": []}})
     t = str(int(time.time()))
     sig = hmac.new(b"wh", f"{t}.{raw}".encode(), hashlib.sha256).hexdigest()
