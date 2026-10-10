@@ -1,0 +1,12 @@
+# Picked up by BuildKit for this Dockerfile, so the repo root needs no .dockerignore.
+**/.env
+**/.env.*
+_env
+.git
+.venv
+**/__pycache__
+runs
+data
+web/node_modules
+web/dist
+hub/.agent_state.json

@@ -1,0 +1,21 @@
+# Live desk hub (hub/ + deskagent + db) for Railway or any Docker host. Build from the repo root:
+#   docker build -f deploy/Dockerfile.hub .
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+WORKDIR /app
+
+COPY requirements.txt .
+COPY hub/requirements.txt hub/
+RUN pip install --no-cache-dir -r hub/requirements.txt
+
+COPY deskagent/ deskagent/
+COPY db/ db/
+COPY hub/ hub/
+
+# The pipeline engine writes each run's audit files under runs/live/ (ephemeral on Railway).
+RUN useradd --create-home --uid 1000 app && mkdir -p /app/runs/live && chown -R app:app /app
+USER app
+
+EXPOSE 8000
+CMD ["sh", "-c", "exec uvicorn hub.app:app --host 0.0.0.0 --port ${PORT:-8000}"]
