@@ -23,6 +23,8 @@ def test_tool_speaks_template_and_post_call_checks_signature(monkeypatch, tmp_pa
     assert client.post("/voice/tool", json=body).status_code == 401
     say = client.post("/voice/tool", json=body, headers={"X-Tool-Secret": "s3"}).json()["say"]
     assert "Plover Arc Logistics" in say and "text you on 07700, 900, 123" in say and "£" not in say
+    again = client.post("/voice/tool", json=body, headers={"X-Tool-Secret": "s3"}).json()
+    assert again.get("repeat") and again["say"] == say  # a double tool call repeats, never "updated"
     fix = client.post("/voice/tool", headers={"X-Tool-Secret": "s3"},
                       json=body | {"update_by": "email", "contact": "ana at example dot com"}).json()
     assert fix["status"] == "contact_updated" and "a, n, a, at example dot com" in fix["say"]

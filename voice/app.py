@@ -205,7 +205,9 @@ def _decide_and_log(r: CallReport) -> dict:
     case = AgentInput(f"voice-{r.conversation_id}", "delivery", case_text(r))
     d = decide(case)
     mail = deliver(case.case_id, d, LOG_DIR / "outbox" / case.case_id)  # sends only with SEND_EMAIL=1
-    _log(r.conversation_id, "", {"input": case.text, "decision": d, "email": mail})
+    how, stored = checked_contact(r.update_by, r.contact)
+    _log(r.conversation_id, "", {"input": case.text, "decision": d, "email": mail,
+                                 "contact": {"update_by": how, "contact": stored}})
     return d
 
 
@@ -231,6 +233,9 @@ def tool(report: CallReport, x_tool_secret: str = Header("")) -> dict:
     if logged.exists():  # a second call in the same conversation corrects the contact, nothing else
         how, stored = checked_contact(report.update_by, report.contact)
         record = json.loads(logged.read_text())
+        if record.get("contact") == {"update_by": how, "contact": stored}:  # a repeat, not a correction:
+            return {"say": spoken(record["decision"], report.update_by, report.contact),  # same reply again
+                    "status": "decided", "repeat": True}
         record["contact"] = {"update_by": how, "contact": stored}
         logged.write_text(json.dumps(record, indent=2, default=str))
         return {"say": f"Thanks, I've updated that. {update_line(report.update_by, report.contact)}.",
