@@ -2,7 +2,21 @@
 
 The phone line (`voice/`, which hands each call to `deskagent` unchanged) runs as one Railway
 service with a fixed `https://` address, so ElevenLabs reaches it without a laptop tunnel.
-A second service runs Mailpit as the demo inbox. Railway builds from `main`.
+A second service runs Mailpit as the demo inbox.
+
+## Live now: no need to build this again
+
+- Voice line: `https://voice-production-ef21.up.railway.app`. `GET /health` returns
+  `{"ok":true,"agent":"deskagent"}`.
+- Railway project `greatagent-voice` has 2 services: `voice` (volume at `/data`) and `mailpit`
+  (demo inbox, behind a password). Ask Kash for access.
+- The ElevenLabs post-call webhook already points at the voice line, and a test call came
+  back `200`. The demo agent's tools still point at the laptop tunnel until someone runs
+  `setup_agent` against the address above (section 3).
+- It was deployed with the Railway CLI (`railway up` from a checkout), not GitHub-connect, so
+  **merging to `main` does not redeploy it**. Redeploy with `railway up` from an up-to-date `main`.
+
+The steps below are how it was set up, for a rebuild or a second environment.
 
 ## 1. Voice service
 

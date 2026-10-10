@@ -269,3 +269,6 @@ VOICE_TOOL_SECRET=<long random> uvicorn voice.app:app --port 8010
 ```
 
 Setup for ElevenLabs and the tunnel is in `voice/README.md`. Tests: `python -m pytest tests`.
+
+It's hosted on Railway at `https://voice-production-ef21.up.railway.app`. How it's set up, and how to
+redeploy it, is in `deploy/README.md`.
