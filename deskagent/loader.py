@@ -231,6 +231,34 @@ def _shrink_image(raw: bytes) -> Optional[bytes]:
     return None
 
 
+ZIP_TEXT_EXT = {".txt", ".md", ".csv", ".json", ".eml"}
+
+
+def _zip_text(p: Path) -> str:
+    """A zip's member names plus its text members, read in memory: no extraction, no nested archives,
+    members over the per-file cap skipped, the whole thing capped at MAX_TEXT_CHARS."""
+    import zipfile
+    with zipfile.ZipFile(p) as z:
+        members = [i for i in z.infolist() if not i.is_dir()]
+        parts = ["Archive members: " + ", ".join(i.filename for i in members[:200])]
+        total = 0
+        for i in members:
+            if Path(i.filename).suffix.lower() not in ZIP_TEXT_EXT or i.file_size > MAX_TEXT_CHARS or total >= MAX_TEXT_CHARS:
+                continue
+            raw = z.read(i)[:MAX_TEXT_CHARS]
+            text = next((t for t in (_try_decode(raw, e) for e in ("utf-8", "utf-8-sig", "latin-1")) if t is not None), "")
+            parts.append(f"--- {i.filename} ---\n{text}")
+            total += len(text)
+    return "\n\n".join(parts)
+
+
+def _try_decode(raw: bytes, encoding: str) -> Optional[str]:
+    try:
+        return raw.decode(encoding)
+    except UnicodeDecodeError:
+        return None
+
+
 def _load_attachment(p: Path, root: Path, media: bool = True) -> Attachment:
     rel = str(p.relative_to(root))
     ext = p.suffix.lower()
@@ -270,6 +298,9 @@ def _load_attachment(p: Path, root: Path, media: bool = True) -> Attachment:
                 if not att.data_b64:
                     att.kind = "unsupported"
             return att
+        if ext == ".zip":
+            return Attachment(p.name, rel, "text", text=_zip_text(p)[:MAX_TEXT_CHARS],
+                              note="zip archive: member list and text members only")
         if ext in (".docx", ".xlsx", ".pptx"):
             t = _office_text(p)
             note = f"truncated: only the first {MAX_TEXT_CHARS} characters are included" if len(t) > MAX_TEXT_CHARS else ""
@@ -308,6 +339,9 @@ def load_case(path: str | Path, public_cutoff: bool = False, track: str = "", me
     case = Case(case_id=case_id, path=str(root), track=track or root.parent.name, title=case_id,
                 mode="public-eval" if public_cutoff else "reality")
     index_p, history_p = root / "index.md", root / "history.md"
+    inner = _inner_case_dir(root)  # Track/Case/sub: read the sub folder's files, keep the case folder's name
+    if inner is not None:
+        index_p, history_p = inner / "index.md", inner / "history.md"
     index_md = _read_text(index_p) if index_p.exists() else ""
     history_md = _read_text(history_p) if history_p.exists() else ""
     case.title = _title(index_md) or _title(history_md) or case_id
@@ -323,6 +357,8 @@ def load_case(path: str | Path, public_cutoff: bool = False, track: str = "", me
         else:
             case.warnings.append("no stage markers: could not determine escalation cutoff; showing full history")
     case.events = events
+    if not history_md and not events:
+        case.warnings.append("no history.md: answered from index/attachments only; the current time is unknown")
     if public_cutoff and index_md:
         index_md = _strip_index_for_eval(index_md, case)
 
@@ -342,6 +378,7 @@ def load_case(path: str | Path, public_cutoff: bool = False, track: str = "", me
 
     visible_text = "\n".join(t for _, t in case.files)
     for p in sorted(x for x in root.rglob("*") if x.is_file() and x.parent != root and not x.name.startswith((".", "_"))
+                    and x not in (index_p, history_p)
                     and not any(part.startswith(".") or part == "__MACOSX" for part in x.relative_to(root).parts[:-1])):
         rel = str(p.relative_to(root))
         if public_cutoff and (rel not in visible_text and p.name not in visible_text):
@@ -422,7 +459,9 @@ def discover_cases(path: str | Path) -> List[Path]:
     if (root / "index.md").exists() or (root / "history.md").exists():
         return [root]
     subdirs = sorted([d for d in root.iterdir() if d.is_dir() and not d.name.startswith(".") and d.name != "__MACOSX"], key=_sort_key)
-    cases = [d for d in subdirs if any(d.glob("*.md")) or any(d.glob("*.txt"))]
+    direct = [d for d in subdirs if any(d.glob("*.md")) or any(d.glob("*.txt"))]
+    # Beside ordinary case folders, a folder whose case files sit one level down (Track/Case/sub) is a case too.
+    cases = [d for d in subdirs if d in direct or (direct and _inner_case_dir(d))]
     if cases:
         return cases
     # nested one level deeper (e.g. HackatonChallendges/<track>/<case>)
@@ -434,6 +473,15 @@ def discover_cases(path: str | Path) -> List[Path]:
     # flat folder of case files
     return sorted([p for p in root.iterdir() if p.is_file() and not p.name.startswith((".", "_"))
                    and p.suffix.lower() in (".md", ".txt", ".json")], key=_sort_key)
+
+
+def _inner_case_dir(d: Path) -> Optional[Path]:
+    """The one subfolder holding a case's index.md/history.md when the case folder itself has no .md
+    (a Track/Case/sub layout), else None. Two or more such subfolders are not guessed between."""
+    if (d / "index.md").exists() or (d / "history.md").exists():
+        return None
+    inner = [x for x in d.iterdir() if x.is_dir() and ((x / "index.md").exists() or (x / "history.md").exists())]
+    return inner[0] if len(inner) == 1 else None
 
 
 def _sort_key(p: Path):
