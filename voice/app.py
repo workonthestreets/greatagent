@@ -1,7 +1,7 @@
 """Voice channel: an ElevenLabs agent takes the call, this service decides.
 
 The ElevenLabs agent calls `POST /voice/tool` mid-call with what the caller said. We turn it
-into the same `AgentInput` every other case uses, run `agent.decide`, and send back a reply
+into the same `AgentInput` every other case uses, run `triage.decide`, and send back a reply
 built from a fixed template. The spoken words never come from free LLM text, so the call can't
 promise money, a date or an outcome the decision didn't make.
 
@@ -26,9 +26,9 @@ from pathlib import Path
 from fastapi import FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from agent.decide import decide
-from agent.outbox import deliver
 from scorer.cases import AgentInput
+from triage.decide import decide
+from triage.outbox import deliver
 
 LOG_DIR = Path(os.getenv("VOICE_LOG_DIR", "runs/voice"))
 DECIDE_BUDGET_S = 14  # ElevenLabs gives a webhook tool 20 s by default; leave room for the network

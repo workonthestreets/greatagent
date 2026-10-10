@@ -1,14 +1,13 @@
 # Voice line (ElevenLabs Agents → delivery agent)
 
 A caller reports a delivery problem. The ElevenLabs agent collects the details and calls
-`POST /voice/tool` mid-call. We run the same `agent.decide` as every other case and reply
+`POST /voice/tool` mid-call. We run the same `triage.decide` as every other case and reply
 with a fixed spoken template, so the call can't promise money, a time or an outcome. The
 decision and the transcript are logged in `runs/voice/`.
 
 ## Run
 
 ```bash
-cd kash.testing
 VOICE_TOOL_SECRET=<long random> ELEVENLABS_WEBHOOK_SECRET=<from dashboard> \
   uv run uvicorn voice.app:app --port 8000
 cloudflared tunnel --url http://localhost:8000     # public https URL for ElevenLabs
@@ -43,7 +42,7 @@ registers a `handle_caller_turn` webhook tool and a prompt that calls it after *
 message, speaks the returned `say` verbatim, and wraps up when `status` is `end_call`.
 
 Per call the service keeps `runs/voice/<conv>-state.json` — caller name, order reference, update
-contact and every utterance so far. Each turn re-runs `agent.decide` on the whole call history
+contact and every utterance so far. Each turn re-runs `triage.decide` on the whole call history
 (each utterance is an event), so a late reference or correction changes the next answer.
 
 The reply is always a fixed template:

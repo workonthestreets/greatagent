@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from agent import answers
+from triage import answers
 
 FIXTURES = Path(__file__).parent / "fixtures" / "Insurance Claims Processing"
 

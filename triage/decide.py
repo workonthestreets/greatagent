@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import re
 
-from agent.facts import DeliveryFacts, Party
 from scorer.cases import AgentInput
 from scorer.llm import LLMError, ask
+from triage.facts import DeliveryFacts, Party
 
 SYSTEM = (
     "You read one delivery operations case for the coordinator who must act next. Fill the form "

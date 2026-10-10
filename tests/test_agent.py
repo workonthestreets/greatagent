@@ -1,6 +1,6 @@
-from agent import decide as agent_mod
-from agent.facts import DeliveryFacts, Party
 from scorer.cases import AgentInput
+from triage import decide as agent_mod
+from triage.facts import DeliveryFacts, Party
 
 TEXT = "## Case details\n- **Primary shipment:** DL-017\n\nThe tracking link does not open."
 

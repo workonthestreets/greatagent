@@ -3,14 +3,13 @@
 Cuts each public case at the moment a decision is needed, hides the ending, asks an agent
 for the next action, and has Claude grade it against what actually happened.
 
-Everything runs from `kash.testing/`:
+Everything runs from the repo root:
 
 ```bash
-cd kash.testing
 scripts/fetch_cases.sh                                  # public cases -> data/public-cases
 uv run python -m scorer.run                             # raw Claude, 5 cases per track
 uv run python -m scorer.run --tracks insurance --ids all --out runs/ins.jsonl
-uv run python -m scorer.run --agent ourpkg.agent:decide # score our agent instead
+uv run python -m scorer.run --agent triage.decide:decide # score our agent instead
 ```
 
 Grades: **2** right action and recipient · **1** acceptable alternative or partly right ·

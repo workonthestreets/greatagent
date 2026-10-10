@@ -1,4 +1,4 @@
-"""The facts form Claude fills for one delivery case. Claude reads; `agent.decide` decides.
+"""The facts form Claude fills for one delivery case. Claude reads; `triage.decide` decides.
 
 Every field is something visible in the case text. Nothing here names the action to take:
 `need` says what is missing, and code maps that to who gets asked and how.

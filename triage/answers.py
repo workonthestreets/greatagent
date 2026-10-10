@@ -1,6 +1,6 @@
 """Run the agent over a folder of cases and write the submission layout.
 
-    uv run python -m agent.answers --cases <dir-with-NNN-folders> --out ANSWERS [--deadline 1200]
+    uv run python -m triage.answers --cases <dir-with-NNN-folders> --out ANSWERS [--deadline 1200]
 
 Each case folder (`index.md` + `history.md` + `attachments/`) becomes `ANSWERS/<n>/ANSWER.md`,
 `REASONING.md` and `outbox.eml`, plus one line in `ANSWERS/results.jsonl`. A case that
@@ -18,9 +18,9 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-from agent.decide import NEVER, decide, escalation
-from agent.outbox import deliver
 from scorer.cases import HIDDEN_DETAILS, AgentInput, attachment_text, load_case
+from triage.decide import NEVER, decide, escalation
+from triage.outbox import deliver
 
 # sections that describe how a public case ended; a Reality Test folder may carry them too
 HIDDEN = {"Context", "Overview", "Next action at escalation", "Outcome", "Resolution", "Boundaries and remaining work",

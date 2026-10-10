@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+*.eml
+data/
+runs/
+.venv/
+.DS_Store
+.transfer/

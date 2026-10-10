@@ -1,6 +1,7 @@
-# kash.testing ↔ deskagent — how the lanes fit
+# voice + scorer ↔ deskagent — how the lanes fit
 
-Proposal for merging the `kash.testing/` lane (`feat/case-scorer`) with `deskagent` on
+This branch (`feat/case-scorer`) promotes the lane's packages to the repo root —
+`voice/`, `scorer/` and `triage/` (formerly `agent/`) — ready to merge with `deskagent` on
 `main`. Nothing here changes `deskagent` — every integration point calls its public
 functions (`load_case`, `process_case`) the same way `run.py` does.
 
@@ -52,17 +53,17 @@ code is everything left of the `deskagent` subgraph.
 
 ## What each lane has today
 
-| Concern | `main` (`deskagent`) | `feat/case-scorer` (`kash.testing/`) |
+| Concern | `main` (`deskagent`) | `feat/case-scorer` (this branch) |
 |---|---|---|
-| Agent | `deskagent/`: loader → planner → policy lint → independent reviewer → executor | `agent/`: facts extraction → deterministic `decide()` → outbox |
+| Agent | `deskagent/`: loader → planner → policy lint → independent reviewer → executor | `triage/`: facts extraction → deterministic `decide()` → outbox |
 | Case loader + cutoff | `deskagent/loader.py` (`--public-cutoff`, attachments→vision) | `scorer/cases.py` (same format → `AgentInput`) |
-| ANSWERS writer | `deskagent/report.py` (ANSWER/REASONING/trace/SUMMARY/manifest) | `agent/answers.py` + `outbox.py` |
+| ANSWERS writer | `deskagent/report.py` (ANSWER/REASONING/trace/SUMMARY/manifest) | `triage/answers.py` + `triage/outbox.py` |
 | Evaluation | `eval.py` — LLM judge, 49/50 @ 9.84/10 on public-50 | `scorer/` — deterministic label-match, `raw_claude` baseline |
 | Hard cases | `stress_cases/101–120` + `build*.py` (invented) | `scorer/hardset.py` (mutations of public cases) |
 | Voice | — | `voice/` — ElevenLabs webhook, template-only `spoken()` replies |
 | Submission path | `reality.sh`, `RUNBOOK.md`, `SUBMISSION.md` | — |
 
-## Proposed moves
+## The moves in this PR
 
 ### 1. `voice/` → top-level `voice/` package (the headline merge)
 
@@ -124,10 +125,10 @@ What it needs beyond the one-shot:
   `deskagent` remains the post-call decision of record — the voice loop can only
   collect, acknowledge and hand over, never commit.
 
-Implemented in `kash.testing/voice/` behind `VOICE_ASSIST` / `setup_agent.py --assist`;
+Implemented in `voice/` behind `VOICE_ASSIST` / `setup_agent.py --assist`;
 the one-shot `report_delivery_issue` path stays the default for the 60 s demo.
 
-### 2. `scorer/` → independent second-opinion gate (keep in `kash.testing/` or move to `scoring/`)
+### 2. `scorer/` → independent second-opinion gate (now top-level `scorer/`)
 
 `eval.py` is a nuanced LLM judge; `scorer` is a cheap deterministic check — *did the
 agent's next action match the labelled one?* They're complementary. To score
@@ -147,14 +148,14 @@ Two generators, different methods: hardset mutates the 8 public bases (rewrites 
 label for what a careful operator should do); `stress_cases/` invents new cases. Merge
 the generated outputs into one corpus (`stress_cases/` or `evals/hard/`).
 
-### 4. `agent/` → scorer baseline, not a second product agent
+### 4. `agent/` → `triage/`: scorer baseline, not a second product agent
 
-`kash.testing/agent/decide.py` becomes a second baseline next to `raw_claude` — the bar
+`triage/decide.py` becomes a second baseline next to `raw_claude` — the bar
 "does deskagent beat the deterministic agent?" It already caught one real failure mode
 (hyphen-insensitive refs, status-disagreement ≠ ref conflict) worth porting as a
 `policy.py` lint rule or planner-prompt line on the deskagent side.
 
-### 5. `scorer/cases.py`, `agent/answers.py`, `outbox.py` → retire in favour of `deskagent.loader` / `report.py`
+### 5. `scorer/cases.py`, `triage/answers.py`, `triage/outbox.py` → retire in favour of `deskagent.loader` / `report.py`
 
 Same job, less complete. Keep until (2) is wired, then delete.
 
