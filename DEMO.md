@@ -90,10 +90,25 @@ The web app (`web/`) is styled on the Meridian design system (`web/design/meridi
 
 The login page carries both entry points as two cards on its band ("Sign in as coordinator", "Sign in as customer").
 
+### Swipe approvals, medals, coins and merch (staff)
+
+Drafts waiting for approval are a deck of charcoal cards on the desk: drag the top card right to approve, left to reject (the reason field on the card goes to the agent), or use the round check / x buttons and the arrow keys. Every decision earns coins (15 for an approval, 10 for a rejection with a reason, 5 without) and can unlock a medal: First call, Steady hand, Desk veteran, Gatekeeper, Clean desk, Early bird. The **Rewards** page shows the balance, the medals with progress, the merch shop (coins buy fictional Rivet merch: cap, mug, socks, tote, hoodie, bottle) and past orders; admins also see the team table. Coins and medals are for staff accounts only; nothing is cash.
+
+Setup once per database: `python -m db.migrate` (applies `db/migrations/002_rewards.sql`) and `python -m db.seed_rewards` (120 welcome coins per staff profile, idempotent).
+
+### One portal per role
+
+- **Customer**: the thread with the desk, shipments, new requests.
+- **Driver**: stops on the route with "Out for delivery", "Attempted", "Delivered" (each writes the shipment status and a case event, and wakes the agent) and "Report a problem".
+- **Depot**: shipments at the site with "Arrived", "Ready for collection", "Collected".
+- **Merchant**: cases on the merchant's orders with "Approve replacement", "Approve refund", "Decline" plus a note; the decision lands on the case and the agent takes it from there.
+
+Demo accounts: `driver@`, `depot@`, `merchant@greatagent.demo` (same demo password).
+
 ### Preview without Supabase
 
 ```bash
-cd web && npm run preview:demo      # http://127.0.0.1:3100/?view=login | ops | ops-hold | party
+cd web && npm run preview:demo      # http://127.0.0.1:3100/?view=login | ops | ops-hold | party | rewards | driver | depot | merchant
 web/preview/shoot.sh [out_dir]      # headless-Chrome screenshots at 1440 and 390 px
 ```
 

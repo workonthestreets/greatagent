@@ -1,17 +1,13 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   fmtTime, hub, useLive, type Action, type AgentEvent, type AgentRun, type Case, type CaseEvent, type Profile,
 } from "./lib";
 import { Composer, Timeline } from "./Timeline";
-import { ArrowUpRight, Mail, Pause, Send, User, X } from "./icons";
+import SwipeDeck from "./SwipeDeck";
+import { ArrowUpRight, Mail, Pause, User, X } from "./icons";
 import { Status, statusText } from "./ui";
 
 const STATUSES = ["all", "open", "in_progress", "waiting", "escalated", "resolved"];
-
-const CHANNEL_LABEL: Record<string, string> = {
-  portal: "Customer portal", email: "Email", sms: "SMS", voice: "Voice line", phone: "Phone", whatsapp: "WhatsApp",
-};
-const channelLabel = (c?: string) => (c ? CHANNEL_LABEL[c] ?? statusText(c) : "");
 
 export default function Ops({ profile, initialCase }: { profile: Profile; initialCase?: string }) {
   const cases = useLive<Case>("cases", (q) => q.order("updated_at", { ascending: false }));
@@ -46,20 +42,7 @@ export default function Ops({ profile, initialCase }: { profile: Profile; initia
         <Stat label="Agent spend" value={`$${(totalCost / 100).toFixed(2)}`} />
       </dl>
 
-      {pending.length > 0 && (
-        <section className="approvals" aria-labelledby="approvals-title">
-          <div className="section-head">
-            <h2 className="section-title" id="approvals-title">Waiting for your approval</h2>
-            <span className="text-muted body-sm">{pending.length} {pending.length === 1 ? "draft" : "drafts"}</span>
-          </div>
-          <div className="band-block">
-            <div className="spectrum-band band--desk" aria-hidden="true" />
-            <div className="spectrum-cards approvals__grid">
-              {pending.map((a) => <Approval key={a.id} action={a} onOpen={() => setSelected(a.case_id)} />)}
-            </div>
-          </div>
-        </section>
-      )}
+      <SwipeDeck pending={pending} onOpen={setSelected} />
 
       <div className="split">
         <section className="split__list" aria-labelledby="cases-title">
@@ -104,56 +87,6 @@ function Stat({ label, value, highlight }: { label: string; value: number | stri
         {value}
       </dd>
     </div>
-  );
-}
-
-function Approval({ action, onOpen }: { action: Action; onOpen: () => void }) {
-  const [reason, setReason] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-  const decide = async (verb: "approve" | "reject") => {
-    setBusy(true);
-    setErr("");
-    try { await hub(`/api/actions/${action.id}/${verb}`, { reason }); } catch (e) { setErr((e as Error).message); }
-    setBusy(false);
-  };
-  const a = action.args as Record<string, string>;
-  // Fade the bottom of a long draft while more of it is hidden below, so the cut reads as a scroll.
-  const draftRef = useRef<HTMLDivElement>(null);
-  const [moreBelow, setMoreBelow] = useState(false);
-  const checkMore = () => {
-    const el = draftRef.current;
-    if (el) setMoreBelow(el.scrollTop + el.clientHeight < el.scrollHeight - 2);
-  };
-  useEffect(checkMore, [a.body, a.subject]);
-  return (
-    <article className="card-feature approval">
-      <div className="approval__top">
-        <span className="card-feature__icon">{a.channel === "email" ? <Mail /> : <Send />}</span>
-        <span className="approval__meta">
-          <button className="approval__case" onClick={onOpen}>Case #{action.case_id}</button>
-          <span>{fmtTime(action.created_at)}</span>
-        </span>
-      </div>
-      <h3 className="headline-md">
-        {a.to_party ? `To ${a.to_party}${a.channel ? `, ${channelLabel(a.channel)}` : ""}` : action.tool}
-      </h3>
-      <div className={`approval__draft-wrap ${moreBelow ? "has-more" : ""}`}>
-        <div className="approval__draft" ref={draftRef} onScroll={checkMore}>
-          {a.subject && <p className="approval__subject">{a.subject}</p>}
-          <div className="approval__body">{a.body ?? JSON.stringify(action.args, null, 2)}</div>
-        </div>
-      </div>
-      <div className="approval__actions">
-        <input className="input input--dark" aria-label="Reason" placeholder="Reason, sent to the agent if rejected"
-          value={reason} onChange={(e) => setReason(e.target.value)} />
-        <div className="approval__buttons">
-          <button className="btn btn--inverse" disabled={busy} onClick={() => decide("approve")}>Approve</button>
-          <button className="btn-text" disabled={busy} onClick={() => decide("reject")}>Reject</button>
-        </div>
-      </div>
-      {err && <p className="approval__error">{err}</p>}
-    </article>
   );
 }
 

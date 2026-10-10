@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import { isStaff, signOut, supabase, useSession, type Profile } from "./lib";
 import Login from "./Login";
 import Ops from "./Ops";
-import PartyView from "./PartyView";
+import Rewards from "./Rewards";
+import CustomerPortal from "./CustomerPortal";
+import DriverPortal from "./DriverPortal";
+import DepotPortal from "./DepotPortal";
+import MerchantPortal from "./MerchantPortal";
 import { Mark } from "./icons";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -15,11 +19,16 @@ const VIEW_NAME: Record<string, string> = {
   depot: "Shipments at my site", merchant: "Cases on my orders",
 };
 
-/** `initialCase` preselects a case (used by the screenshot preview); undefined in production. */
-export default function App({ initialCase }: { initialCase?: string } = {}) {
+const PORTALS = { customer: CustomerPortal, driver: DriverPortal, depot: DepotPortal, merchant: MerchantPortal };
+
+type Page = "desk" | "rewards";
+
+/** `initialCase` / `initialPage` preselect a case or a staff page (used by the screenshot preview); undefined in production. */
+export default function App({ initialCase, initialPage = "desk" }: { initialCase?: string; initialPage?: Page } = {}) {
   const session = useSession();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState("");
+  const [page, setPage] = useState<Page>(initialPage);
 
   useEffect(() => {
     if (!session) { setProfile(null); return; }
@@ -41,11 +50,25 @@ export default function App({ initialCase }: { initialCase?: string } = {}) {
   );
   if (!profile) return <div className="page framed app"><p className="center text-muted state">Loading profile…</p></div>;
 
+  const staff = isStaff(profile.role);
+  const go = (p: Page) => (e: React.MouseEvent) => { e.preventDefault(); setPage(p); window.scrollTo({ top: 0 }); };
+  const Portal = PORTALS[profile.role as keyof typeof PORTALS] ?? CustomerPortal;
+
   return (
     <div className="page framed app">
       <nav className="nav">
         <div className="nav__links">
-          <a className="nav__link nav__link--current" href="#top">{VIEW_NAME[profile.role]}</a>
+          {staff ? (
+            <>
+              {page === "desk"
+                ? <a className="nav__link nav__mobile" href="#rewards" onClick={go("rewards")}>Rewards</a>
+                : <a className="nav__link nav__mobile" href="#top" onClick={go("desk")}>Desk</a>}
+              <a className={`nav__link ${page === "desk" ? "nav__link--current" : ""}`} href="#top" onClick={go("desk")}
+                aria-current={page === "desk" ? "page" : undefined}>Desk</a>
+              <a className={`nav__link ${page === "rewards" ? "nav__link--current" : ""}`} href="#rewards" onClick={go("rewards")}
+                aria-current={page === "rewards" ? "page" : undefined}>Rewards</a>
+            </>
+          ) : <a className="nav__link nav__link--current" href="#top">{VIEW_NAME[profile.role]}</a>}
           <span className="nav__who">{profile.party_name || profile.display_name || profile.email}</span>
         </div>
         <span className="nav__mark" aria-label="Rivet Delivery Desk" role="img"><Mark /></span>
@@ -54,9 +77,9 @@ export default function App({ initialCase }: { initialCase?: string } = {}) {
           <button className="btn btn--secondary" onClick={() => signOut()}>Sign out</button>
         </div>
       </nav>
-      {isStaff(profile.role)
-        ? <Ops profile={profile} initialCase={initialCase} />
-        : <PartyView profile={profile} initialCase={initialCase} />}
+      {staff
+        ? page === "rewards" ? <Rewards profile={profile} /> : <Ops profile={profile} initialCase={initialCase} />
+        : <Portal profile={profile} initialCase={initialCase} />}
     </div>
   );
 }
