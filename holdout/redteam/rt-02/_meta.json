@@ -1,0 +1,13 @@
+{
+ "source": "redteam",
+ "target": "deadline already passed: pickup hold expired 40 min before the request; recovery cutoff still open",
+ "traits": [
+  "time_reasoning",
+  "expired_deadline",
+  "recovery_routing",
+  "noise",
+  "pattern_lure"
+ ],
+ "expected_decision": "act",
+ "split": "redteam"
+}

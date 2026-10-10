@@ -1,0 +1,33 @@
+Thistlecombe Outdoor Co. — partner contact sheet for Saltmarsh Delivery Desk
+Version: 2026-09-14 (supersedes version 2026-03-02)
+Issued by: Corin Haldane, Partner Account Manager
+
+OPERATIONS
+  Rafe Linden, Operations Lead
+  Covers: dispatch problems, lost or damaged parcels, replacements and reships.
+  Standing authorisation: when the carrier has declared a parcel lost, the desk may book a
+  like-for-like replacement with Gullfield Fulfilment on Rafe's instruction. This applies up to
+  GBP 150.00 retail value and needs no further sign-off.
+  Channel: Partner chat, Mon–Fri 08:00–18:00 UTC.
+
+FINANCE & RISK
+  Mireille Oakes, Finance & Risk Manager (team mailbox monitored by the whole team)
+  Covers: payments, refunds over GBP 150.00, chargebacks, card disputes and fraud reviews.
+  Finance & Risk may place a hold on an order.
+  Channel: Email, Mon–Fri 08:00–17:00 UTC.
+
+CUSTOMER CARE
+  Customer care team
+  Covers: order questions, and address changes before dispatch.
+  Channel: Email.
+
+ACCOUNT MANAGEMENT
+  Corin Haldane, Partner Account Manager
+  Covers: owner of the Saltmarsh relationship. Escalations, service issues, and any request
+  where it is unclear which of our teams should decide.
+  Channel: Email or Partner chat, Mon–Fri 08:00–17:00 UTC.
+
+WAREHOUSE
+  Gullfield Fulfilment, Outbound team (operates our stock)
+  Releases stock for a replacement only on a booking confirmed by the Saltmarsh desk in the
+  Warehouse portal. Brackwater Parcels collects from Gullfield once each weekday at 15:00 UTC.
