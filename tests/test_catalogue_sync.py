@@ -58,7 +58,7 @@ def test_queues_match_escalation_queues_json():
     if _skip():
         return
     q = json.loads((CAT / "escalation_queues.json").read_text())["queues"]
-    assert set(q) == set(c.QUEUES)
+    assert set(q) == set(c.QUEUES) == set(c.QUEUE_BRIEF)
     for name, (_, chan, sla, gate) in c.QUEUES.items():
         assert q[name]["channel_rule"] == chan, name
         assert q[name]["sla"] == sla, name

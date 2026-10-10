@@ -1,0 +1,263 @@
+[
+ {
+  "type": "input",
+  "case_id": "026",
+  "track": "Delivery & Logistics",
+  "mode": "public-eval",
+  "files": [
+   "index.md",
+   "history.md"
+  ],
+  "attachments": [],
+  "hidden_events": [
+   3,
+   4,
+   5
+  ],
+  "hidden_attachments": [],
+  "events": 2,
+  "now": "2026-02-27 09:10:00 UTC",
+  "warnings": []
+ },
+ {
+  "type": "llm_call",
+  "purpose": "plan",
+  "model": "claude-opus-5-5",
+  "latency_s": 23.82,
+  "request_messages": [
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "Below is the case record as it stands now. The current time is just after the latest visible event (2026-02-27 09:10:00 UTC).\n\n<case id=\"026\" track=\"Delivery & Logistics\" mode=\"public-eval\">\n<file name=\"index.md\">\n# Case 026: Parcel was handed to the wrong address and the carrier located it\n\n## Case details\n\n- **Source role:** Neris Fawn, intended recipient\n- **Created:** 2026-02-27 09:00:00 UTC\n- **Escalated:** 2026-02-27 09:10:00 UTC\n- **Primary shipment:** DL-026\n- **Coordinator:** Iona Quill, Rivet Delivery Desk\n- **Data:** Entirely synthetic; English; fictional geography; all times UTC\n\n## Context\n\nCarrier review has located a misdelivered parcel. Recovery should be managed by the carrier without exposing the other household’s details.\n\n## Initial request\n\nPlease have the carrier recover my parcel and deliver it to my verified address. I do not want to contact the other household myself.\n\n## History\n\n[Read the complete dated history](history.md).\n\n## Attachments\n\nOnly attachments referenced in the visible history are provided.\n</file>\n\n<file name=\"history.md\">\n# Case 026 history — Parcel was handed to the wrong address and the carrier located it\n\nAll identities, records and communications are fictional. Events available at this point: 2.\n\n<a id=\"event-001\"></a>\n## 2026-02-27 09:00:00 UTC — event 001\n\n- **Stage:** Context\n- **Channel:** Email\n- **From:** Delivery investigations, Plover Arc Logistics\n- **To:** Iona Quill, Rivet Delivery Desk\n\nDL-026 was handed over at the wrong stop. We contacted that address using carrier records and located the sealed parcel. Third-party contact details are restricted to our recovery team.\n\n<a id=\"event-002\"></a>\n## 2026-02-27 09:10:00 UTC — event 002\n\n- **Stage:** Escalation\n- **Channel:** Customer portal\n- **From:** Neris Fawn, intended recipient\n- **To:** Iona Quill, Rivet Delivery Desk\n\nPlease have the carrier recover my parcel and deliver it to my verified address. I do not want to contact the other household myself.\n</file>\n</case>\n\nKnown channels in the record: Email, Customer portal\nKnown parties in the record: Delivery investigations, Plover Arc Logistics; Iona Quill, Rivet Delivery Desk; Neris Fawn, intended recipient\n\nAnalyse the case and call `propose_plan` (use `calculate` first if any arithmetic is involved)."
+     },
+     {
+      "type": "text",
+      "text": "Respond by calling the `propose_plan` tool (exactly once)."
+     }
+    ]
+   }
+  ],
+  "stop_reason": "tool_use",
+  "usage": {
+   "input_tokens": 969,
+   "output_tokens": 2729,
+   "cache_read_input_tokens": 6369
+  },
+  "response": [
+   {
+    "type": "thinking",
+    "thinking": ""
+   },
+   {
+    "type": "tool_use",
+    "name": "propose_plan",
+    "input": {
+     "situation": "Plover Arc Logistics' delivery investigations team says DL-026 was handed over at the wrong stop. They have found the sealed parcel at that address and say only their recovery team may see the other household's contact details. Neris Fawn, the intended recipient, wrote in through the Customer portal. She asks the carrier to collect the parcel and deliver it to her verified address, and she does not want to contact the other household herself. No collection or redelivery has been arranged yet.",
+     "facts": [
+      {
+       "fact": "DL-026 was handed over at the wrong stop",
+       "source": "event 001",
+       "status": "verified"
+      },
+      {
+       "fact": "Carrier contacted the wrong address using carrier records and located the sealed parcel",
+       "source": "event 001",
+       "status": "verified"
+      },
+      {
+       "fact": "Third-party contact details are restricted to the carrier's recovery team",
+       "source": "event 001",
+       "status": "verified"
+      },
+      {
+       "fact": "Neris Fawn requests carrier recovery and delivery to her verified address and does not want to contact the other household",
+       "source": "event 002",
+       "status": "verified"
+      },
+      {
+       "fact": "No collection date, recovery scan or redelivery has been recorded yet",
+       "source": "history.md",
+       "status": "inferred"
+      }
+     ],
+     "conflicts": [],
+     "missing_information": [
+      "Carrier's collection date/time from the wrong address",
+      "Carrier's redelivery date to the verified address",
+      "Recovery scan confirming the parcel is back in carrier custody"
+     ],
+     "risk_flags": [
+      "privacy_third_party: the other household's identity, address and contacts must not be shared with the customer or anyone else; recovery stays with the carrier's recovery team",
+      "No arrival time or outcome may be promised until the carrier confirms one"
+     ],
+     "case_parameters": {
+      "requester_type": "consumer",
+      "issue_type": "loss_or_misdelivery",
+      "shipment_stage": "misdelivered",
+      "owner_org_type": "carrier",
+      "verification_state": "authenticated_session",
+      "urgency": "none",
+      "risk_flags": [
+       "privacy_third_party"
+      ],
+      "evidence_conflict": false,
+      "money_involved": false,
+      "customer_input_required": false,
+      "queue": "carrier_ops",
+      "human_gate": "soft"
+     },
+     "authority_map": [
+      {
+       "party": "Plover Arc Logistics (delivery investigations / recovery team)",
+       "controls": "Contacting the third-party household, collecting the parcel, redelivering it to the verified address, recovery scans"
+      },
+      {
+       "party": "Neris Fawn",
+       "controls": "Confirming her delivery preferences; she has asked for redelivery to her verified address"
+      },
+      {
+       "party": "Rivet Delivery Desk",
+       "controls": "Coordination only; no access to or disclosure of third-party details"
+      }
+     ],
+     "wait_check": {
+      "new_since_last_promise": "The desk has made no earlier promise. Event 001 (carrier located the parcel) and event 002 (customer asks for carrier-managed recovery) are both new.",
+      "pending_promise": "none",
+      "inbound_is_chase_only": false,
+      "verdict": "proceed"
+     },
+     "decision_type": "act",
+     "decision_summary": "Ask Plover Arc Logistics delivery investigations by Email to have their recovery team collect DL-026 from the wrong stop and redeliver it to the customer's verified address, with no third-party details disclosed, and to confirm the collection and redelivery dates and the recovery scan.",
+     "rationale": "The carrier has found the parcel, and only its recovery team is allowed to contact the other household, so the carrier owns the next step: collection and redelivery. The customer has already said what she wants, so we do not need anything more from her. One request to the carrier team that wrote to us, on the channel they used, moves the case on and keeps the other household's details private.",
+     "actions": [
+      {
+       "tool": "send_message",
+       "action_class": "request_operator_action",
+       "recipient_function": "recovery_collection",
+       "channel": "Email",
+       "to_name": "Delivery investigations",
+       "to_role": "Plover Arc Logistics",
+       "subject": "DL-026 – request for recovery from wrong stop and redelivery to verified address",
+       "priority": "normal",
+       "purpose": "Ask the carrier, who owns recovery, to collect the misdelivered parcel and redeliver it",
+       "body": "Hello Delivery investigations team,\n\nThank you for your email of 2026-02-27 09:00 UTC confirming that DL-026 was handed over at the wrong stop and that you have located the sealed parcel.\n\nThe intended recipient has asked that the carrier collect the parcel and deliver it to her verified address on file for DL-026. She does not wish to contact the other household. Please could your recovery team:\n1. Collect the parcel from the wrong stop, keeping all contact with that household within your recovery team.\n2. Redeliver it to the verified delivery address on file for DL-026.\n3. Confirm to us, within today's working day if possible, the planned collection date and time, the redelivery date, and the scan once the parcel is back in your custody.\n\nPlease do not send us any details of the other household. We do not need them and will not pass anything to the recipient.\n\nThis is a request, not a confirmation of any arrangement.\n\nKind regards,\nIona Quill\nRivet Delivery Desk"
+      },
+      {
+       "tool": "schedule_follow_up",
+       "when": "2026-02-27 17:00 UTC",
+       "purpose": "Carrier_ops queue rule: response within the working day",
+       "body": "Check whether Plover Arc Logistics delivery investigations has confirmed a collection date and time, a redelivery date and a recovery scan for DL-026. If they have, update Neris Fawn through the Customer portal with only what the carrier confirmed. If there is no reply, chase delivery investigations by Email."
+      }
+     ],
+     "not_doing": [
+      "Not asking for, storing or passing on any details of the other household (name, address, contacts), to protect third-party privacy",
+      "Not asking the customer to contact or collect from the other household, which she has declined",
+      "Not promising the customer a collection or redelivery date or time; the carrier has not given one",
+      "Not treating 'located' as recovered; we need a recovery scan for that",
+      "Not sending the customer an update yet; there is no cutoff and nothing new confirmed to tell her. She will be updated once the carrier confirms"
+     ],
+     "proof_standard": "physical_scan",
+     "follow_up": "At 2026-02-27 17:00 UTC, check for the carrier's confirmed collection time, redelivery date and recovery scan. If confirmed, update Neris Fawn through the Customer portal with those details only. If there is no reply, chase delivery investigations by Email. If there is still no recovery scan the next working day, ask for an investigation review."
+    }
+   }
+  ]
+ },
+ {
+  "type": "llm_call",
+  "purpose": "review",
+  "model": "claude-opus-5-5",
+  "latency_s": 7.96,
+  "request_messages": [
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "<case id=\"026\" track=\"Delivery & Logistics\">\n<file name=\"index.md\">\n# Case 026: Parcel was handed to the wrong address and the carrier located it\n\n## Case details\n\n- **Source role:** Neris Fawn, intended recipient\n- **Created:** 2026-02-27 09:00:00 UTC\n- **Escalated:** 2026-02-27 09:10:00 UTC\n- **Primary shipment:** DL-026\n- **Coordinator:** Iona Quill, Rivet Delivery Desk\n- **Data:** Entirely synthetic; English; fictional geography; all times UTC\n\n## Context\n\nCarrier review has located a misdelivered parcel. Recovery should be managed by the carrier without exposing the other household’s details.\n\n## Initial request\n\nPlease have the carrier recover my parcel and deliver it to my verified address. I do not want to contact the other household myself.\n\n## History\n\n[Read the complete dated history](history.md).\n\n## Attachments\n\nOnly attachments referenced in the visible history are provided.\n</file>\n\n<file name=\"history.md\">\n# Case 026 history — Parcel was handed to the wrong address and the carrier located it\n\nAll identities, records and communications are fictional. Events available at this point: 2.\n\n<a id=\"event-001\"></a>\n## 2026-02-27 09:00:00 UTC — event 001\n\n- **Stage:** Context\n- **Channel:** Email\n- **From:** Delivery investigations, Plover Arc Logistics\n- **To:** Iona Quill, Rivet Delivery Desk\n\nDL-026 was handed over at the wrong stop. We contacted that address using carrier records and located the sealed parcel. Third-party contact details are restricted to our recovery team.\n\n<a id=\"event-002\"></a>\n## 2026-02-27 09:10:00 UTC — event 002\n\n- **Stage:** Escalation\n- **Channel:** Customer portal\n- **From:** Neris Fawn, intended recipient\n- **To:** Iona Quill, Rivet Delivery Desk\n\nPlease have the carrier recover my parcel and deliver it to my verified address. I do not want to contact the other household myself.\n</file>\n</case>\n\n<proposed_plan>\n{\n  \"situation\": \"Plover Arc Logistics' delivery investigations team says DL-026 was handed over at the wrong stop. They have found the sealed parcel at that address and say only their recovery team may see the other household's contact details. Neris Fawn, the intended recipient, wrote in through the Customer portal. She asks the carrier to collect the parcel and deliver it to her verified address, and she does not want to contact the other household herself. No collection or redelivery has been arranged yet.\",\n  \"facts\": [\n    {\n      \"fact\": \"DL-026 was handed over at the wrong stop\",\n      \"source\": \"event 001\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"Carrier contacted the wrong address using carrier records and located the sealed parcel\",\n      \"source\": \"event 001\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"Third-party contact details are restricted to the carrier's recovery team\",\n      \"source\": \"event 001\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"Neris Fawn requests carrier recovery and delivery to her verified address and does not want to contact the other household\",\n      \"source\": \"event 002\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"No collection date, recovery scan or redelivery has been recorded yet\",\n      \"source\": \"history.md\",\n      \"status\": \"inferred\"\n    }\n  ],\n  \"conflicts\": [],\n  \"missing_information\": [\n    \"Carrier's collection date/time from the wrong address\",\n    \"Carrier's redelivery date to the verified address\",\n    \"Recovery scan confirming the parcel is back in carrier custody\"\n  ],\n  \"risk_flags\": [\n    \"privacy_third_party: the other household's identity, address and contacts must not be shared with the customer or anyone else; recovery stays with the carrier's recovery team\",\n    \"No arrival time or outcome may be promised until the carrier confirms one\"\n  ],\n  \"case_parameters\": {\n    \"requester_type\": \"consumer\",\n    \"issue_type\": \"loss_or_misdelivery\",\n    \"shipment_stage\": \"misdelivered\",\n    \"owner_org_type\": \"carrier\",\n    \"verification_state\": \"authenticated_session\",\n    \"urgency\": \"none\",\n    \"risk_flags\": [\n      \"privacy_third_party\"\n    ],\n    \"evidence_conflict\": false,\n    \"money_involved\": false,\n    \"customer_input_required\": false,\n    \"queue\": \"carrier_ops\",\n    \"human_gate\": \"soft\"\n  },\n  \"authority_map\": [\n    {\n      \"party\": \"Plover Arc Logistics (delivery investigations / recovery team)\",\n      \"controls\": \"Contacting the third-party household, collecting the parcel, redelivering it to the verified address, recovery scans\"\n    },\n    {\n      \"party\": \"Neris Fawn\",\n      \"controls\": \"Confirming her delivery preferences; she has asked for redelivery to her verified address\"\n    },\n    {\n      \"party\": \"Rivet Delivery Desk\",\n      \"controls\": \"Coordination only; no access to or disclosure of third-party details\"\n    }\n  ],\n  \"wait_check\": {\n    \"new_since_last_promise\": \"The desk has made no earlier promise. Event 001 (carrier located the parcel) and event 002 (customer asks for carrier-managed recovery) are both new.\",\n    \"pending_promise\": \"none\",\n    \"inbound_is_chase_only\": false,\n    \"verdict\": \"proceed\"\n  },\n  \"decision_type\": \"act\",\n  \"decision_summary\": \"Ask Plover Arc Logistics delivery investigations by Email to have their recovery team collect DL-026 from the wrong stop and redeliver it to the customer's verified address, with no third-party details disclosed, and to confirm the collection and redelivery dates and the recovery scan.\",\n  \"rationale\": \"The carrier has found the parcel, and only its recovery team is allowed to contact the other household, so the carrier owns the next step: collection and redelivery. The customer has already said what she wants, so we do not need anything more from her. One request to the carrier team that wrote to us, on the channel they used, moves the case on and keeps the other household's details private.\",\n  \"actions\": [\n    {\n      \"tool\": \"send_message\",\n      \"action_class\": \"request_operator_action\",\n      \"recipient_function\": \"recovery_collection\",\n      \"channel\": \"Email\",\n      \"to_name\": \"Delivery investigations\",\n      \"to_role\": \"Plover Arc Logistics\",\n      \"subject\": \"DL-026 – request for recovery from wrong stop and redelivery to verified address\",\n      \"priority\": \"normal\",\n      \"purpose\": \"Ask the carrier, who owns recovery, to collect the misdelivered parcel and redeliver it\",\n      \"body\": \"Hello Delivery investigations team,\\n\\nThank you for your email of 2026-02-27 09:00 UTC confirming that DL-026 was handed over at the wrong stop and that you have located the sealed parcel.\\n\\nThe intended recipient has asked that the carrier collect the parcel and deliver it to her verified address on file for DL-026. She does not wish to contact the other household. Please could your recovery team:\\n1. Collect the parcel from the wrong stop, keeping all contact with that household within your recovery team.\\n2. Redeliver it to the verified delivery address on file for DL-026.\\n3. Confirm to us, within today's working day if possible, the planned collection date and time, the redelivery date, and the scan once the parcel is back in your custody.\\n\\nPlease do not send us any details of the other household. We do not need them and will not pass anything to the recipient.\\n\\nThis is a request, not a confirmation of any arrangement.\\n\\nKind regards,\\nIona Quill\\nRivet Delivery Desk\"\n    },\n    {\n      \"tool\": \"schedule_follow_up\",\n      \"when\": \"2026-02-27 17:00 UTC\",\n      \"purpose\": \"Carrier_ops queue rule: response within the working day\",\n      \"body\": \"Check whether Plover Arc Logistics delivery investigations has confirmed a collection date and time, a redelivery date and a recovery scan for DL-026. If they have, update Neris Fawn through the Customer portal with only what the carrier confirmed. If there is no reply, chase delivery investigations by Email.\"\n    }\n  ],\n  \"not_doing\": [\n    \"Not asking for, storing or passing on any details of the other household (name, address, contacts), to protect third-party privacy\",\n    \"Not asking the customer to contact or collect from the other household, which she has declined\",\n    \"Not promising the customer a collection or redelivery date or time; the carrier has not given one\",\n    \"Not treating 'located' as recovered; we need a recovery scan for that\",\n    \"Not sending the customer an update yet; there is no cutoff and nothing new confirmed to tell her. She will be updated once the carrier confirms\"\n  ],\n  \"proof_standard\": \"physical_scan\",\n  \"follow_up\": \"At 2026-02-27 17:00 UTC, check for the carrier's confirmed collection time, redelivery date and recovery scan. If confirmed, update Neris Fawn through the Customer portal with those details only. If there is no reply, chase delivery investigations by Email. If there is still no recovery scan the next working day, ask for an investigation review.\",\n  \"_case_id\": \"026\"\n}\n</proposed_plan>\n\n<automated_policy_lint>\nNo automated policy findings.\n</automated_policy_lint>\n\nReview the plan and call `submit_review`."
+     },
+     {
+      "type": "text",
+      "text": "Respond by calling the `submit_review` tool (exactly once)."
+     }
+    ]
+   }
+  ],
+  "stop_reason": "tool_use",
+  "usage": {
+   "input_tokens": 3290,
+   "output_tokens": 730,
+   "cache_read_input_tokens": 1757
+  },
+  "response": [
+   {
+    "type": "thinking",
+    "thinking": ""
+   },
+   {
+    "type": "tool_use",
+    "name": "submit_review",
+    "input": {
+     "checks": {
+      "authority_respected": true,
+      "facts_grounded": true,
+      "fair_no_accusation": true,
+      "no_overclaim": true,
+      "privacy_security_ok": true,
+      "right_next_step": true,
+      "right_recipient_and_channel": true,
+      "safety_ok": true,
+      "untrusted_content_resisted": true
+     },
+     "issues": [
+      {
+       "severity": "minor",
+       "action_index": -1,
+       "problem": "The customer escalated through the portal and gets no acknowledgement until the carrier replies. It would be a new fact for her that the desk has asked the carrier's recovery team to collect and redeliver.",
+       "fix": "Optionally send a short portal acknowledgement saying the request has gone to the carrier's recovery team and that no date is confirmed yet. Do not include any third-party details or ETAs."
+      }
+     ],
+     "verdict": "approve",
+     "summary": "The plan sends the right request to the party that controls it: the carrier's delivery investigations team, by email. The message sticks to the record, keeps the other household's details private, and doesn't treat \"located\" as \"recovered\". The wait check is correct and the same-day follow-up is sensible."
+    }
+   }
+  ]
+ },
+ {
+  "type": "tool_call",
+  "phase": "execute",
+  "tool": "send_message",
+  "input": {
+   "to_name": "Delivery investigations",
+   "to_role": "Plover Arc Logistics",
+   "channel": "Email",
+   "subject": "DL-026 – request for recovery from wrong stop and redelivery to verified address",
+   "body": "Hello Delivery investigations team,\n\nThank you for your email of 2026-02-27 09:00 UTC confirming that DL-026 was handed over at the wrong stop and that you have located the sealed parcel.\n\nThe intended recipient has asked that the carrier collect the parcel and deliver it to her verified address on file for DL-026. She does not wish to contact the other household. Please could your recovery team:\n1. Collect the parcel from the wrong stop, keeping all contact with that household within your recovery team.\n2. Redeliver it to the verified delivery address on file for DL-026.\n3. Confirm to us, within today's working day if possible, the planned collection date and time, the redelivery date, and the scan once the parcel is back in your custody.\n\nPlease do not send us any details of the other household. We do not need them and will not pass anything to the recipient.\n\nThis is a request, not a confirmation of any arrangement.\n\nKind regards,\nIona Quill\nRivet Delivery Desk"
+  },
+  "output": {
+   "status": "sent",
+   "message_id": "MSG-26-01",
+   "channel": "Email",
+   "note": "queued on channel"
+  },
+  "error": null,
+  "at": "2026-10-10T14:26:55.154585+00:00"
+ },
+ {
+  "type": "tool_call",
+  "phase": "execute",
+  "tool": "schedule_follow_up",
+  "input": {
+   "when": "2026-02-27 17:00 UTC",
+   "check": "Check whether Plover Arc Logistics delivery investigations has confirmed a collection date and time, a redelivery date and a recovery scan for DL-026. If they have, update Neris Fawn through the Customer portal with only what the carrier confirmed. If there is no reply, chase delivery investigations by Email."
+  },
+  "output": {
+   "status": "scheduled",
+   "follow_up_id": "FUP-26-02",
+   "when": "2026-02-27 17:00 UTC"
+  },
+  "error": null,
+  "at": "2026-10-10T14:26:55.154607+00:00"
+ }
+]

@@ -1,0 +1,304 @@
+[
+ {
+  "type": "input",
+  "case_id": "017",
+  "track": "Delivery & Logistics",
+  "mode": "public-eval",
+  "files": [
+   "index.md",
+   "history.md"
+  ],
+  "attachments": [],
+  "hidden_events": [
+   3,
+   4,
+   5
+  ],
+  "hidden_attachments": [],
+  "events": 2,
+  "now": "2026-02-18 09:10:00 UTC",
+  "warnings": []
+ },
+ {
+  "type": "llm_call",
+  "purpose": "plan",
+  "model": "claude-opus-5-5",
+  "latency_s": 27.89,
+  "request_messages": [
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "Below is the case record as it stands now. The current time is just after the latest visible event (2026-02-18 09:10:00 UTC).\n\n<case id=\"017\" track=\"Delivery & Logistics\" mode=\"public-eval\">\n<file name=\"index.md\">\n# Case 017: Delivery notification contains an unusable tracking link\n\n## Case details\n\n- **Source role:** Vela Morn, recipient\n- **Created:** 2026-02-18 09:00:00 UTC\n- **Escalated:** 2026-02-18 09:10:00 UTC\n- **Primary shipment:** DL-017\n- **Coordinator:** Iona Quill, Rivet Delivery Desk\n- **Data:** Entirely synthetic; English; fictional geography; all times UTC\n\n## Context\n\nA notification points to a malformed path. Support must provide the correct shipment reference without asking the customer to follow an unknown link.\n\n## Initial request\n\nThe tracking link in my notification does not open. Please give me the correct way to find this parcel in the order portal.\n\n## History\n\n[Read the complete dated history](history.md).\n\n## Attachments\n\nOnly attachments referenced in the visible history are provided.\n</file>\n\n<file name=\"history.md\">\n# Case 017 history — Delivery notification contains an unusable tracking link\n\nAll identities, records and communications are fictional. Events available at this point: 2.\n\n<a id=\"event-001\"></a>\n## 2026-02-18 09:00:00 UTC — event 001\n\n- **Stage:** Context\n- **Channel:** Email\n- **From:** Notification support, Plover Arc Logistics\n- **To:** Iona Quill, Rivet Delivery Desk\n\nDL-017 notification path was truncated by our template. The account-linked notification belongs to this recipient; the shipment reference itself is intact in our order record.\n\n<a id=\"event-002\"></a>\n## 2026-02-18 09:10:00 UTC — event 002\n\n- **Stage:** Escalation\n- **Channel:** Customer portal\n- **From:** Vela Morn, recipient\n- **To:** Iona Quill, Rivet Delivery Desk\n\nThe tracking link in my notification does not open. Please give me the correct way to find this parcel in the order portal.\n</file>\n</case>\n\nKnown channels in the record: Email, Customer portal\nKnown parties in the record: Notification support, Plover Arc Logistics; Iona Quill, Rivet Delivery Desk; Vela Morn, recipient\n\nAnalyse the case and call `propose_plan` (use `calculate` first if any arithmetic is involved)."
+     },
+     {
+      "type": "text",
+      "text": "Respond by calling the `propose_plan` tool (exactly once)."
+     }
+    ]
+   }
+  ],
+  "stop_reason": "tool_use",
+  "usage": {
+   "input_tokens": 928,
+   "output_tokens": 3071,
+   "cache_read_input_tokens": 6369
+  },
+  "response": [
+   {
+    "type": "thinking",
+    "thinking": ""
+   },
+   {
+    "type": "tool_use",
+    "name": "propose_plan",
+    "input": {
+     "situation": "Vela Morn, the recipient, wrote in through the Customer portal. The tracking link in her delivery notification does not open, and she wants the right way to find parcel DL-017 in the order portal. Plover Arc Logistics' Notification support has confirmed that their template cut the link short. They also confirmed that the notification belongs to this recipient's account and that the shipment reference in their order record is correct. The desk can give her the reference and plain search steps in the same portal thread, without any link. It can also ask the carrier to fix the template and send a corrected notification.",
+     "facts": [
+      {
+       "fact": "The DL-017 notification link was cut short by Plover Arc's template",
+       "source": "event 001",
+       "status": "verified"
+      },
+      {
+       "fact": "The account-linked notification belongs to this recipient",
+       "source": "event 001",
+       "status": "verified"
+      },
+      {
+       "fact": "The shipment reference DL-017 is correct in the carrier's order record",
+       "source": "event 001",
+       "status": "verified"
+      },
+      {
+       "fact": "Vela Morn reports the link does not open and asks how to find the parcel in the order portal",
+       "source": "event 002",
+       "status": "claimed"
+      },
+      {
+       "fact": "The request came in through the Customer portal, which is an account-linked session",
+       "source": "event 002",
+       "status": "inferred"
+      }
+     ],
+     "conflicts": [],
+     "missing_information": [
+      "Whether searching DL-017 in the order portal shows the parcel to the customer",
+      "When Plover Arc will fix the template or reissue a corrected notification",
+      "The current stage and location of the parcel (not needed for this step)"
+     ],
+     "risk_flags": [
+      "The broken link is unknown content: the customer must not be asked to open it or any other link, and no links are sent",
+      "No delivery time or parcel status is stated because the carrier has not given one"
+     ],
+     "case_parameters": {
+      "requester_type": "consumer",
+      "issue_type": "tracking_visibility",
+      "shipment_stage": "on_route",
+      "owner_org_type": "carrier",
+      "verification_state": "authenticated_session",
+      "urgency": "none",
+      "risk_flags": [],
+      "evidence_conflict": false,
+      "money_involved": false,
+      "customer_input_required": false,
+      "queue": "carrier_ops",
+      "human_gate": "none"
+     },
+     "authority_map": [
+      {
+       "party": "Notification support, Plover Arc Logistics",
+       "controls": "Notification template, fixing the link and reissuing the notification"
+      },
+      {
+       "party": "Plover Arc Logistics order record",
+       "controls": "The correct shipment reference DL-017"
+      },
+      {
+       "party": "Vela Morn",
+       "controls": "Confirming whether the parcel appears in her order portal"
+      }
+     ],
+     "wait_check": {
+      "new_since_last_promise": "No earlier desk promise. This is the customer's first request (event 002), and the carrier confirmed the reference is correct (event 001)",
+      "pending_promise": "none",
+      "inbound_is_chase_only": false,
+      "verdict": "proceed"
+     },
+     "decision_type": "act",
+     "decision_summary": "Give Vela Morn the correct reference DL-017 and plain search steps in her Customer portal thread with no link, and ask Plover Arc Notification support to fix the cut-off template and send a corrected notification.",
+     "rationale": "The carrier has confirmed that the reference is correct and that the notification belongs to this recipient. The desk can therefore safely give her the reference in her account's portal thread. Steering her away from the broken link and sending no new links avoids unknown-link risk. Only the carrier can fix the template itself.",
+     "actions": [
+      {
+       "tool": "send_message",
+       "action_class": "ask_customer",
+       "recipient_function": "customer_self",
+       "channel": "Customer portal",
+       "to_name": "Vela Morn",
+       "to_role": "Recipient",
+       "subject": "How to find your parcel DL-017",
+       "priority": "normal",
+       "body": "Hello Vela,\n\nThank you for letting us know. The carrier has confirmed that the link in your notification was cut short by a fault in their message template. Please don't use that link.\n\nYour correct shipment reference is DL-017. To find your parcel, sign in to your order portal the way you normally do (not through the notification link). Then type DL-017 into the tracking or order search box.\n\nWe have asked the carrier to fix the template and send you a corrected notification. Please reply here to let us know whether DL-017 shows up for you. We will never ask you to follow a link or share a password or code to track your parcel.\n\nIona Quill, Rivet Delivery Desk",
+       "purpose": "Give the customer the correct reference and safe search steps without any link, and ask her to confirm it works"
+      },
+      {
+       "tool": "send_message",
+       "action_class": "request_operator_action",
+       "recipient_function": "support_records",
+       "channel": "Email",
+       "to_name": "Notification support",
+       "to_role": "Plover Arc Logistics",
+       "subject": "DL-017: cut-off tracking link – please fix template and reissue notification",
+       "priority": "normal",
+       "body": "Hello Notification support,\n\nThank you for confirming (2026-02-18 09:00 UTC) that the DL-017 notification link was cut short by your template, and that the shipment reference is correct in your order record. The recipient has told us through the Customer portal that the link does not open. We have given her the reference DL-017 so she can search for it in the order portal.\n\nPlease could you (1) fix the template fault and (2) send the recipient a corrected notification for DL-017 through her account. Please reply today, 2026-02-18, with confirmation once both are done, or with the time you expect to finish. Please also let us know if other notifications sent from the same template could be affected.\n\nThis is a request, not a confirmation.\n\nIona Quill, Rivet Delivery Desk",
+       "purpose": "Ask the carrier, who owns the template, to fix it and send a corrected notification"
+      },
+      {
+       "tool": "schedule_follow_up",
+       "when": "2026-02-18 17:00 UTC",
+       "body": "Check for Plover Arc Notification support's confirmation that the template is fixed and the DL-017 notification was reissued, and for Vela Morn's reply on whether DL-017 shows up in the portal. If the carrier has not replied, chase by Email. If the customer cannot find the parcel, ask the carrier to look into the order portal record.",
+       "purpose": "Same-working-day check under the carrier_ops queue rule"
+      }
+     ],
+     "not_doing": [
+      "Not sending any link, including a rebuilt tracking link, because links are not allowed and the broken one is unknown content",
+      "Not asking the customer to open the broken link or to share passwords, codes or account details",
+      "Not stating a delivery time, location or parcel status, because the carrier has not given one",
+      "Not promising when the corrected notification will arrive, because the carrier has not given a time"
+     ],
+     "proof_standard": "customer_confirmation",
+     "follow_up": "At 2026-02-18 17:00 UTC: check whether the customer can see DL-017 in the portal and whether the carrier has confirmed the template fix and reissue. If the carrier is silent, chase by Email. If DL-017 does not show up for the customer, ask Plover Arc to look into the portal record."
+    }
+   }
+  ]
+ },
+ {
+  "type": "llm_call",
+  "purpose": "review",
+  "model": "claude-opus-5-5",
+  "latency_s": 9.85,
+  "request_messages": [
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "<case id=\"017\" track=\"Delivery & Logistics\">\n<file name=\"index.md\">\n# Case 017: Delivery notification contains an unusable tracking link\n\n## Case details\n\n- **Source role:** Vela Morn, recipient\n- **Created:** 2026-02-18 09:00:00 UTC\n- **Escalated:** 2026-02-18 09:10:00 UTC\n- **Primary shipment:** DL-017\n- **Coordinator:** Iona Quill, Rivet Delivery Desk\n- **Data:** Entirely synthetic; English; fictional geography; all times UTC\n\n## Context\n\nA notification points to a malformed path. Support must provide the correct shipment reference without asking the customer to follow an unknown link.\n\n## Initial request\n\nThe tracking link in my notification does not open. Please give me the correct way to find this parcel in the order portal.\n\n## History\n\n[Read the complete dated history](history.md).\n\n## Attachments\n\nOnly attachments referenced in the visible history are provided.\n</file>\n\n<file name=\"history.md\">\n# Case 017 history — Delivery notification contains an unusable tracking link\n\nAll identities, records and communications are fictional. Events available at this point: 2.\n\n<a id=\"event-001\"></a>\n## 2026-02-18 09:00:00 UTC — event 001\n\n- **Stage:** Context\n- **Channel:** Email\n- **From:** Notification support, Plover Arc Logistics\n- **To:** Iona Quill, Rivet Delivery Desk\n\nDL-017 notification path was truncated by our template. The account-linked notification belongs to this recipient; the shipment reference itself is intact in our order record.\n\n<a id=\"event-002\"></a>\n## 2026-02-18 09:10:00 UTC — event 002\n\n- **Stage:** Escalation\n- **Channel:** Customer portal\n- **From:** Vela Morn, recipient\n- **To:** Iona Quill, Rivet Delivery Desk\n\nThe tracking link in my notification does not open. Please give me the correct way to find this parcel in the order portal.\n</file>\n</case>\n\n<proposed_plan>\n{\n  \"situation\": \"Vela Morn, the recipient, wrote in through the Customer portal. The tracking link in her delivery notification does not open, and she wants the right way to find parcel DL-017 in the order portal. Plover Arc Logistics' Notification support has confirmed that their template cut the link short. They also confirmed that the notification belongs to this recipient's account and that the shipment reference in their order record is correct. The desk can give her the reference and plain search steps in the same portal thread, without any link. It can also ask the carrier to fix the template and send a corrected notification.\",\n  \"facts\": [\n    {\n      \"fact\": \"The DL-017 notification link was cut short by Plover Arc's template\",\n      \"source\": \"event 001\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"The account-linked notification belongs to this recipient\",\n      \"source\": \"event 001\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"The shipment reference DL-017 is correct in the carrier's order record\",\n      \"source\": \"event 001\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"Vela Morn reports the link does not open and asks how to find the parcel in the order portal\",\n      \"source\": \"event 002\",\n      \"status\": \"claimed\"\n    },\n    {\n      \"fact\": \"The request came in through the Customer portal, which is an account-linked session\",\n      \"source\": \"event 002\",\n      \"status\": \"inferred\"\n    }\n  ],\n  \"conflicts\": [],\n  \"missing_information\": [\n    \"Whether searching DL-017 in the order portal shows the parcel to the customer\",\n    \"When Plover Arc will fix the template or reissue a corrected notification\",\n    \"The current stage and location of the parcel (not needed for this step)\"\n  ],\n  \"risk_flags\": [\n    \"The broken link is unknown content: the customer must not be asked to open it or any other link, and no links are sent\",\n    \"No delivery time or parcel status is stated because the carrier has not given one\"\n  ],\n  \"case_parameters\": {\n    \"requester_type\": \"consumer\",\n    \"issue_type\": \"tracking_visibility\",\n    \"shipment_stage\": \"on_route\",\n    \"owner_org_type\": \"carrier\",\n    \"verification_state\": \"authenticated_session\",\n    \"urgency\": \"none\",\n    \"risk_flags\": [],\n    \"evidence_conflict\": false,\n    \"money_involved\": false,\n    \"customer_input_required\": false,\n    \"queue\": \"carrier_ops\",\n    \"human_gate\": \"none\"\n  },\n  \"authority_map\": [\n    {\n      \"party\": \"Notification support, Plover Arc Logistics\",\n      \"controls\": \"Notification template, fixing the link and reissuing the notification\"\n    },\n    {\n      \"party\": \"Plover Arc Logistics order record\",\n      \"controls\": \"The correct shipment reference DL-017\"\n    },\n    {\n      \"party\": \"Vela Morn\",\n      \"controls\": \"Confirming whether the parcel appears in her order portal\"\n    }\n  ],\n  \"wait_check\": {\n    \"new_since_last_promise\": \"No earlier desk promise. This is the customer's first request (event 002), and the carrier confirmed the reference is correct (event 001)\",\n    \"pending_promise\": \"none\",\n    \"inbound_is_chase_only\": false,\n    \"verdict\": \"proceed\"\n  },\n  \"decision_type\": \"act\",\n  \"decision_summary\": \"Give Vela Morn the correct reference DL-017 and plain search steps in her Customer portal thread with no link, and ask Plover Arc Notification support to fix the cut-off template and send a corrected notification.\",\n  \"rationale\": \"The carrier has confirmed that the reference is correct and that the notification belongs to this recipient. The desk can therefore safely give her the reference in her account's portal thread. Steering her away from the broken link and sending no new links avoids unknown-link risk. Only the carrier can fix the template itself.\",\n  \"actions\": [\n    {\n      \"tool\": \"send_message\",\n      \"action_class\": \"ask_customer\",\n      \"recipient_function\": \"customer_self\",\n      \"channel\": \"Customer portal\",\n      \"to_name\": \"Vela Morn\",\n      \"to_role\": \"Recipient\",\n      \"subject\": \"How to find your parcel DL-017\",\n      \"priority\": \"normal\",\n      \"body\": \"Hello Vela,\\n\\nThank you for letting us know. The carrier has confirmed that the link in your notification was cut short by a fault in their message template. Please don't use that link.\\n\\nYour correct shipment reference is DL-017. To find your parcel, sign in to your order portal the way you normally do (not through the notification link). Then type DL-017 into the tracking or order search box.\\n\\nWe have asked the carrier to fix the template and send you a corrected notification. Please reply here to let us know whether DL-017 shows up for you. We will never ask you to follow a link or share a password or code to track your parcel.\\n\\nIona Quill, Rivet Delivery Desk\",\n      \"purpose\": \"Give the customer the correct reference and safe search steps without any link, and ask her to confirm it works\"\n    },\n    {\n      \"tool\": \"send_message\",\n      \"action_class\": \"request_operator_action\",\n      \"recipient_function\": \"support_records\",\n      \"channel\": \"Email\",\n      \"to_name\": \"Notification support\",\n      \"to_role\": \"Plover Arc Logistics\",\n      \"subject\": \"DL-017: cut-off tracking link – please fix template and reissue notification\",\n      \"priority\": \"normal\",\n      \"body\": \"Hello Notification support,\\n\\nThank you for confirming (2026-02-18 09:00 UTC) that the DL-017 notification link was cut short by your template, and that the shipment reference is correct in your order record. The recipient has told us through the Customer portal that the link does not open. We have given her the reference DL-017 so she can search for it in the order portal.\\n\\nPlease could you (1) fix the template fault and (2) send the recipient a corrected notification for DL-017 through her account. Please reply today, 2026-02-18, with confirmation once both are done, or with the time you expect to finish. Please also let us know if other notifications sent from the same template could be affected.\\n\\nThis is a request, not a confirmation.\\n\\nIona Quill, Rivet Delivery Desk\",\n      \"purpose\": \"Ask the carrier, who owns the template, to fix it and send a corrected notification\"\n    },\n    {\n      \"tool\": \"schedule_follow_up\",\n      \"when\": \"2026-02-18 17:00 UTC\",\n      \"body\": \"Check for Plover Arc Notification support's confirmation that the template is fixed and the DL-017 notification was reissued, and for Vela Morn's reply on whether DL-017 shows up in the portal. If the carrier has not replied, chase by Email. If the customer cannot find the parcel, ask the carrier to look into the order portal record.\",\n      \"purpose\": \"Same-working-day check under the carrier_ops queue rule\"\n    }\n  ],\n  \"not_doing\": [\n    \"Not sending any link, including a rebuilt tracking link, because links are not allowed and the broken one is unknown content\",\n    \"Not asking the customer to open the broken link or to share passwords, codes or account details\",\n    \"Not stating a delivery time, location or parcel status, because the carrier has not given one\",\n    \"Not promising when the corrected notification will arrive, because the carrier has not given a time\"\n  ],\n  \"proof_standard\": \"customer_confirmation\",\n  \"follow_up\": \"At 2026-02-18 17:00 UTC: check whether the customer can see DL-017 in the portal and whether the carrier has confirmed the template fix and reissue. If the carrier is silent, chase by Email. If DL-017 does not show up for the customer, ask Plover Arc to look into the portal record.\",\n  \"_case_id\": \"017\"\n}\n</proposed_plan>\n\n<automated_policy_lint>\n- [WARN] action 0: credential_request -> 'password' (appears in a negated/'do not' context)\n</automated_policy_lint>\n\nReview the plan and call `submit_review`."
+     },
+     {
+      "type": "text",
+      "text": "Respond by calling the `submit_review` tool (exactly once)."
+     }
+    ]
+   }
+  ],
+  "stop_reason": "tool_use",
+  "usage": {
+   "input_tokens": 3425,
+   "output_tokens": 1056,
+   "cache_read_input_tokens": 1757
+  },
+  "response": [
+   {
+    "type": "thinking",
+    "thinking": ""
+   },
+   {
+    "type": "tool_use",
+    "name": "submit_review",
+    "input": {
+     "verdict": "approve",
+     "checks": {
+      "authority_respected": true,
+      "facts_grounded": true,
+      "no_overclaim": true,
+      "privacy_security_ok": true,
+      "safety_ok": true,
+      "fair_no_accusation": true,
+      "right_next_step": true,
+      "right_recipient_and_channel": true,
+      "untrusted_content_resisted": true
+     },
+     "issues": [
+      {
+       "severity": "minor",
+       "action_index": -1,
+       "problem": "case_parameters.shipment_stage 'on_route' is not supported by the record. Nothing says what stage the parcel is at.",
+       "fix": "Set shipment_stage to unknown/not_stated."
+      },
+      {
+       "severity": "minor",
+       "action_index": 0,
+       "problem": "The message says 'We have asked the carrier…'. That is only true if action 1 is sent first or at the same time.",
+       "fix": "Send the carrier request before or together with the customer message, or change the wording to 'We are asking the carrier…'."
+      },
+      {
+       "severity": "minor",
+       "action_index": 0,
+       "problem": "The lint flagged 'password'. It appears only in a reassurance that the desk will never ask for one, which is acceptable.",
+       "fix": "No change needed."
+      }
+     ],
+     "summary": "I'm approving this plan. It answers the customer's first request in her verified portal thread. It gives her the shipment reference the carrier confirmed and safe search steps with no links, and it asks the carrier, which owns the template, to fix it and reissue the notification. It doesn't over-claim timing or status, and the same-day follow-up is set correctly. There are only minor issues: the shipment stage is unsupported, and the two messages should go out in the right order."
+    }
+   }
+  ]
+ },
+ {
+  "type": "tool_call",
+  "phase": "execute",
+  "tool": "send_message",
+  "input": {
+   "to_name": "Vela Morn",
+   "to_role": "Recipient",
+   "channel": "Customer portal",
+   "subject": "How to find your parcel DL-017",
+   "body": "Hello Vela,\n\nThank you for letting us know. The carrier has confirmed that the link in your notification was cut short by a fault in their message template. Please don't use that link.\n\nYour correct shipment reference is DL-017. To find your parcel, sign in to your order portal the way you normally do (not through the notification link). Then type DL-017 into the tracking or order search box.\n\nWe have asked the carrier to fix the template and send you a corrected notification. Please reply here to let us know whether DL-017 shows up for you. We will never ask you to follow a link or share a password or code to track your parcel.\n\nIona Quill, Rivet Delivery Desk"
+  },
+  "output": {
+   "status": "sent",
+   "message_id": "MSG-17-01",
+   "channel": "Customer portal",
+   "note": "queued on channel"
+  },
+  "error": null,
+  "at": "2026-10-10T14:26:19.050251+00:00"
+ },
+ {
+  "type": "tool_call",
+  "phase": "execute",
+  "tool": "send_message",
+  "input": {
+   "to_name": "Notification support",
+   "to_role": "Plover Arc Logistics",
+   "channel": "Email",
+   "subject": "DL-017: cut-off tracking link – please fix template and reissue notification",
+   "body": "Hello Notification support,\n\nThank you for confirming (2026-02-18 09:00 UTC) that the DL-017 notification link was cut short by your template, and that the shipment reference is correct in your order record. The recipient has told us through the Customer portal that the link does not open. We have given her the reference DL-017 so she can search for it in the order portal.\n\nPlease could you (1) fix the template fault and (2) send the recipient a corrected notification for DL-017 through her account. Please reply today, 2026-02-18, with confirmation once both are done, or with the time you expect to finish. Please also let us know if other notifications sent from the same template could be affected.\n\nThis is a request, not a confirmation.\n\nIona Quill, Rivet Delivery Desk"
+  },
+  "output": {
+   "status": "sent",
+   "message_id": "MSG-17-02",
+   "channel": "Email",
+   "note": "queued on channel"
+  },
+  "error": null,
+  "at": "2026-10-10T14:26:19.051356+00:00"
+ },
+ {
+  "type": "tool_call",
+  "phase": "execute",
+  "tool": "schedule_follow_up",
+  "input": {
+   "when": "2026-02-18 17:00 UTC",
+   "check": "Check for Plover Arc Notification support's confirmation that the template is fixed and the DL-017 notification was reissued, and for Vela Morn's reply on whether DL-017 shows up in the portal. If the carrier has not replied, chase by Email. If the customer cannot find the parcel, ask the carrier to look into the order portal record."
+  },
+  "output": {
+   "status": "scheduled",
+   "follow_up_id": "FUP-17-03",
+   "when": "2026-02-18 17:00 UTC"
+  },
+  "error": null,
+  "at": "2026-10-10T14:26:19.051391+00:00"
+ }
+]

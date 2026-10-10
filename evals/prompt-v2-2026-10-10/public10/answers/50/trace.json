@@ -1,0 +1,374 @@
+[
+ {
+  "type": "input",
+  "case_id": "050",
+  "track": "Delivery & Logistics",
+  "mode": "public-eval",
+  "files": [
+   "index.md",
+   "history.md"
+  ],
+  "attachments": [],
+  "hidden_events": [
+   3,
+   4
+  ],
+  "hidden_attachments": [],
+  "events": 2,
+  "now": "2026-03-23 09:10:00 UTC",
+  "warnings": []
+ },
+ {
+  "type": "llm_call",
+  "purpose": "plan",
+  "model": "claude-opus-5-5",
+  "latency_s": 6.14,
+  "request_messages": [
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "Below is the case record as it stands now. The current time is just after the latest visible event (2026-03-23 09:10:00 UTC).\n\n<case id=\"050\" track=\"Delivery & Logistics\" mode=\"public-eval\">\n<file name=\"index.md\">\n# Case 050: Customer requests reimbursement of a guaranteed-delivery surcharge after confirmed delay\n\n## Case details\n\n- **Source role:** Nella Voss, customer\n- **Created:** 2026-03-23 09:00:00 UTC\n- **Escalated:** 2026-03-23 09:10:00 UTC\n- **Primary shipment:** DL-050\n- **Coordinator:** Iona Quill, Rivet Delivery Desk\n- **Data:** Entirely synthetic; English; fictional geography; all times UTC\n\n## Context\n\nThe fictional guaranteed-delivery service missed its deadline. The carrier’s narrow guarantee covers only the surcharge, subject to billing approval.\n\n## Initial request\n\nMy parcel arrived at 08:40, later than the guaranteed 08:00 deadline. Please submit a request for the GBP 7.50 service surcharge under these booking terms.\n\n## History\n\n[Read the complete dated history](history.md).\n\n## Attachments\n\nOnly attachments referenced in the visible history are provided.\n</file>\n\n<file name=\"history.md\">\n# Case 050 history — Customer requests reimbursement of a guaranteed-delivery surcharge after confirmed delay\n\nAll identities, records and communications are fictional. Events available at this point: 2.\n\n<a id=\"event-001\"></a>\n## 2026-03-23 09:00:00 UTC — event 001\n\n- **Stage:** Context\n- **Channel:** Email\n- **From:** Service guarantees, Plover Arc Logistics\n- **To:** Iona Quill, Rivet Delivery Desk\n\nDL-050 booking terms excerpt: guaranteed by 2026-03-23 08:00 UTC; surcharge GBP 7.50. If carrier-caused delay is confirmed, the surcharge may be credited after billing review. Route record: carrier sorting delay, actual recipient handover 2026-03-23 08:40 UTC. No exclusion is recorded.\n\n<a id=\"event-002\"></a>\n## 2026-03-23 09:10:00 UTC — event 002\n\n- **Stage:** Escalation\n- **Channel:** Customer portal\n- **From:** Nella Voss, customer\n- **To:** Iona Quill, Rivet Delivery Desk\n\nMy parcel arrived at 08:40, later than the guaranteed 08:00 deadline. Please submit a request for the GBP 7.50 service surcharge under these booking terms.\n</file>\n</case>\n\nKnown channels in the record: Email, Customer portal\nKnown parties in the record: Service guarantees, Plover Arc Logistics; Iona Quill, Rivet Delivery Desk; Nella Voss, customer\n\nAnalyse the case and call `propose_plan` (use `calculate` first if any arithmetic is involved)."
+     },
+     {
+      "type": "text",
+      "text": "Respond by calling the `propose_plan` tool (exactly once)."
+     }
+    ]
+   }
+  ],
+  "stop_reason": "tool_use",
+  "usage": {
+   "input_tokens": 1098,
+   "output_tokens": 540,
+   "cache_read_input_tokens": 6369
+  },
+  "response": [
+   {
+    "type": "thinking",
+    "thinking": ""
+   },
+   {
+    "type": "tool_use",
+    "name": "calculate",
+    "input": {
+     "expression": "(8*60+40) - (8*60)",
+     "label": "Delay in minutes past the 08:00 UTC guarantee"
+    }
+   }
+  ]
+ },
+ {
+  "type": "tool_call",
+  "phase": "plan",
+  "tool": "calculate",
+  "input": {
+   "expression": "(8*60+40) - (8*60)",
+   "label": "Delay in minutes past the 08:00 UTC guarantee"
+  },
+  "output": {
+   "expression": "(8*60+40) - (8*60)",
+   "label": "Delay in minutes past the 08:00 UTC guarantee",
+   "result": "4E+1"
+  }
+ },
+ {
+  "type": "llm_call",
+  "purpose": "plan",
+  "model": "claude-opus-5-5",
+  "latency_s": 21.4,
+  "request_messages": [
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "Below is the case record as it stands now. The current time is just after the latest visible event (2026-03-23 09:10:00 UTC).\n\n<case id=\"050\" track=\"Delivery & Logistics\" mode=\"public-eval\">\n<file name=\"index.md\">\n# Case 050: Customer requests reimbursement of a guaranteed-delivery surcharge after confirmed delay\n\n## Case details\n\n- **Source role:** Nella Voss, customer\n- **Created:** 2026-03-23 09:00:00 UTC\n- **Escalated:** 2026-03-23 09:10:00 UTC\n- **Primary shipment:** DL-050\n- **Coordinator:** Iona Quill, Rivet Delivery Desk\n- **Data:** Entirely synthetic; English; fictional geography; all times UTC\n\n## Context\n\nThe fictional guaranteed-delivery service missed its deadline. The carrier’s narrow guarantee covers only the surcharge, subject to billing approval.\n\n## Initial request\n\nMy parcel arrived at 08:40, later than the guaranteed 08:00 deadline. Please submit a request for the GBP 7.50 service surcharge under these booking terms.\n\n## History\n\n[Read the complete dated history](history.md).\n\n## Attachments\n\nOnly attachments referenced in the visible history are provided.\n</file>\n\n<file name=\"history.md\">\n# Case 050 history — Customer requests reimbursement of a guaranteed-delivery surcharge after confirmed delay\n\nAll identities, records and communications are fictional. Events available at this point: 2.\n\n<a id=\"event-001\"></a>\n## 2026-03-23 09:00:00 UTC — event 001\n\n- **Stage:** Context\n- **Channel:** Email\n- **From:** Service guarantees, Plover Arc Logistics\n- **To:** Iona Quill, Rivet Delivery Desk\n\nDL-050 booking terms excerpt: guaranteed by 2026-03-23 08:00 UTC; surcharge GBP 7.50. If carrier-caused delay is confirmed, the surcharge may be credited after billing review. Route record: carrier sorting delay, actual recipient handover 2026-03-23 08:40 UTC. No exclusion is recorded.\n\n<a id=\"event-002\"></a>\n## 2026-03-23 09:10:00 UTC — event 002\n\n- **Stage:** Escalation\n- **Channel:** Customer portal\n- **From:** Nella Voss, customer\n- **To:** Iona Quill, Rivet Delivery Desk\n\nMy parcel arrived at 08:40, later than the guaranteed 08:00 deadline. Please submit a request for the GBP 7.50 service surcharge under these booking terms.\n</file>\n</case>\n\nKnown channels in the record: Email, Customer portal\nKnown parties in the record: Service guarantees, Plover Arc Logistics; Iona Quill, Rivet Delivery Desk; Nella Voss, customer\n\nAnalyse the case and call `propose_plan` (use `calculate` first if any arithmetic is involved)."
+     },
+     {
+      "type": "text",
+      "text": "Respond by calling the `propose_plan` tool (exactly once)."
+     }
+    ]
+   },
+   {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "thinking",
+      "thinking": ""
+     },
+     {
+      "type": "tool_use",
+      "name": "calculate",
+      "input": {
+       "expression": "(8*60+40) - (8*60)",
+       "label": "Delay in minutes past the 08:00 UTC guarantee"
+      }
+     }
+    ]
+   },
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "tool_result",
+      "tool_use_id": "toolu_01NLxZPtdZUvpNeX7vPj2pJd",
+      "content": "{\"expression\": \"(8*60+40) - (8*60)\", \"label\": \"Delay in minutes past the 08:00 UTC guarantee\", \"result\": \"4E+1\"}"
+     }
+    ]
+   }
+  ],
+  "stop_reason": "tool_use",
+  "usage": {
+   "input_tokens": 1699,
+   "output_tokens": 2528,
+   "cache_read_input_tokens": 6369
+  },
+  "response": [
+   {
+    "type": "tool_use",
+    "name": "propose_plan",
+    "input": {
+     "situation": "Nella Voss's guaranteed-delivery parcel DL-050 was due by 2026-03-23 08:00 UTC but was handed over at 08:40 UTC, 40 minutes late. The carrier's route record gives the cause as a carrier sorting delay. She has asked the desk to submit a request for the GBP 7.50 guarantee surcharge. Under the booking terms the surcharge may be credited only after Plover Arc Logistics billing has reviewed it, so the next step is a billing-review request to the carrier.",
+     "facts": [
+      {
+       "fact": "DL-050 was guaranteed for delivery by 2026-03-23 08:00 UTC with a GBP 7.50 surcharge",
+       "source": "event 001",
+       "status": "verified"
+      },
+      {
+       "fact": "If a carrier-caused delay is confirmed, the surcharge may be credited after billing review",
+       "source": "event 001",
+       "status": "verified"
+      },
+      {
+       "fact": "Route record: carrier sorting delay; actual recipient handover 2026-03-23 08:40 UTC",
+       "source": "event 001",
+       "status": "verified"
+      },
+      {
+       "fact": "No exclusion is recorded",
+       "source": "event 001",
+       "status": "verified"
+      },
+      {
+       "fact": "Handover was 40 minutes after the guaranteed time",
+       "source": "calculation from event 001",
+       "status": "inferred"
+      },
+      {
+       "fact": "Customer asks the desk to submit a request for the GBP 7.50 surcharge",
+       "source": "event 002",
+       "status": "verified"
+      },
+      {
+       "fact": "The guarantee covers only the surcharge, subject to billing approval",
+       "source": "index: Context",
+       "status": "verified"
+      }
+     ],
+     "conflicts": [],
+     "missing_information": [
+      "Billing review outcome and any credit reference from Plover Arc Logistics billing",
+      "Billing team's turnaround date for the review"
+     ],
+     "risk_flags": [
+      "money: the credit is limited to the recorded GBP 7.50 surcharge; no other compensation may be claimed or promised",
+      "Hard human gate: the draft asks for a credit of an amount, so it waits for human approval before it is sent",
+      "No payment links and no card or bank details may be requested"
+     ],
+     "case_parameters": {
+      "requester_type": "consumer",
+      "issue_type": "money_and_billing",
+      "shipment_stage": "delivered",
+      "owner_org_type": "carrier",
+      "verification_state": "authenticated_session",
+      "urgency": "none",
+      "risk_flags": [
+       "money"
+      ],
+      "evidence_conflict": false,
+      "money_involved": true,
+      "customer_input_required": false,
+      "queue": "billing_review",
+      "human_gate": "hard"
+     },
+     "authority_map": [
+      {
+       "party": "Plover Arc Logistics billing (via Service guarantees)",
+       "controls": "Whether to credit the GBP 7.50 surcharge after billing review"
+      },
+      {
+       "party": "Nella Voss, customer",
+       "controls": "Making the claim; receives the outcome"
+      },
+      {
+       "party": "Rivet Delivery Desk",
+       "controls": "Submitting the request only; has no pre-authorisation to credit any amount"
+      }
+     ],
+     "wait_check": {
+      "new_since_last_promise": "First request from the customer (event 002); the desk has made no earlier promise",
+      "pending_promise": "none",
+      "inbound_is_chase_only": false,
+      "verdict": "proceed"
+     },
+     "decision_type": "act",
+     "decision_summary": "Ask Plover Arc Logistics billing, by email, to review a credit of the GBP 7.50 guarantee surcharge on DL-050. The draft is held for human approval because it asks for a credit of an amount.",
+     "rationale": "The carrier's own record confirms a carrier-caused delay (40 minutes past the guarantee) and records no exclusion. The booking terms send any credit through billing review. So carrier billing is the owner of this decision, and the request is for the recorded surcharge only.",
+     "actions": [
+      {
+       "tool": "send_message",
+       "action_class": "request_review_or_investigation",
+       "recipient_function": "billing",
+       "channel": "Email",
+       "to_name": "Service guarantees, Plover Arc Logistics",
+       "to_role": "Carrier service guarantees / billing",
+       "subject": "DL-050 – request for billing review of GBP 7.50 guarantee surcharge credit",
+       "priority": "normal",
+       "purpose": "Ask the owner of the decision (carrier billing) to review the surcharge credit",
+       "body": "Hello,\n\nPlease put DL-050 through billing review for a credit of the guaranteed-delivery surcharge, under the booking terms you sent on 2026-03-23 at 09:00 UTC.\n\n- Guaranteed by: 2026-03-23 08:00 UTC\n- Actual recipient handover (your route record): 2026-03-23 08:40 UTC, 40 minutes late\n- Recorded cause: carrier sorting delay; no exclusion recorded\n- Amount requested: GBP 7.50 (the recorded surcharge only)\n\nThe customer, Nella Voss, asked us to submit this request on 2026-03-23 at 09:10 UTC. Please confirm the review outcome, and if a credit is approved, send the credit note reference. Please also tell us when you expect to complete the review.\n\nThis is a request for review, not a confirmation that a credit is due.\n\nIona Quill\nRivet Delivery Desk"
+      },
+      {
+       "tool": "record_case_note",
+       "purpose": "Record the step and the approval gate",
+       "body": "Billing-review request drafted to Service guarantees, Plover Arc Logistics for the GBP 7.50 surcharge on DL-050 (handover 08:40 UTC against an 08:00 UTC guarantee; 40 minutes late; carrier sorting delay; no exclusion). Hard gate: needs human approval before sending. Nothing has been promised to the customer."
+      },
+      {
+       "tool": "schedule_follow_up",
+       "when": "2026-03-23 17:00 UTC",
+       "purpose": "Same-working-day check under the billing_review queue rule",
+       "body": "Check whether Plover Arc Logistics billing has replied with a review outcome, a credit note reference or a review date for the DL-050 surcharge. If they have given a date, move the next check to that date. If there is no reply, chase on the same email thread."
+      }
+     ],
+     "not_doing": [
+      "Not promising the customer a refund or credit: billing has not confirmed one",
+      "Not claiming more than GBP 7.50 or any other compensation: the guarantee covers only the surcharge",
+      "Not sending a payment link or asking for card or bank details",
+      "Not sending a separate customer update now: there is no cutoff; the customer will be told the outcome once billing confirms it, through the Customer portal"
+     ],
+     "proof_standard": "credit_note",
+     "follow_up": "Check for billing's reply at 2026-03-23 17:00 UTC. If billing gives a review date, follow up on that date. If there is no reply, chase on the same email thread. Once a credit note reference is received, update Nella Voss through the Customer portal, saying it is a credit (not cash) and giving only the confirmed amount."
+    }
+   }
+  ]
+ },
+ {
+  "type": "llm_call",
+  "purpose": "review",
+  "model": "claude-opus-5-5",
+  "latency_s": 8.81,
+  "request_messages": [
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "<case id=\"050\" track=\"Delivery & Logistics\">\n<file name=\"index.md\">\n# Case 050: Customer requests reimbursement of a guaranteed-delivery surcharge after confirmed delay\n\n## Case details\n\n- **Source role:** Nella Voss, customer\n- **Created:** 2026-03-23 09:00:00 UTC\n- **Escalated:** 2026-03-23 09:10:00 UTC\n- **Primary shipment:** DL-050\n- **Coordinator:** Iona Quill, Rivet Delivery Desk\n- **Data:** Entirely synthetic; English; fictional geography; all times UTC\n\n## Context\n\nThe fictional guaranteed-delivery service missed its deadline. The carrier’s narrow guarantee covers only the surcharge, subject to billing approval.\n\n## Initial request\n\nMy parcel arrived at 08:40, later than the guaranteed 08:00 deadline. Please submit a request for the GBP 7.50 service surcharge under these booking terms.\n\n## History\n\n[Read the complete dated history](history.md).\n\n## Attachments\n\nOnly attachments referenced in the visible history are provided.\n</file>\n\n<file name=\"history.md\">\n# Case 050 history — Customer requests reimbursement of a guaranteed-delivery surcharge after confirmed delay\n\nAll identities, records and communications are fictional. Events available at this point: 2.\n\n<a id=\"event-001\"></a>\n## 2026-03-23 09:00:00 UTC — event 001\n\n- **Stage:** Context\n- **Channel:** Email\n- **From:** Service guarantees, Plover Arc Logistics\n- **To:** Iona Quill, Rivet Delivery Desk\n\nDL-050 booking terms excerpt: guaranteed by 2026-03-23 08:00 UTC; surcharge GBP 7.50. If carrier-caused delay is confirmed, the surcharge may be credited after billing review. Route record: carrier sorting delay, actual recipient handover 2026-03-23 08:40 UTC. No exclusion is recorded.\n\n<a id=\"event-002\"></a>\n## 2026-03-23 09:10:00 UTC — event 002\n\n- **Stage:** Escalation\n- **Channel:** Customer portal\n- **From:** Nella Voss, customer\n- **To:** Iona Quill, Rivet Delivery Desk\n\nMy parcel arrived at 08:40, later than the guaranteed 08:00 deadline. Please submit a request for the GBP 7.50 service surcharge under these booking terms.\n</file>\n</case>\n\n<proposed_plan>\n{\n  \"situation\": \"Nella Voss's guaranteed-delivery parcel DL-050 was due by 2026-03-23 08:00 UTC but was handed over at 08:40 UTC, 40 minutes late. The carrier's route record gives the cause as a carrier sorting delay. She has asked the desk to submit a request for the GBP 7.50 guarantee surcharge. Under the booking terms the surcharge may be credited only after Plover Arc Logistics billing has reviewed it, so the next step is a billing-review request to the carrier.\",\n  \"facts\": [\n    {\n      \"fact\": \"DL-050 was guaranteed for delivery by 2026-03-23 08:00 UTC with a GBP 7.50 surcharge\",\n      \"source\": \"event 001\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"If a carrier-caused delay is confirmed, the surcharge may be credited after billing review\",\n      \"source\": \"event 001\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"Route record: carrier sorting delay; actual recipient handover 2026-03-23 08:40 UTC\",\n      \"source\": \"event 001\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"No exclusion is recorded\",\n      \"source\": \"event 001\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"Handover was 40 minutes after the guaranteed time\",\n      \"source\": \"calculation from event 001\",\n      \"status\": \"inferred\"\n    },\n    {\n      \"fact\": \"Customer asks the desk to submit a request for the GBP 7.50 surcharge\",\n      \"source\": \"event 002\",\n      \"status\": \"verified\"\n    },\n    {\n      \"fact\": \"The guarantee covers only the surcharge, subject to billing approval\",\n      \"source\": \"index: Context\",\n      \"status\": \"verified\"\n    }\n  ],\n  \"conflicts\": [],\n  \"missing_information\": [\n    \"Billing review outcome and any credit reference from Plover Arc Logistics billing\",\n    \"Billing team's turnaround date for the review\"\n  ],\n  \"risk_flags\": [\n    \"money: the credit is limited to the recorded GBP 7.50 surcharge; no other compensation may be claimed or promised\",\n    \"Hard human gate: the draft asks for a credit of an amount, so it waits for human approval before it is sent\",\n    \"No payment links and no card or bank details may be requested\"\n  ],\n  \"case_parameters\": {\n    \"requester_type\": \"consumer\",\n    \"issue_type\": \"money_and_billing\",\n    \"shipment_stage\": \"delivered\",\n    \"owner_org_type\": \"carrier\",\n    \"verification_state\": \"authenticated_session\",\n    \"urgency\": \"none\",\n    \"risk_flags\": [\n      \"money\"\n    ],\n    \"evidence_conflict\": false,\n    \"money_involved\": true,\n    \"customer_input_required\": false,\n    \"queue\": \"billing_review\",\n    \"human_gate\": \"hard\"\n  },\n  \"authority_map\": [\n    {\n      \"party\": \"Plover Arc Logistics billing (via Service guarantees)\",\n      \"controls\": \"Whether to credit the GBP 7.50 surcharge after billing review\"\n    },\n    {\n      \"party\": \"Nella Voss, customer\",\n      \"controls\": \"Making the claim; receives the outcome\"\n    },\n    {\n      \"party\": \"Rivet Delivery Desk\",\n      \"controls\": \"Submitting the request only; has no pre-authorisation to credit any amount\"\n    }\n  ],\n  \"wait_check\": {\n    \"new_since_last_promise\": \"First request from the customer (event 002); the desk has made no earlier promise\",\n    \"pending_promise\": \"none\",\n    \"inbound_is_chase_only\": false,\n    \"verdict\": \"proceed\"\n  },\n  \"decision_type\": \"act\",\n  \"decision_summary\": \"Ask Plover Arc Logistics billing, by email, to review a credit of the GBP 7.50 guarantee surcharge on DL-050. The draft is held for human approval because it asks for a credit of an amount.\",\n  \"rationale\": \"The carrier's own record confirms a carrier-caused delay (40 minutes past the guarantee) and records no exclusion. The booking terms send any credit through billing review. So carrier billing is the owner of this decision, and the request is for the recorded surcharge only.\",\n  \"actions\": [\n    {\n      \"tool\": \"send_message\",\n      \"action_class\": \"request_review_or_investigation\",\n      \"recipient_function\": \"billing\",\n      \"channel\": \"Email\",\n      \"to_name\": \"Service guarantees, Plover Arc Logistics\",\n      \"to_role\": \"Carrier service guarantees / billing\",\n      \"subject\": \"DL-050 – request for billing review of GBP 7.50 guarantee surcharge credit\",\n      \"priority\": \"normal\",\n      \"purpose\": \"Ask the owner of the decision (carrier billing) to review the surcharge credit\",\n      \"body\": \"Hello,\\n\\nPlease put DL-050 through billing review for a credit of the guaranteed-delivery surcharge, under the booking terms you sent on 2026-03-23 at 09:00 UTC.\\n\\n- Guaranteed by: 2026-03-23 08:00 UTC\\n- Actual recipient handover (your route record): 2026-03-23 08:40 UTC, 40 minutes late\\n- Recorded cause: carrier sorting delay; no exclusion recorded\\n- Amount requested: GBP 7.50 (the recorded surcharge only)\\n\\nThe customer, Nella Voss, asked us to submit this request on 2026-03-23 at 09:10 UTC. Please confirm the review outcome, and if a credit is approved, send the credit note reference. Please also tell us when you expect to complete the review.\\n\\nThis is a request for review, not a confirmation that a credit is due.\\n\\nIona Quill\\nRivet Delivery Desk\"\n    },\n    {\n      \"tool\": \"record_case_note\",\n      \"purpose\": \"Record the step and the approval gate\",\n      \"body\": \"Billing-review request drafted to Service guarantees, Plover Arc Logistics for the GBP 7.50 surcharge on DL-050 (handover 08:40 UTC against an 08:00 UTC guarantee; 40 minutes late; carrier sorting delay; no exclusion). Hard gate: needs human approval before sending. Nothing has been promised to the customer.\"\n    },\n    {\n      \"tool\": \"schedule_follow_up\",\n      \"when\": \"2026-03-23 17:00 UTC\",\n      \"purpose\": \"Same-working-day check under the billing_review queue rule\",\n      \"body\": \"Check whether Plover Arc Logistics billing has replied with a review outcome, a credit note reference or a review date for the DL-050 surcharge. If they have given a date, move the next check to that date. If there is no reply, chase on the same email thread.\"\n    }\n  ],\n  \"not_doing\": [\n    \"Not promising the customer a refund or credit: billing has not confirmed one\",\n    \"Not claiming more than GBP 7.50 or any other compensation: the guarantee covers only the surcharge\",\n    \"Not sending a payment link or asking for card or bank details\",\n    \"Not sending a separate customer update now: there is no cutoff; the customer will be told the outcome once billing confirms it, through the Customer portal\"\n  ],\n  \"proof_standard\": \"credit_note\",\n  \"follow_up\": \"Check for billing's reply at 2026-03-23 17:00 UTC. If billing gives a review date, follow up on that date. If there is no reply, chase on the same email thread. Once a credit note reference is received, update Nella Voss through the Customer portal, saying it is a credit (not cash) and giving only the confirmed amount.\",\n  \"_case_id\": \"050\"\n}\n</proposed_plan>\n\n<automated_policy_lint>\n- [WARN] action 0: promise_language -> 'guarantee'\n- [WARN] action 0: promise_language -> 'guaranteed'\n- [WARN] action 0: promise_language -> 'Guaranteed'\n</automated_policy_lint>\n\nReview the plan and call `submit_review`."
+     },
+     {
+      "type": "text",
+      "text": "Respond by calling the `submit_review` tool (exactly once)."
+     }
+    ]
+   }
+  ],
+  "stop_reason": "tool_use",
+  "usage": {
+   "input_tokens": 3639,
+   "output_tokens": 815,
+   "cache_read_input_tokens": 1757
+  },
+  "response": [
+   {
+    "type": "thinking",
+    "thinking": ""
+   },
+   {
+    "type": "tool_use",
+    "name": "submit_review",
+    "input": {
+     "checks": {
+      "authority_respected": true,
+      "facts_grounded": true,
+      "fair_no_accusation": true,
+      "no_overclaim": true,
+      "privacy_security_ok": true,
+      "right_next_step": true,
+      "right_recipient_and_channel": true,
+      "safety_ok": true,
+      "untrusted_content_resisted": true
+     },
+     "issues": [
+      {
+       "severity": "minor",
+       "action_index": -1,
+       "problem": "Nella Voss asked the desk to submit the request, but the plan doesn't tell her when it has been sent. The only customer update is planned for after billing confirms the outcome, so she won't know her request is in progress.",
+       "fix": "Optional: once the human approves and the email is sent, send a short portal note telling her the request has gone to carrier billing for review. Don't give any outcome or timing."
+      },
+      {
+       "severity": "minor",
+       "action_index": 0,
+       "problem": "The policy lint flagged the words 'guarantee' and 'guaranteed'. These are false positives: the words name the service and its booked deadline and don't promise any outcome.",
+       "fix": "No change needed."
+      }
+     ],
+     "verdict": "approve",
+     "summary": "The plan is correct. It sends the request for the GBP 7.50 surcharge only to Plover Arc billing, the party that decides it, using the verified email channel. Every fact and calculation comes from event 001, and the 40-minute delay is right. The plan doesn't promise a credit, holds the draft for human approval, and the follow-up is sensible. The two minor points need no change before sending."
+    }
+   }
+  ]
+ },
+ {
+  "type": "tool_call",
+  "phase": "execute",
+  "tool": "send_message",
+  "input": {
+   "to_name": "Service guarantees, Plover Arc Logistics",
+   "to_role": "Carrier service guarantees / billing",
+   "channel": "Email",
+   "subject": "DL-050 – request for billing review of GBP 7.50 guarantee surcharge credit",
+   "body": "Hello,\n\nPlease put DL-050 through billing review for a credit of the guaranteed-delivery surcharge, under the booking terms you sent on 2026-03-23 at 09:00 UTC.\n\n- Guaranteed by: 2026-03-23 08:00 UTC\n- Actual recipient handover (your route record): 2026-03-23 08:40 UTC, 40 minutes late\n- Recorded cause: carrier sorting delay; no exclusion recorded\n- Amount requested: GBP 7.50 (the recorded surcharge only)\n\nThe customer, Nella Voss, asked us to submit this request on 2026-03-23 at 09:10 UTC. Please confirm the review outcome, and if a credit is approved, send the credit note reference. Please also tell us when you expect to complete the review.\n\nThis is a request for review, not a confirmation that a credit is due.\n\nIona Quill\nRivet Delivery Desk"
+  },
+  "output": {
+   "status": "sent",
+   "message_id": "MSG-50-01",
+   "channel": "Email",
+   "note": "queued on channel"
+  },
+  "error": null,
+  "at": "2026-10-10T14:27:32.557989+00:00"
+ },
+ {
+  "type": "tool_call",
+  "phase": "execute",
+  "tool": "record_case_note",
+  "input": {
+   "note": "Billing-review request drafted to Service guarantees, Plover Arc Logistics for the GBP 7.50 surcharge on DL-050 (handover 08:40 UTC against an 08:00 UTC guarantee; 40 minutes late; carrier sorting delay; no exclusion). Hard gate: needs human approval before sending. Nothing has been promised to the customer."
+  },
+  "output": {
+   "status": "recorded",
+   "note_id": "NOTE-50-02"
+  },
+  "error": null,
+  "at": "2026-10-10T14:27:32.558079+00:00"
+ },
+ {
+  "type": "tool_call",
+  "phase": "execute",
+  "tool": "schedule_follow_up",
+  "input": {
+   "when": "2026-03-23 17:00 UTC",
+   "check": "Check whether Plover Arc Logistics billing has replied with a review outcome, a credit note reference or a review date for the DL-050 surcharge. If they have given a date, move the next check to that date. If there is no reply, chase on the same email thread."
+  },
+  "output": {
+   "status": "scheduled",
+   "follow_up_id": "FUP-50-03",
+   "when": "2026-03-23 17:00 UTC"
+  },
+  "error": null,
+  "at": "2026-10-10T14:27:32.558096+00:00"
+ }
+]

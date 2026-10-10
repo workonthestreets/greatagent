@@ -1,0 +1,252 @@
+{
+ "case_id": "402",
+ "answer_id": "402",
+ "title": "Case 402",
+ "track": "hard_cases",
+ "mode": "reality",
+ "plan": {
+  "situation": "Omar Haddad's Souq Atelier parcel SA-7730915 (Falcon waybill FD-55102-AE) is shut inside Tower B lobby locker C14. The locker's own log shows a latch fault (E41) and the compartment still occupied. Facilities (Karim Saleh) logged it with BoxHaven as FM-77410, and the BoxHaven technician is due by 2026-10-09 19:52 GST, when facilities' front desk will take the parcel and call the resident. Since our last message to Mr Haddad (event 005) he has asked whether to confirm Souq Atelier replacement case R-55820 and has received Falcon's 'DELIVERED' notice. He now says he will confirm the replacement at lunch unless he hears from us, and he was never told the technician's deadline.",
+  "facts": [
+   {
+    "fact": "Courier deposited the parcel in C14 at 14:31 on 8 Oct, the door closed and the latch engaged; the pickup code was then refused twice with LATCH_FAULT_E41 and C14 still shows LOCKED_OCCUPIED",
+    "source": "event 002",
+    "status": "verified"
+   },
+   {
+    "fact": "Facilities logged BoxHaven ticket FM-77410 at 19:52 on 8 Oct, standard priority; the technician attends within 24 hours, so by 2026-10-09 19:52 GST at the latest, opens C14 with the service key, the front desk keeps the parcel and calls the resident",
+    "source": "event 004",
+    "status": "verified"
+   },
+   {
+    "fact": "Desk told the resident about FM-77410 and said it would update him once C14 is open, but did not give the technician's deadline",
+    "source": "event 005",
+    "status": "verified"
+   },
+   {
+    "fact": "Resident pressed 'item not received' in the Souq Atelier app; Souq Atelier opened replacement case R-55820 and will ship a new box if he confirms",
+    "source": "event 006",
+    "status": "claimed"
+   },
+   {
+    "fact": "Falcon Dispatch shows FD-55102-AE as DELIVERED into TB-LOBBY-02 / C14; a delivery can be disputed within 7 days",
+    "source": "event 007",
+    "status": "verified"
+   },
+   {
+    "fact": "Resident plans to confirm the replacement at lunch on 9 Oct unless he hears from the desk",
+    "source": "event 008",
+    "status": "claimed"
+   },
+   {
+    "fact": "Parcel value AED 1,249, one box",
+    "source": "index: Case details",
+    "status": "verified"
+   }
+  ],
+  "conflicts": [],
+  "missing_information": [
+   "Whether the BoxHaven technician has a more exact time today within the window ending 19:52 GST",
+   "What Souq Atelier will do with case R-55820 once it knows the parcel is locked inside C14 (Souq Atelier's decision)"
+  ],
+  "risk_flags": [
+   "Possible duplicate shipment: confirming the replacement while the original box is still inside C14 would send a second AED 1,249 item; whether to do that is Souq Atelier's decision",
+   "The resident's lunch-time deadline is self-set and is not a cutoff",
+   "Physical handling: only the BoxHaven technician with the service key opens C14; nobody should force the door",
+   "Falcon's 'DELIVERED' status matches the locker log, so asking Falcon for a redelivery is not appropriate"
+  ],
+  "case_parameters": {
+   "requester_type": "consumer",
+   "issue_type": "service_disruption",
+   "shipment_stage": "at_pickup_point",
+   "owner_org_type": "business_counterparty",
+   "verification_state": "asserted_only",
+   "urgency": "none",
+   "risk_flags": [
+    "physical_handling"
+   ],
+   "evidence_conflict": false,
+   "money_involved": false,
+   "customer_input_required": false,
+   "queue": "awaiting_counterparty",
+   "human_gate": "none"
+  },
+  "authority_map": [
+   {
+    "party": "Karim Saleh, Marsa Heights facilities office / BoxHaven technician",
+    "controls": "Opening C14 under FM-77410, front desk custody, calling the resident"
+   },
+   {
+    "party": "Souq Atelier",
+    "controls": "Replacement case R-55820: whether a second box is shipped"
+   },
+   {
+    "party": "Falcon Dispatch",
+    "controls": "Delivery status and any delivery dispute"
+   },
+   {
+    "party": "Omar Haddad",
+    "controls": "Whether he confirms or updates R-55820 in the Souq Atelier app"
+   }
+  ],
+  "wait_check": {
+   "new_since_last_promise": "Event 006: replacement case R-55820 and the resident's unanswered question about it. Event 007: Falcon's DELIVERED notice. Event 008: he plans to confirm the replacement at lunch. The desk can also now give him the technician's deadline (by 19:52 GST today, from event 004), which he was never told.",
+   "pending_promise": "BoxHaven/facilities technician attendance under FM-77410 by 2026-10-09 19:52 GST",
+   "inbound_is_chase_only": false,
+   "verdict": "proceed"
+  },
+  "decision_type": "request_information",
+  "decision_summary": "Reply to the resident on WhatsApp before lunch: give him facilities' deadline (by 19:52 GST today) and the locker evidence, and ask him to show Souq Atelier the ticket and let them decide on R-55820. Make no request to Falcon. Check with facilities when the window closes.",
+  "rationale": "The step that opens the locker is already under way with its owner, who said nothing is needed from us, so chasing facilities before 19:52 adds nothing. What is new is the resident's replacement question. If he confirms 'not received' while the parcel is provably in C14, he may get a duplicate shipment based on an incomplete picture. He should get the facts the desk holds (the facilities deadline and the locker log) and be pointed to Souq Atelier, which owns the replacement decision. We should not decide it for him or promise a resend.",
+  "actions": [
+   {
+    "tool": "send_message",
+    "action_class": "ask_customer",
+    "recipient_function": "customer_self",
+    "channel": "WhatsApp",
+    "to_name": "Omar Haddad",
+    "to_role": "Resident, apartment 1904",
+    "priority": "high",
+    "subject": "Locker C14 – parcel SA-7730915",
+    "body": "Good morning Mr Haddad, sorry for the wait. Here is where things stand. The locker's own record shows your parcel was placed in C14 yesterday at 14:31 and is still inside; the door fault (E41) is why your code is refused. Building facilities logged this with BoxHaven as ticket FM-77410 last night at 19:52. They have told us their technician attends within 24 hours, so by 19:52 today (Dubai time) at the latest. He will open C14 with a service key, and the front desk will keep your parcel and call you to collect it. We cannot open the locker ourselves, and Falcon will not deliver again because the parcel is already in the locker. About the Souq Atelier replacement (case R-55820): that is your decision and theirs. Before you confirm, please tell Souq Atelier that the original box is locked inside a faulty locker, not lost, and give them ticket FM-77410, so they can decide what to do. Please let us know what they say. I will message you here as soon as facilities confirm C14 is open, or after 19:52 tonight if it is not.",
+    "purpose": "Answer the open replacement question with recorded facts and the owner's deadline before his lunch-time decision; point him to Souq Atelier, which decides on the replacement."
+   },
+   {
+    "tool": "record_case_note",
+    "body": "9 Oct 09:26 GST: Resident told the FM-77410 deadline (by 19:52 GST today) and asked to tell Souq Atelier the parcel is in C14 before confirming replacement R-55820. No request made to Falcon (DELIVERED status matches the locker log). Facilities said nothing further is needed from us before the window closes.",
+    "purpose": "Internal record of the update and reasoning."
+   },
+   {
+    "tool": "schedule_follow_up",
+    "when": "2026-10-09 19:52 GST +04:00",
+    "body": "Check with Karim Saleh (facilities) whether the BoxHaven technician has opened C14 under FM-77410 and the front desk has the parcel. Update Omar Haddad either way. If not opened, ask facilities to escalate FM-77410 with BoxHaven.",
+    "purpose": "Follow up at the end of the owner's attendance window."
+   }
+  ],
+  "not_doing": [
+   "Not asking Falcon to redeliver or come again: their delivery into C14 is confirmed by the locker log",
+   "Not telling the resident to confirm or cancel R-55820: Souq Atelier and the resident own that decision",
+   "Not chasing facilities before 19:52: their window is still open and they said nothing is needed from us",
+   "Not promising delivery today, a pickup time or a replacement",
+   "Not suggesting anyone force C14 open: only the technician's service key"
+  ],
+  "proof_standard": "operator_confirmation",
+  "follow_up": "At 2026-10-09 19:52 GST, check with Karim Saleh whether C14 has been opened and the front desk holds the parcel, then update the resident. If it has not been opened, ask facilities to escalate FM-77410 with BoxHaven and tell the resident the new step. If the resident reports Souq Atelier's decision on R-55820, record it.",
+  "_case_id": "402"
+ },
+ "pre_handover_plan": null,
+ "approved": true,
+ "review_rounds": [
+  {
+   "round": 0,
+   "plan_decision": "request_information",
+   "plan_summary": "Reply to the resident on WhatsApp before lunch: give him facilities' deadline (by 19:52 GST today) and the locker evidence, and ask him to show Souq Atelier the ticket and let them decide on R-55820. Make no request to Falcon. Check with facilities when the window closes.",
+   "lint": [],
+   "review": {
+    "checks": {
+     "authority_respected": true,
+     "facts_grounded": true,
+     "no_overclaim": true,
+     "privacy_security_ok": true,
+     "safety_ok": true,
+     "fair_no_accusation": true,
+     "right_next_step": true,
+     "right_recipient_and_channel": true,
+     "untrusted_content_resisted": true
+    },
+    "issues": [
+     {
+      "severity": "minor",
+      "action_index": 0,
+      "problem": "\"Falcon will not deliver again because the parcel is already in the locker\" speaks for Falcon. Their notice only says DELIVERED and \"No further action required\", and it also offers a 7-day dispute window.",
+      "fix": "Change it to something like \"Falcon's record shows the parcel as delivered into C14, so a new delivery from them is not the route here\". This avoids stating Falcon's decision for them."
+     }
+    ],
+    "verdict": "approve",
+    "summary": "I approve this plan. The resident has asked a new question about replacement case R-55820 and plans to confirm it at lunch, and he was never told the 19:52 GST deadline, so a reply now is justified. The message sticks to the record, leaves the replacement decision to Souq Atelier and the resident, and makes no promises. The 19:52 follow-up matches the facilities deadline. One minor wording issue: the message states Falcon's position for them."
+   }
+  }
+ ],
+ "executed": [
+  {
+   "index": 0,
+   "action": {
+    "tool": "send_message",
+    "action_class": "ask_customer",
+    "recipient_function": "customer_self",
+    "channel": "WhatsApp",
+    "to_name": "Omar Haddad",
+    "to_role": "Resident, apartment 1904",
+    "priority": "high",
+    "subject": "Locker C14 – parcel SA-7730915",
+    "body": "Good morning Mr Haddad, sorry for the wait. Here is where things stand. The locker's own record shows your parcel was placed in C14 yesterday at 14:31 and is still inside; the door fault (E41) is why your code is refused. Building facilities logged this with BoxHaven as ticket FM-77410 last night at 19:52. They have told us their technician attends within 24 hours, so by 19:52 today (Dubai time) at the latest. He will open C14 with a service key, and the front desk will keep your parcel and call you to collect it. We cannot open the locker ourselves, and Falcon will not deliver again because the parcel is already in the locker. About the Souq Atelier replacement (case R-55820): that is your decision and theirs. Before you confirm, please tell Souq Atelier that the original box is locked inside a faulty locker, not lost, and give them ticket FM-77410, so they can decide what to do. Please let us know what they say. I will message you here as soon as facilities confirm C14 is open, or after 19:52 tonight if it is not.",
+    "purpose": "Answer the open replacement question with recorded facts and the owner's deadline before his lunch-time decision; point him to Souq Atelier, which decides on the replacement."
+   },
+   "attempts": 1,
+   "status": "done",
+   "result": {
+    "status": "sent",
+    "message_id": "MSG-402-01",
+    "channel": "WhatsApp",
+    "note": "queued on channel"
+   }
+  },
+  {
+   "index": 1,
+   "action": {
+    "tool": "record_case_note",
+    "body": "9 Oct 09:26 GST: Resident told the FM-77410 deadline (by 19:52 GST today) and asked to tell Souq Atelier the parcel is in C14 before confirming replacement R-55820. No request made to Falcon (DELIVERED status matches the locker log). Facilities said nothing further is needed from us before the window closes.",
+    "purpose": "Internal record of the update and reasoning."
+   },
+   "attempts": 1,
+   "status": "done",
+   "result": {
+    "status": "recorded",
+    "note_id": "NOTE-402-02"
+   }
+  },
+  {
+   "index": 2,
+   "action": {
+    "tool": "schedule_follow_up",
+    "when": "2026-10-09 19:52 GST +04:00",
+    "body": "Check with Karim Saleh (facilities) whether the BoxHaven technician has opened C14 under FM-77410 and the front desk has the parcel. Update Omar Haddad either way. If not opened, ask facilities to escalate FM-77410 with BoxHaven.",
+    "purpose": "Follow up at the end of the owner's attendance window."
+   },
+   "attempts": 1,
+   "status": "done",
+   "result": {
+    "status": "scheduled",
+    "follow_up_id": "FUP-402-03",
+    "when": "2026-10-09 19:52 GST +04:00"
+   }
+  }
+ ],
+ "final_status": "Awaiting response from Omar Haddad (MSG-402-01). Proof that closes this step: operator_confirmation",
+ "warnings": [],
+ "inputs": {
+  "type": "input",
+  "case_id": "402",
+  "track": "hard_cases",
+  "mode": "reality",
+  "files": [
+   "index.md",
+   "history.md"
+  ],
+  "attachments": [],
+  "hidden_events": [],
+  "hidden_attachments": [],
+  "events": 8,
+  "now": "2026-10-09 09:24:51 GST +04:00",
+  "warnings": []
+ },
+ "usage": {
+  "input_tokens": 8236,
+  "output_tokens": 6338,
+  "cache_read_input_tokens": 8126,
+  "calls": 2
+ },
+ "models_used": [
+  "claude-opus-5-5"
+ ],
+ "elapsed_s": 60.9
+}

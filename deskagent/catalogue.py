@@ -52,29 +52,28 @@ ACTION_CLASS_TO_DECISION = {
 # ---- routing: owner_org_type -> recipient_function (gold pairs, 150 labelled cases) ------------
 # Every (owner_org_type, recipient_function) pair below occurs in the gold labels; no other pair does.
 ROUTING = {
-    "customer": {"customer_self": "the customer chooses, confirms or supplies the missing datum (ask_customer)"},
-    "business_counterparty": {"counterparty_business": "the business shipper, consignee or authorised signatory supplies data, "
-                                                       "a mandate or a decision (ask_counterparty)"},
+    "customer": {"customer_self": "choose, confirm, supply a datum"},
+    "business_counterparty": {"counterparty_business": "data, mandate, decision"},
     "carrier": {
-        "dispatch_scheduling": "rebook, hold, redelivery attempt, driver instruction, slot options, attendance statement",
-        "routing_redirect": "redirect, pickup-point or address change on a parcel already in the network",
-        "trace": "locate and physically scan a parcel; demand a scan, never a planned or departure status",
-        "depot_physical": "depot-floor check, transfer between depots, bay or dock question",
-        "recovery_collection": "recover a misdelivered parcel, arrange a collection",
-        "investigation_review": "review of the carrier's own record against a party statement (delivered scan vs not received, attempt disputes)",
-        "support_records": "a record, statement or written confirmation from carrier support",
-        "billing": "charges, credits, invoice corrections, guarantee claims: the carrier's billing team reviews, the desk never prices or waives",
-        "freight_planning": "capacity, pallet, dock appointment, specialist handling booking",
-        "safety": "hazard to people or goods: the carrier's safety incident queue decides",
+        "dispatch_scheduling": "rebook, hold, redelivery, driver, slots",
+        "routing_redirect": "redirect, address change",
+        "trace": "locate, scan",
+        "depot_physical": "floor, transfer, dock",
+        "recovery_collection": "misdelivery recovery, collection",
+        "investigation_review": "record vs statement",
+        "support_records": "statement, confirmation",
+        "billing": "charges, credits, claims",
+        "freight_planning": "capacity, pallets, appointment",
+        "safety": "hazard",
     },
     "merchant": {
-        "merchant_authorisation": "replacement, exchange, reshipment, return label or token, refund review, cancellation: only the named merchant team approves",
-        "merchant_fulfilment": "packing, stop or amend an order, order reconciliation, duplicate shipment",
-        "warehouse_execution": "physical work in the merchant warehouse (stop a packed order, re-pick)",
-        "safety": "food-safety or product-safety lead decides disposition of a compromised item",
+        "merchant_authorisation": "replacement, exchange, reshipment, label, refund, cancellation",
+        "merchant_fulfilment": "packing, stop/amend order, reconciliation",
+        "warehouse_execution": "warehouse work",
+        "safety": "food/product safety",
     },
-    "pickup_point": {"pickup_point_operator": "pickup deadline, extension, hold or release at the pickup point"},
-    "international_carrier": {"trace": "cross-border trace or customs-side location of the goods"},
+    "pickup_point": {"pickup_point_operator": "deadline, extension, hold, release"},
+    "international_carrier": {"trace": "cross-border location"},
 }
 
 # Channel the gold message used, by recipient organisation (routing_table.json -> channel_by_recipient_org_type).
@@ -100,6 +99,19 @@ QUEUES = {
     "carrier_ops": ("request_operator_action, request_options_for_customer or request_record_or_statement with owner carrier or pickup_point", "Email to the owning carrier team; dispatch chat when the request originates in chat", "confirmation expected within the working day", "none unless money or authority flags are present"),
 }
 
+# One-line working summaries of QUEUES for the prompt (QUEUES above stays verbatim and is the tested source).
+QUEUE_BRIEF = {
+    "safety": "safety/consumption, safety_hazard | Safety incident queue or merchant food-safety lead, never driver/customer | immediate | hard",
+    "investigations": "evidence_conflict, fraud_dispute | email carrier review team | same day, then at the team's time | hard (delivered-not-received), soft (attempt dispute)",
+    "billing_review": "money_involved, money_and_billing | email owning billing team; customer reply in verified thread, no payment links | the team's date | hard when crediting",
+    "urgent_cutoff": "immediate, deadline_today | call/chat/work queue, never email | minutes; escalate if unanswered before cutoff | none",
+    "awaiting_customer": "customer_input_required, owner customer | Customer portal (call only on a cutoff) | reminder timer | none",
+    "awaiting_counterparty": "customer_input_required, owner business_counterparty | Business portal or email the named authorised person | before the carrier slot lapses | hard for a mandate",
+    "merchant_authorisation": "owner merchant, authorisation/operator action | email the specific team | approval reference same day | none",
+    "carrier_trace": "request_physical_trace | Depot work queue or trace team | scan same day, else investigations | none",
+    "carrier_ops": "operator action/options/statement, owner carrier/pickup_point | email owning carrier team; dispatch chat if begun in chat | within the working day | none unless money/authority",
+}
+
 HUMAN_GATE_RULE = ("hard = the message commits or credits money with an amount, concerns safety or a "
                    "delivered-not-received/loss dispute, or relies on a signing authority; soft = third-party privacy "
                    "or a disputed record framed neutrally; none = routine relay, option request or customer question.")
@@ -109,13 +121,9 @@ URGENCY_RULE = ("only when an explicit cutoff makes the state irreversible (retu
 
 
 def render_routing() -> str:
-    lines = []
-    for org, funcs in ROUTING.items():
-        lines.append(f"- {org} (channels: {', '.join(CHANNEL_BY_ORG[org])})")
-        lines += [f"  - {fn}: {what}" for fn, what in funcs.items()]
-    return "\n".join(lines)
+    return "\n".join(f"- {org} [{'; '.join(CHANNEL_BY_ORG[org])}]: " + "; ".join(f"{fn} ({what})" for fn, what in funcs.items())
+                     for org, funcs in ROUTING.items())
 
 
 def render_queues() -> str:
-    return "\n".join(f"- {q}: when {trig}. Write via {chan}. Follow-up: {sla}. Human gate: {gate}."
-                     for q, (trig, chan, sla, gate) in QUEUES.items())
+    return "\n".join(f"- {q} | {QUEUE_BRIEF[q]}" for q in QUEUES)

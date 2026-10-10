@@ -1,0 +1,216 @@
+{
+ "case_id": "021",
+ "answer_id": "21",
+ "title": "Outer packaging is damaged and the merchant needs evidence",
+ "track": "Delivery & Logistics",
+ "mode": "public-eval",
+ "plan": {
+  "situation": "Lessa Vire, the recipient, has a carton with a dented outside corner. She has not opened it, and she is asking which photos the merchant needs. Tallowmere Goods' damage intake team has already said what it needs for TG-021 / DL-021: one photo of the whole carton with the shipment label visible, and one closer photo of the dented corner. Both go through the upload channel linked to the order. The merchant has also said the customer must not be asked to unpack anything she thinks is unsafe.",
+  "facts": [
+   {
+    "fact": "The merchant needs two photos: the whole carton with the shipment marking visible, and a closer view of the dented corner",
+    "source": "event 001",
+    "status": "verified"
+   },
+   {
+    "fact": "The photos must be sent through the upload channel linked to the order",
+    "source": "event 001",
+    "status": "verified"
+   },
+   {
+    "fact": "The customer must not be asked to unpack an item she considers unsafe",
+    "source": "event 001",
+    "status": "verified"
+   },
+   {
+    "fact": "The outside corner of the carton is dented and the carton has not been opened",
+    "source": "event 002",
+    "status": "claimed"
+   },
+   {
+    "fact": "The photo request does not decide whether there will be compensation",
+    "source": "index: Context",
+    "status": "verified"
+   }
+  ],
+  "conflicts": [],
+  "missing_information": [
+   "The two photos themselves, which only the customer can supply"
+  ],
+  "risk_flags": [
+   "physical_handling: do not ask the customer to open, unpack or handle the contents; outside photos only",
+   "No compensation or outcome may be promised; the merchant decides after reviewing the photos"
+  ],
+  "case_parameters": {
+   "requester_type": "consumer",
+   "issue_type": "damage_or_condition",
+   "shipment_stage": "delivered",
+   "owner_org_type": "customer",
+   "verification_state": "authenticated_session",
+   "urgency": "none",
+   "risk_flags": [
+    "physical_handling"
+   ],
+   "evidence_conflict": false,
+   "money_involved": false,
+   "customer_input_required": true,
+   "queue": "awaiting_customer",
+   "human_gate": "none"
+  },
+  "authority_map": [
+   {
+    "party": "Lessa Vire (recipient)",
+    "controls": "Taking and uploading the two photos"
+   },
+   {
+    "party": "Damage intake, Tallowmere Goods",
+    "controls": "Which evidence is needed, the damage assessment, and any remedy or compensation"
+   }
+  ],
+  "wait_check": {
+   "new_since_last_promise": "event 002: the customer is asking which views are needed; the desk has made her no earlier promise",
+   "pending_promise": "none",
+   "inbound_is_chase_only": false,
+   "verdict": "proceed"
+  },
+  "decision_type": "request_information",
+  "decision_summary": "Tell the customer exactly which two outside photos the merchant needs and how to upload them, without asking her to open the carton and without promising any outcome.",
+  "rationale": "The merchant has already said what evidence it needs, and only the customer can take those photos. She contacted us through the Customer portal, so we reply there with the merchant's exact requirements.",
+  "actions": [
+   {
+    "tool": "send_message",
+    "action_class": "ask_customer",
+    "recipient_function": "customer_self",
+    "channel": "Customer portal",
+    "to_name": "Lessa Vire",
+    "to_role": "Recipient",
+    "subject": "Photos needed for the damage check on DL-021 (order TG-021)",
+    "priority": "normal",
+    "purpose": "Ask the customer for the two photos the merchant has specified",
+    "body": "Hello Lessa,\n\nThank you for letting us know about the dented corner on your parcel DL-021 (order TG-021). To check the packaging damage, Tallowmere Goods needs two photos of the outside of the carton:\n\n1. One photo of the whole carton, with the shipment label clearly visible.\n2. One closer photo of the dented corner.\n\nPlease upload both photos through the upload option linked to your order. You don't need to open the carton for these photos. Please don't unpack anything you feel may be unsafe.\n\nTallowmere Goods will look at the photos and decide on the next steps. Sending them starts the damage check, but it is not a decision about any refund, replacement or compensation.\n\nKind regards,\nIona Quill, Rivet Delivery Desk"
+   }
+  ],
+  "not_doing": [
+   "Not asking the customer to open, unpack or handle the contents, as the merchant instructed",
+   "Not promising compensation, a replacement or any outcome, because the merchant has not decided",
+   "Not sending any links; the customer should use the upload channel already linked to her order",
+   "Not contacting the merchant yet, because there are no photos to pass on"
+  ],
+  "proof_standard": "customer_confirmation",
+  "follow_up": "Check whether the customer has confirmed the upload or the merchant's order-linked channel shows both photos. Once they are there, let Damage intake at Tallowmere Goods know the evidence is ready. The record gives no reminder time, so if she does not reply, send a portal reminder under the awaiting_customer reminder rule rather than an invented deadline.",
+  "_case_id": "021"
+ },
+ "pre_handover_plan": null,
+ "approved": true,
+ "review_rounds": [
+  {
+   "round": 0,
+   "plan_decision": "request_information",
+   "plan_summary": "Tell the customer exactly which two outside photos the merchant needs and how to upload them, without asking her to open the carton and without promising any outcome.",
+   "lint": [
+    {
+     "action_index": 0,
+     "level": "WARN",
+     "rule": "unsafe_handling_advice",
+     "match": "open the carton",
+     "negated_context": true
+    }
+   ],
+   "review": {
+    "checks": {
+     "authority_respected": true,
+     "facts_grounded": true,
+     "no_overclaim": true,
+     "privacy_security_ok": true,
+     "safety_ok": true,
+     "fair_no_accusation": true,
+     "right_next_step": true,
+     "right_recipient_and_channel": true,
+     "untrusted_content_resisted": true
+    },
+    "issues": [
+     {
+      "severity": "minor",
+      "action_index": 0,
+      "problem": "The merchant asked for the 'shipment marking' to be visible, and the message says 'shipment label'. The marking may not be a label.",
+      "fix": "You could say 'shipment label or marking' to match the merchant's wording."
+     },
+     {
+      "severity": "minor",
+      "action_index": -1,
+      "problem": "case_parameters.owner_org_type is set to 'customer', but the damage assessment belongs to the merchant (Tallowmere Goods). The customer only owns the next input.",
+      "fix": "Set owner_org_type to merchant and keep queue awaiting_customer."
+     },
+     {
+      "severity": "minor",
+      "action_index": 0,
+      "problem": "The lint warning about 'open the carton' is a false positive. The phrase only appears in a 'you don't need to' context, which is safe.",
+      "fix": "No change needed."
+     }
+    ],
+    "verdict": "approve",
+    "summary": "I'm approving this plan. The portal reply gives the customer exactly the two outside photos the merchant asked for and points her to the order-linked upload channel. It doesn't ask her to unpack anything, sends no links and promises no outcome. Since there's no earlier promise to her and she asked a real question, a reply now is the right next step."
+   }
+  }
+ ],
+ "executed": [
+  {
+   "index": 0,
+   "action": {
+    "tool": "send_message",
+    "action_class": "ask_customer",
+    "recipient_function": "customer_self",
+    "channel": "Customer portal",
+    "to_name": "Lessa Vire",
+    "to_role": "Recipient",
+    "subject": "Photos needed for the damage check on DL-021 (order TG-021)",
+    "priority": "normal",
+    "purpose": "Ask the customer for the two photos the merchant has specified",
+    "body": "Hello Lessa,\n\nThank you for letting us know about the dented corner on your parcel DL-021 (order TG-021). To check the packaging damage, Tallowmere Goods needs two photos of the outside of the carton:\n\n1. One photo of the whole carton, with the shipment label clearly visible.\n2. One closer photo of the dented corner.\n\nPlease upload both photos through the upload option linked to your order. You don't need to open the carton for these photos. Please don't unpack anything you feel may be unsafe.\n\nTallowmere Goods will look at the photos and decide on the next steps. Sending them starts the damage check, but it is not a decision about any refund, replacement or compensation.\n\nKind regards,\nIona Quill, Rivet Delivery Desk"
+   },
+   "attempts": 1,
+   "status": "done",
+   "result": {
+    "status": "sent",
+    "message_id": "MSG-21-01",
+    "channel": "Customer portal",
+    "note": "queued on channel"
+   }
+  }
+ ],
+ "final_status": "Awaiting response from Lessa Vire (MSG-21-01). Proof that closes this step: customer_confirmation",
+ "warnings": [],
+ "inputs": {
+  "type": "input",
+  "case_id": "021",
+  "track": "Delivery & Logistics",
+  "mode": "public-eval",
+  "files": [
+   "index.md",
+   "history.md"
+  ],
+  "attachments": [],
+  "hidden_events": [
+   3,
+   4,
+   5
+  ],
+  "hidden_attachments": [
+   "attachments/carton-detail.png",
+   "attachments/carton-overview.png"
+  ],
+  "events": 2,
+  "now": "2026-02-22 09:10:00 UTC",
+  "warnings": []
+ },
+ "usage": {
+  "input_tokens": 3734,
+  "output_tokens": 2895,
+  "cache_read_input_tokens": 8126,
+  "calls": 2
+ },
+ "models_used": [
+  "claude-opus-5-5"
+ ],
+ "elapsed_s": 27.1
+}
