@@ -91,9 +91,11 @@ def run_one(path: Path, out: Path, args, answer_name: str = "") -> dict:
                     "elapsed_s": res["elapsed_s"], "attempt": attempt,
                     "failed_actions": sum(1 for e in res["executed"] if e["status"] == "failed")}
         except FatalAPIError as exc:
+            first = not STOP.is_set()
             STOP.set()
-            print(f"\n!!! FATAL: {exc}\n!!! Stopping: remaining cases are skipped. Fix the API key/credit, then re-run with --resume.\n",
-                  file=sys.stderr, flush=True)
+            if first:
+                print(f"\n!!! FATAL: {exc}\n!!! Stopping: remaining cases are skipped. Fix the API key/credit, then re-run with --resume.\n",
+                      file=sys.stderr, flush=True)
             return {"case": path.name, "ok": False, "skipped": True, "error": f"FatalAPIError: {exc}", "elapsed_s": round(time.time() - t0, 1)}
         except Exception as exc:  # noqa: BLE001
             err = f"{type(exc).__name__}: {exc}"
