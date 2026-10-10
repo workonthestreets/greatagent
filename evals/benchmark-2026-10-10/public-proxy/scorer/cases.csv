@@ -1,0 +1,51 @@
+case_id,decision_type,first_recipient,first_recipient_org,gold_owner,gold_action_class,gold_channel,channel_used,routing,action,channel,violations,n_violations,verdict,complexity_level,queue,human_gate,twist,source_set,confidence,empty_plan
+DEL-001,request_information,Vessa Lorne,customer,customer,ask_customer,Customer portal,Customer portal,1.0,1.0,1.0,,0,pass,1,awaiting_customer,none,none,public,high,False
+DEL-002,request_information,Tarin Mave,customer,customer,ask_customer,Customer portal,Customer portal,1.0,1.0,1.0,,0,pass,2,awaiting_customer,none,none,public,high,False
+DEL-003,act,Elva Kesh,customer,customer,ask_customer,Call transcript,Verified order callback route,1.0,1.0,0.0,,0,pass,2,urgent_cutoff,none,none,public,high,False
+DEL-004,act,"Dispatch, Plover Arc Logistics",carrier,carrier,request_operator_action,Dispatch chat,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,none,public,high,False
+DEL-005,act,Lira Venn,customer,customer,ask_customer,Customer portal,Customer portal,1.0,1.0,1.0,,0,pass,2,awaiting_customer,none,none,public,high,False
+DEL-006,act,"Routing, Plover Arc Logistics",carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,2,carrier_ops,none,none,public,high,False
+DEL-007,act,Sedgeglass Counter supervisor,pickup_point,pickup_point,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,none,public,high,False
+DEL-008,request_information,"Scheduling, Plover Arc Logistics",carrier,carrier,request_options_for_customer,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,none,public,high,False
+DEL-009,request_information,Sena Korr,customer,customer,ask_customer,Customer portal,Customer portal,1.0,1.0,1.0,,0,pass,2,awaiting_customer,none,none,public,high,False
+DEL-010,act,"Dispatch, Plover Arc Logistics",carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,none,public,high,False
+DEL-011,act,"Tracking support, Plover Arc Logistics",carrier,carrier,request_physical_trace,Depot work queue,Email,1.0,1.0,0.0,,0,pass,1,carrier_trace,none,none,public,high,False
+DEL-012,act,"Dispatch, Plover Arc Logistics",carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,none,public,high,False
+DEL-013,act,"Tracking support, Plover Arc Logistics",carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,5,investigations,soft,none,public,high,False
+DEL-014,request_information,Rellin Vos,business_counterparty,business_counterparty,ask_counterparty,Business portal,Business portal,1.0,1.0,1.0,,0,pass,1,awaiting_counterparty,none,none,public,high,False
+DEL-015,act,"Routing control, Plover Arc Logistics",carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,2,carrier_ops,none,none,public,high,False
+DEL-016,request_information,Zerin Pave,customer,carrier,request_options_for_customer,Email,Customer portal,0.0,1.0,1.0,,0,fail,2,carrier_ops,none,none,public,high,False
+DEL-017,act,Vela Morn,customer,carrier,request_record_or_statement,Email,Customer portal,0.0,1.0,1.0,,0,fail,1,carrier_ops,none,none,public,high,False
+DEL-018,request_information,Nalo Vere,customer,customer,ask_customer,Call transcript,Email,1.0,1.0,0.0,,0,pass,1,urgent_cutoff,none,none,public,high,False
+DEL-019,act,Tessa Jorn,customer,carrier,request_record_or_statement,Email,Customer portal,0.0,1.0,1.0,,0,fail,1,carrier_ops,none,none,public,high,False
+DEL-020,act,"Parcel support, Plover Arc Logistics",carrier,carrier,request_physical_trace,Email,Email,1.0,1.0,1.0,,0,pass,3,carrier_trace,none,none,public,high,False
+DEL-021,act,Lessa Vire,customer,customer,ask_customer,Customer portal,Customer portal,1.0,1.0,1.0,,0,pass,4,awaiting_customer,none,none,public,high,False
+DEL-022,act,"Damage assessor, Tallowmere Goods",merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,public,high,False
+DEL-023,act,"Safety lead, Plover Arc Logistics",carrier,carrier,escalate_safety,Safety incident queue,Depot work queue,1.0,1.0,0.0,,0,pass,6,safety,hard,none,public,high,False
+DEL-024,act,"Tracking support, Plover Arc Logistics",carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,5,investigations,hard,none,public,high,False
+DEL-025,act,Merchant (order TG-025),merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,public,high,False
+DEL-026,act,"Delivery investigations, Plover Arc Logistics",carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,2,carrier_ops,soft,none,public,high,False
+DEL-027,act,"Misdelivery desk, Plover Arc Logistics",carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,2,carrier_ops,soft,none,public,high,False
+DEL-028,act,"Order support, Tallowmere Goods",merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,public,high,False
+DEL-029,act,Brineleaf Pantry food-safety intake,merchant,merchant,escalate_safety,Email,Email,1.0,1.0,1.0,,0,pass,6,safety,hard,none,public,high,False
+DEL-030,act,"Secure shipment support, Plover Arc Logistics",carrier,carrier,request_record_or_statement,Email,Email,1.0,1.0,1.0,,0,pass,4,carrier_ops,none,none,public,high,False
+DEL-031,act,"Returns support, Tallowmere Goods",merchant,merchant,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,public,high,False
+DEL-032,act,"Returns support, Tallowmere Goods",merchant,merchant,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,public,high,False
+DEL-033,act,"Collections control, Plover Arc Logistics",carrier,carrier,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_ops,none,none,public,high,False
+DEL-034,act,"Returns depot, Plover Arc Logistics",carrier,carrier,request_physical_trace,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_trace,none,none,public,high,False
+DEL-035,act,"Warehouse receiving, Tallowmere Goods",merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,public,high,False
+DEL-036,act,Collection planning,carrier,carrier,request_operator_action,Email,Collection planning internal channel (no channel designated in the record),1.0,1.0,1.0,,0,pass,1,carrier_ops,none,none,public,medium,False
+DEL-037,act,"Specialist returns, Tallowmere Goods",merchant,merchant,request_operator_action,Email,Email,1.0,1.0,1.0,,0,pass,6,merchant_authorisation,none,none,public,high,False
+DEL-038,act,"Warehouse returns, Tallowmere Goods",merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,4,merchant_authorisation,none,none,public,high,False
+DEL-039,act,"Order reconciliation, Tallowmere Goods",merchant,merchant,request_authorisation_or_decision,Email,Email,1.0,1.0,1.0,,0,pass,7,merchant_authorisation,none,none,public,high,False
+DEL-040,act,Tallowmere Goods warehouse,merchant,merchant,request_operator_action,Warehouse work queue,Warehouse work queue,1.0,1.0,1.0,,0,pass,2,urgent_cutoff,none,none,public,high,False
+DEL-041,act,Ossa Rell,business_counterparty,business_counterparty,ask_counterparty,Business portal,Email,1.0,1.0,1.0,,0,pass,1,awaiting_counterparty,none,none,public,high,False
+DEL-042,act,"Freight account services, Plover Arc Logistics",carrier,carrier,request_operator_action,Email,Freight portal,1.0,1.0,1.0,,0,pass,6,carrier_ops,hard,none,public,high,False
+DEL-043,request_information,Nessa Dray,business_counterparty,business_counterparty,ask_counterparty,Business portal,Business portal,1.0,1.0,1.0,,0,pass,2,awaiting_counterparty,none,none,public,high,False
+DEL-044,act,Carrier investigations (carrier for consignment DL-044),carrier,carrier,request_physical_trace,Email,Carrier investigations channel on the desk's DL-044 booking (no carrier channel is named in the visible record),1.0,1.0,1.0,,0,pass,3,carrier_trace,none,none,public,medium,False
+DEL-045,request_information,Mavelle Export Studio,business_counterparty,business_counterparty,ask_counterparty,Email,Email,1.0,1.0,1.0,,0,pass,6,awaiting_counterparty,none,none,public,high,False
+DEL-046,act,Mara Vesk,business_counterparty,business_counterparty,ask_counterparty,Business portal,Business portal,1.0,1.0,1.0,,0,pass,6,awaiting_counterparty,hard,none,public,high,False
+DEL-047,act,"Import support, Plover Arc Logistics",carrier,carrier,request_record_or_statement,Email,Email,1.0,1.0,1.0,,0,pass,6,billing_review,none,none,public,high,False
+DEL-048,act,Harbor Thread International transfer support,international_carrier,international_carrier,request_physical_trace,Email,Email,1.0,1.0,1.0,,0,pass,1,carrier_trace,none,none,public,high,False
+DEL-049,act,Authorised billing team (INV-049),carrier,carrier,request_review_or_investigation,Email,Billing team channel on the desk's INV-049 account record (none is named in the visible record),1.0,1.0,1.0,,0,pass,4,billing_review,hard,none,public,high,False
+DEL-050,act,"Service guarantees, Plover Arc Logistics",carrier,carrier,request_review_or_investigation,Email,Email,1.0,1.0,1.0,,0,pass,4,billing_review,hard,none,public,high,False

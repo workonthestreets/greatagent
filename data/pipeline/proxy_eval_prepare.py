@@ -26,7 +26,7 @@ TEMPLATE = """Below is the case record as it stands now. The current time is jus
 <file name="history.md">
 {history}
 </file>
-</case>
+{attachments}</case>
 
 Known channels in the record: {channels}
 Known parties in the record: {parties}
@@ -68,6 +68,26 @@ def render_history(rec, events, total_declared, cut):
     return '\n\n'.join(parts)
 
 
+def render_attachments(rec, mode, visible_text):
+    """Mirror deskagent/loader.py: attachments are shown in full mode, and in cutoff mode only when the visible
+    text names them. Text comes from the parser's extraction (pdftotext / OCR); images are given as OCR text."""
+    out = []
+    for att in rec.get('attachments') or []:
+        name = att.get('name') or ''
+        rel = att.get('href') or f'attachments/{name}'
+        if mode == 'cutoff' and rel not in visible_text and name not in visible_text:
+            continue
+        low = name.lower()
+        kind = 'pdf' if low.endswith('.pdf') else 'image' if low.endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')) else 'text'
+        text = (att.get('text') or '').strip()
+        if text:
+            note = ' (OCR text; the image itself is not shown in this proxy run)' if kind == 'image' else ''
+            out.append(f'<attachment name="{rel}" type="{kind}">{note}\n{text}\n</attachment>')
+        else:
+            out.append(f'<attachment name="{rel}" type="unreadable">no text could be extracted</attachment>')
+    return ('\n' + '\n\n'.join(out) + '\n') if out else ''
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('raw'); ap.add_argument('out_dir'); ap.add_argument('--mode', default='cutoff', choices=['cutoff', 'full'])
@@ -94,9 +114,11 @@ def main():
                 v = e['meta'].get(key, '').strip()
                 if v and v not in bucket:
                     bucket.append(v)
+        index_txt = render_index(rec, a.mode)
+        history_txt = render_history(rec, visible, rec.get('total_events_declared'), cut_idx is not None)
         prompt = TEMPLATE.format(now=visible[-1]['timestamp_raw'] if visible else 'unknown', case_id=rec['case_number'], track=a.track,
-                                 mode='public-eval' if a.mode == 'cutoff' else 'reality', index=render_index(rec, a.mode),
-                                 history=render_history(rec, visible, rec.get('total_events_declared'), cut_idx is not None),
+                                 mode='public-eval' if a.mode == 'cutoff' else 'reality', index=index_txt, history=history_txt,
+                                 attachments=render_attachments(rec, a.mode, index_txt + '\n' + history_txt),
                                  channels=', '.join(channels) or '(none recorded)', parties='; '.join(parties) or '(none recorded)')
         with open(os.path.join(a.out_dir, f"{rec['case_id']}.prompt.md"), 'w', encoding='utf-8') as fh:
             fh.write(prompt)
