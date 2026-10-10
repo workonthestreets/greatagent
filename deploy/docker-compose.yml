@@ -1,0 +1,31 @@
+# Local run of the voice line plus a Mailpit demo inbox, from the repo root:
+#   docker compose -f deploy/docker-compose.yml up --build
+# Keys and secrets come from ../.env (never committed); see deploy/README.md for the names.
+services:
+  voice:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "8010:8010"
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      VOICE_AGENT: deskagent
+      VOICE_DESK_MAX_PER_HOUR: "20"
+      SEND_EMAIL: "1"
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+    volumes:
+      - voice-data:/data
+    depends_on:
+      - mailpit
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+
+volumes:
+  voice-data:

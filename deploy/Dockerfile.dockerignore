@@ -1,0 +1,10 @@
+# Picked up by BuildKit for deploy/Dockerfile, so the repo root needs no .dockerignore.
+**/.env
+**/.env.*
+.git
+.venv
+**/__pycache__
+runs
+data
+web/node_modules
+web/dist
