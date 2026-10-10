@@ -20,7 +20,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from triage.outbox import deliver, slug
-from voice import lookup
+from voice import hub_mirror, lookup
 
 CASES_DIR = Path(os.getenv("VOICE_CASES_DIR", "runs/voice/cases"))
 DESK_MODEL = "claude-sonnet-5-5"  # cheaper than deskagent's Opus default; VOICE_DESK_MODEL overrides
@@ -92,6 +92,8 @@ def write_case_folder(conversation_id: str, caller: str, ref: str, issue: str, h
             f"- **Primary shipment:** {ref or '[reference not given]'}\n- **Created:** {when}{reach}\n\n"
             f"## Initial request\n{issue}\n")
         (folder / "history.md").write_text(f"# Case {sid} history\n\n{call_event}")
+    (folder / "_call.json").write_text(json.dumps({"caller": caller, "ref": ref, "issue": issue,
+                                                   "update_by": how, "contact": contact}))
     (folder / "_lookup.json").write_text(json.dumps({
         "matched": bool(known), "source_case": known.source_case if known else None,
         "primary": known.primary if known else "", "events_used": len(known.events) if known else 0}))
@@ -134,9 +136,18 @@ def run(conversation_id: str, folder: Path) -> dict:
                              for r in res.get("executed", []) if r.get("status") == "done"
                              and (r.get("action") or {}).get("tool") == "send_message"],
                "emails": _deliver_actions(f"voice-{short_id(conversation_id)}", res.get("executed", []), folder)}
+        messages = [{"to": r["action"].get("to_name") or r["action"].get("to_role"),
+                     "channel": r["action"].get("channel"), "body": r["action"].get("body", "")}
+                    for r in res.get("executed", []) if r.get("status") == "done"
+                    and (r.get("action") or {}).get("tool") in ("send_message", "escalate_to_human")]
     except Exception as exc:  # noqa: BLE001 — the caller has already hung up; record it for a human
         out = {"status": "failed", "error": f"{type(exc).__name__}: {exc}"[:500]}
     out["lookup"] = lookup_info(folder)
+    if out["status"] == "done" and hub_mirror.configured():  # hub records; it never decides or blocks
+        call_path = folder / "_call.json"
+        call = json.loads(call_path.read_text()) if call_path.exists() else {}
+        out["hub_mirror"] = hub_mirror.post_case(
+            hub_mirror.payload(short_id(conversation_id), call, out["lookup"], out, messages))
     out["elapsed_s"] = round(time.time() - t0, 1)
     (folder / "_result.json").write_text(json.dumps(out, indent=2, default=str))
     return out

@@ -94,3 +94,11 @@ Env: `VOICE_AGENT=hub`, `HUB_URL` (where hub runs), `HUB_WEBHOOK_SECRET` (same v
 **The one non-template reply:** `/voice/update` in hub mode speaks hub's latest agent message
 ("The latest update on your case is: …"). It is model-written, so it is checked for promises,
 amounts and credential words first; anything flagged becomes a fixed line instead.
+
+## Mirroring to hub (option B, active when `HUB_URL` + `HUB_WEBHOOK_SECRET` are set)
+
+deskagent decides; after it finishes, `voice/hub_mirror.py` posts the call and the decision to
+hub's `POST /webhooks/record_case` so the case appears in hub's `/ops` (hub records only, its agent
+is not woken). Spec for the hub side: `voice/HUB_MIRROR.md`. Failures (including 404 while the
+endpoint doesn't exist) land in `_result.json` as `hub_mirror: {ok: false, error}` and never affect
+the call or the decision. `VOICE_AGENT=hub` (hub decides instead) still exists but is off by default.

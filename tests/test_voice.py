@@ -288,3 +288,39 @@ def test_hub_mode_sends_one_request_and_falls_back_on_error(monkeypatch, tmp_pat
     assert fallback["status"] == "logged" and started == ["conv_hub2"] and "C-" not in fallback["say"]
     assert hub._UNSAFE_TO_SPEAK.search("Your refund of £40 has been approved")
 
+
+def test_finished_case_is_mirrored_to_hub_and_failures_are_swallowed(monkeypatch, tmp_path):
+    from voice import desk, hub_mirror
+    monkeypatch.setenv("HUB_URL", "http://hub.test")
+    monkeypatch.setenv("HUB_WEBHOOK_SECRET", "hubsecret")
+    monkeypatch.setattr(desk, "CASES_DIR", tmp_path / "cases")
+    fake = {"plan": {"decision_type": "act", "decision_summary": "Ask carrier to trace."}, "approved": True,
+            "answer_id": "x", "trace": [], "executed": [{"index": 0, "status": "done", "action": {
+                "tool": "send_message", "to_name": "Parcel trace team", "channel": "Email", "body": "Trace DL-204."}}]}
+    monkeypatch.setattr(desk, "_deskagent", lambda: (lambda path, track="": path, lambda case, model=None: fake,
+                                                     lambda out, res: None))
+    sent = []
+
+    class Reply:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def read(self): return b'{"case_id": "C-ABC123"}'
+
+    def ok(req, timeout):
+        sent.append((req.full_url, req.get_header("X-hub-secret"), json.loads(req.data), timeout))
+        return Reply()
+    monkeypatch.setattr(hub_mirror.urllib.request, "urlopen", ok)
+    folder = desk.write_case_folder("conv_m1", "Ana", "DL-204", "Never came.", "text", "07700900123")
+    out = desk.run("conv_m1", folder)
+    url, secret, body, timeout = sent[0]
+    assert (url, secret, timeout) == ("http://hub.test/webhooks/record_case", "hubsecret", 5)
+    assert body["caller_phone"] == "07700900123" and body["request"] == "Never came."
+    assert body["decision"]["messages"] == [{"to": "Parcel trace team", "channel": "Email", "body": "Trace DL-204."}]
+    assert out["hub_mirror"] == {"ok": True, "case_id": "C-ABC123"}
+
+    def missing(req, timeout):
+        raise hub_mirror.urllib.error.HTTPError(req.full_url, 404, "Not Found", {}, None)
+    monkeypatch.setattr(hub_mirror.urllib.request, "urlopen", missing)
+    out = desk.run("conv_m1", folder)
+    assert out["status"] == "done" and out["hub_mirror"] == {"ok": False, "error": "HTTP 404 from hub"}
+
