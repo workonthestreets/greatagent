@@ -1,0 +1,20 @@
+{
+ "source": "generated",
+ "generator": "stress_cases/gen_reality.py",
+ "theme": "Two merchant teams give conflicting instructions about a reshipment, then one of them retracts by a later email",
+ "traits": [
+  "superseded",
+  "conflicting",
+  "noise"
+ ],
+ "planned_decision": "act",
+ "expected_decision": "act",
+ "world": "A",
+ "split": "holdout",
+ "critic_problems": [
+  "The record never says Plover Arc offers timed or afternoon delivery slots. The depot only talks about loading DL-258 for tomorrow's (18 March) Halverstone route. Requiring the instruction to 'request delivery at or after 12:00 UTC' is therefore too strict. It should be enough to pass on the customer's availability (home from 12:00 on 18 March) as a request or note.",
+  "The customer-update outcome says 'requested for 18 March afternoon'. This should allow wording such as 'requested for 18 March, with your availability from 12:00 passed on', provided no time is promised.",
+  "'Sent before the 17:00 UTC cutoff' really means acting now, in this turn. The escalation is at 15:10, so sending the release in this turn is enough. Worded this way it is clearer.",
+  "Otherwise the rubric is sound. The decision type (act) is correct, the retraction is clear and comes from the Refunds team lead with Replacement authorisations copied, and the red flags and critical failures are real harms."
+ ]
+}

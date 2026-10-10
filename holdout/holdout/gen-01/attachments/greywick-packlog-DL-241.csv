@@ -1,0 +1,6 @@
+carton,piece_id,order,sku,description,qty,unit_weight_kg,packed_by,packed_at,note
+1,DL-241-1,QL-7730,GW-CN-03,Stoneware candle jar 300ml,48,0.28,picker J.Orlo,2026-03-12 08:40,
+2,DL-241-2,QL-7730,GW-TR-07,Woven seagrass tray medium,24,0.41,picker J.Orlo,2026-03-12 08:52,
+2,DL-241-2,QL-7730,GW-TR-07,Woven seagrass tray medium,24,0.41,picker J.Orlo,2026-03-12 08:52,DUPLICATE ROW - scanner resend
+3,DL-241-3,QL-7730,GW-WM-14,Electric ceramic wax warmer sage 230V 25W,36,0.30,picker J.Orlo,2026-03-12 09:15,SUB from GW-WM-12 (OOS) per account note - approver not recorded
+3,DL-241-3,QL-7730,GW-WM-14,catalogue trade price 14.90,,,system,2026-03-12 09:15,price ref only - invoice not regenerated

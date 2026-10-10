@@ -1,0 +1,23 @@
+{
+  "request_id": "trc-7f3a91c2",
+  "retrieved_at": "2026-04-27T09:34:11Z",
+  "tracking_ref": "KL-R-48231",
+  "service": "RETURN_PREPAID",
+  "consignee": "Brindle & Oak Wexford Park DC - Returns Dock 3",
+  "status": "IN_TRANSIT",
+  "status_detail": "Loaded for delivery",
+  "declared_weight_kg": 4.62,
+  "label_reprints": [ { "at": "2026-04-22T06:48:00Z", "location": "Harlow Cross hub", "same_reference": true, "new_reference": null } ],
+  "proof_of_delivery": null,
+  "events": [
+    { "at": "2026-04-20T11:14:00Z", "code": "ACC", "location": "ParcelPoint FRP-2291 Corran Street Newsagent", "detail": "Accepted. Weight 4.62 kg" },
+    { "at": "2026-04-21T09:11:00Z", "code": "ARR", "location": "Harlow Cross hub", "detail": "Arrived" },
+    { "at": "2026-04-22T06:48:00Z", "code": "EXC", "location": "Harlow Cross hub", "detail": "Label unreadable - reprinted, same reference" },
+    { "at": "2026-04-23T05:20:00Z", "code": "DEP", "location": "Harlow Cross hub", "detail": "Departed" },
+    { "at": "2026-04-24T08:29:00Z", "code": "ARR", "location": "Wexford Park delivery depot", "detail": "Arrived" },
+    { "at": "2026-04-25T07:39:00Z", "code": "OFD", "location": "Wexford Park delivery depot", "detail": "Out for delivery, route WP-09" },
+    { "at": "2026-04-25T12:54:00Z", "code": "ATT", "location": "Brindle & Oak Wexford Park DC", "detail": "Delivery attempted - consignee goods-in closed" },
+    { "at": "2026-04-25T13:30:00Z", "code": "RTD", "location": "Wexford Park delivery depot", "detail": "Returned to depot, rebooked next working day" },
+    { "at": "2026-04-27T06:54:00Z", "code": "LDD", "location": "Wexford Park delivery depot", "detail": "Loaded for delivery, route WP-14" }
+  ]
+}

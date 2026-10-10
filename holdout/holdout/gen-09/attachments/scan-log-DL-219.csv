@@ -1,0 +1,17 @@
+timestamp_utc,label,location,event,detail
+2026-03-16 16:10,DL-219 (consignment),Tallowmere warehouse dock 2,COLLECTED,pieces=12 (individual labels 01-12 scanned)
+2026-03-16 21:30,DL-219-01..12,Halverstone depot,ARRIVAL,12 of 12 scanned
+2026-03-17 05:40,DL-219-01..06,Halverstone depot,SORT,route HV-14 cage A
+2026-03-17 05:41,DL-219-08..12,Halverstone depot,SORT,route HV-14 cage A
+2026-03-17 05:42,DL-219-07,Halverstone depot,SORT,HAL-BRN linehaul cage 3
+2026-03-17 07:55,DL-219 (consignment),Halverstone depot,OUT FOR DELIVERY,route HV-14 (consignment-level status)
+2026-03-17 07:55,DL-219-01..06,Halverstone depot,OUT FOR DELIVERY,route HV-14
+2026-03-17 07:55,DL-219-08..12,Halverstone depot,OUT FOR DELIVERY,route HV-14
+2026-03-17 07:56,DL-219-08,Halverstone depot,OUT FOR DELIVERY,duplicate scan
+2026-03-17 10:42,DL-219 (consignment),Unit 4 Fennick Row Trade Park,DELIVERED,pieces keyed manually=12; signatory J. Marrow
+2026-03-17 10:42,DL-219-01..06,Unit 4 Fennick Row Trade Park,DELIVERED,piece scan
+2026-03-17 10:43,DL-219-08..12,Unit 4 Fennick Row Trade Park,DELIVERED,piece scan
+2026-03-17 14:05,DL-219-07,HAL-BRN linehaul,DEPART,cage 3
+2026-03-17 19:15,DL-219-07,Brenmoor depot,ARRIVAL,no matching manifest; weight 14.1 kg
+2026-03-17 19:16,DL-219-07,Brenmoor depot,ARRIVAL,duplicate scan
+2026-03-18 06:02,DL-219-07,Brenmoor depot,HELD,unmanifested piece; shelf B-12; awaiting instructions

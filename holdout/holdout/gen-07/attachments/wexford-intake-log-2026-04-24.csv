@@ -1,0 +1,9 @@
+intake_time_utc,dock,carrier,tracking_ref,order_ref,order_ref_source,weight_kg,contents_sku,contents_desc,grade,status,operator,notes
+2026-04-24 08:47,3,Fennick,KL-R-47990,ORD-54871,label barcode,0.64,BO-THR-0118,Linen throw,B,RECEIVED,HDR,
+2026-04-24 09:05,3,Fennick,KL-R-48102,ORD-55003,label barcode,2.31,BO-VAS-1120,Stoneware vase pair,A,RECEIVED,HDR,
+2026-04-24 09:31,3,Parcelwise,PW-2209184,ORD-54990,label barcode,0.88,BO-CUSH-0409,Cushion cover set (sage),A,RECEIVED,MKT,
+2026-04-24 10:12,3,Fennick,KL-R-48213,ORD-55120,handwritten slip,1.18,BO-CUSH-0412,Cushion cover set (ochre),A,RECEIVED,HDR,label partly torn - order ref taken from handwritten slip; matched to open RMA RTN-6634
+2026-04-24 10:40,3,Fennick,KL-R-48177,ORD-55061,label barcode,5.02,BO-LMP-2210,Halden floor lamp shade,A,RECEIVED,MKT,
+2026-04-24 11:15,3,Fennick,KL-R-48230,ORD-55098,label barcode,1.40,BO-MUG-0031,Mug set x4,C,RECEIVED,HDR,one mug chipped
+2026-04-24 13:02,3,Parcelwise,PW-2209301,ORD-55111,label barcode,3.75,BO-RUG-0701,Jute rug 120x170,A,RECEIVED,MKT,
+2026-04-24 14:26,3,Fennick,KL-R-48241,ORD-55130,label barcode,0.52,BO-CND-0204,Candle trio,A,RECEIVED,HDR,

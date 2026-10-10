@@ -1,0 +1,29 @@
+{
+  "broker_ref": "OTD-5521",
+  "shipment": "DL-241",
+  "status": "HELD_DOCS",
+  "entry_point": "Saltreach import gateway",
+  "held_at": "2026-03-16T07:29:00Z",
+  "importer_of_record": {
+    "name": "Quenby Lane Interiors Ltd",
+    "importer_reg": "QLI-88310",
+    "authorised_signatories": [
+      {"name": "Dalia Fenwright", "role": "Director", "registered_email": "dalia.fenwright@quenbylane.example", "portal_user": "dfenwright"}
+    ],
+    "delegates": [],
+    "delegation_process": "Form OTD-D2 signed by an authorised signatory; processed within 1 business day",
+    "notification_contacts": ["shipping@quenbylane.example"]
+  },
+  "exporter": {"name": "Greywick Homewares", "invoice_issuer": "Export documentation (Greywick business portal)"},
+  "invoice_lodged": "INV-241",
+  "lines": [
+    {"line": 1, "sku": "GW-CN-03", "declared_hs": "6912.00", "qty": 48, "unit_value": "3.20", "screen": "OK"},
+    {"line": 2, "sku": "GW-TR-07", "declared_hs": "4602.19", "qty": 24, "unit_value": "5.75", "screen": "OK"},
+    {"line": 3, "sku": "GW-WM-12", "declared_hs": "6913.90", "qty": 36, "unit_value": "6.40", "screen": "DESC_MISMATCH", "detail": "Declared non-electric; X-ray shows coiled cable in each unit"}
+  ],
+  "requirements_to_release": [
+    {"id": "R1", "party": "exporter", "item": "Corrected commercial invoice or signed exporter statement of goods shipped and transaction value", "status": "OUTSTANDING"},
+    {"id": "R2", "party": "importer_of_record", "item": "Form AM-1 amendment confirming classification and value, signed by an authorised signatory", "status": "OUTSTANDING"}
+  ],
+  "storage": {"free_until": "2026-03-19T00:00:00Z", "daily_rate": "18.00", "billed_to": "importer_of_record"}
+}

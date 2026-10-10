@@ -35,6 +35,13 @@ def model_list(primary: Optional[str]) -> List[str]:
     return models
 
 
+class FatalAPIError(RuntimeError):
+    """The API cannot be used at all (no credit, bad key). Retrying or falling back will not help."""
+
+
+FATAL_MARKERS = ("credit balance is too low", "invalid x-api-key", "authentication_error", "billing")
+
+
 class _ModelState:
     """Remembers which model works so parallel workers stop retrying dead ones."""
     lock = threading.Lock()
@@ -74,9 +81,14 @@ class LLM:
                 self._log(purpose, model, messages, None, time.time() - t0, error=f"model unavailable: {exc}")
                 last_exc = exc
                 continue
+            except getattr(self._anthropic, "AuthenticationError", ()) as exc:
+                self._log(purpose, model, messages, None, time.time() - t0, error=str(exc)[:300])
+                raise FatalAPIError(f"Anthropic API authentication failed: {exc}") from exc
             except self._anthropic.BadRequestError as exc:
                 msg = str(exc)
                 self._log(purpose, model, messages, None, time.time() - t0, error=msg[:500])
+                if any(m in msg.lower() for m in FATAL_MARKERS):
+                    raise FatalAPIError(f"Anthropic API unavailable for this account: {msg[:200]}") from exc
                 if "not_found" in msg or "model:" in msg.lower() or "unknown model" in msg.lower():
                     with _ModelState.lock:
                         _ModelState.dead.add(model)
@@ -128,6 +140,7 @@ class LLM:
             messages.append({"role": "assistant", "content": resp.content})
             if final is not None:
                 data = dict(final.input) if isinstance(final.input, dict) else {}
+                data = coerce_to_schema(data, final_tool["input_schema"])
                 missing = [k for k in required if k not in data]
                 if not missing:
                     return data
@@ -156,6 +169,39 @@ class LLM:
 
 
 # ---------------------------------------------------------------------- helpers
+def coerce_to_schema(value, schema: dict):
+    """Repair common structured-output slips without inventing content: a nested array or
+    object returned as a JSON string is parsed; a lone object where an array is expected is
+    wrapped; non-object items in an array of objects are dropped."""
+    t = schema.get("type")
+    if t in ("array", "object") and isinstance(value, str):
+        s = value.strip()
+        if s.startswith("```"):
+            s = s.strip("`").removeprefix("json").strip()
+        start = min([i for i in (s.find("{"), s.find("[")) if i >= 0] or [-1])
+        if start >= 0:
+            try:
+                value, _ = json.JSONDecoder(strict=False).raw_decode(s[start:])
+            except ValueError:
+                pass
+    if t == "array":
+        if isinstance(value, dict):
+            value = [value]
+        if isinstance(value, str):
+            value = [value] if value.strip() else []
+        if not isinstance(value, list):
+            return value
+        item = schema.get("items") or {}
+        out = [coerce_to_schema(v, item) for v in value]
+        if item.get("type") == "object":
+            out = [v for v in out if isinstance(v, dict)]
+        return out
+    if t == "object" and isinstance(value, dict):
+        props = schema.get("properties") or {}
+        return {k: (coerce_to_schema(v, props[k]) if k in props else v) for k, v in value.items()}
+    return value
+
+
 def calculate(expression: str, label: str = "") -> dict:
     """Safe decimal arithmetic: numbers, + - * / ( ) only."""
     import ast

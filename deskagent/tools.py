@@ -25,8 +25,9 @@ class ToolError(Exception):
 
 
 class DeskTools:
-    def __init__(self, case_id: str, known_channels: List[str], trace: list):
+    def __init__(self, case_id: str, known_channels: List[str], trace: list, allow_numbers: frozenset = frozenset()):
         self.case_id = case_id
+        self.allow_numbers = allow_numbers
         self.known_channels = known_channels
         self.trace = trace
         self.fail_rate = float(os.environ.get("DESK_SIM_FAIL_RATE", "0") or 0)
@@ -64,7 +65,7 @@ class DeskTools:
                 raise ToolError("no recipient", transient=False)
             if not channel:
                 raise ToolError("no channel", transient=False)
-            blocks = [f for f in lint_text(subject + "\n" + body) if f["level"] == "BLOCK"]
+            blocks = [f for f in lint_text(subject + "\n" + body, self.allow_numbers) if f["level"] == "BLOCK"]
             if blocks:
                 raise ToolError("policy block: " + ", ".join(f"{b['rule']}('{b['match']}')" for b in blocks), transient=False)
             self._maybe_fail(channel)

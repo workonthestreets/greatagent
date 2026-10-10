@@ -165,6 +165,108 @@ def test_transient_failure_retried_then_recorded():
     assert ex[0]["status"] == "done" and ex[0]["attempts"] == 3 and len(ex[0]["recovered_after"]) == 2 and "error" not in ex[0]
 
 
+def test_stringified_plan_fields_are_repaired():
+    """Models sometimes return a nested array as a JSON string; that must not crash the case."""
+    from deskagent.pipeline import process_case
+    broken = dict(GOOD_PLAN, actions=json.dumps(GOOD_PLAN["actions"]), facts=json.dumps(GOOD_PLAN["facts"]),
+                  conflicts="```json\n[]\n```")
+    _install_fake([("propose_plan", broken), ("submit_review", APPROVE)])
+    llm_mod._ModelState.dead.clear()
+    res = process_case(load_case(CASE_DIR, public_cutoff=True), model="fake-model")
+    assert res["approved"] and [e["action"]["tool"] for e in res["executed"]] == ["send_message"]
+    assert isinstance(res["plan"]["facts"], list) and res["plan"]["conflicts"] == []
+
+
+def test_unknown_tool_is_recovered_to_human():
+    from deskagent.pipeline import execute, sanitize_plan
+    from deskagent.tools import DeskTools
+    plan = sanitize_plan({"decision_type": "act", "actions": [{"tool": "phone_call", "to_name": "Dispatch", "body": "Please rebook.",
+                                                                 "purpose": "p"}, "junk"]})
+    ex = execute(plan, DeskTools("T", ["Email"], []))
+    assert [(e["action"]["tool"], e["status"]) for e in ex] == [("phone_call", "failed"), ("escalate_to_human", "done")]
+
+
+def test_handover_does_not_keep_stale_closing_text():
+    from deskagent.pipeline import escalation_plan
+    p = escalation_plan(dict(GOOD_PLAN, direct_answer="Your slot is 15:00."), "reviewer said no")
+    assert "human" in p["closes_when"].lower() and "NOT sent" in p["direct_answer"]
+    assert p["not_doing"][0].startswith("Not sending")
+
+
+def test_card_block_skips_numbers_already_in_record():
+    from deskagent.policy import record_numbers
+    tracking = "4111 1111 1111 1111"  # Luhn-valid, but it is the carrier's own reference in the record
+    assert any(f["rule"] == "payment_card_number" for f in lint_text(f"ref {tracking}"))
+    allow = frozenset(record_numbers(f"Carrier reference {tracking} issued"))
+    assert not any(f["rule"] == "payment_card_number" for f in lint_text(f"ref {tracking}", allow))
+
+
+def test_loader_office_files_headers_and_latest_time():
+    import zipfile
+    with tempfile.TemporaryDirectory() as td:
+        d = Path(td) / "7"
+        (d / "attachments").mkdir(parents=True)
+        (d / "history.md").write_text(  # no anchors, en dash, newest-first
+            "# Case 7 history\n\n## 2026-05-02 10:00:00 UTC – Event 2\n\n- **Channel:** Email\n- **From:** Dispatch\n- **To:** Desk\n\nLater.\n\n"
+            "## 2026-05-01 09:00:00 UTC – Event 1\n\n- **Channel:** Customer portal\n- **From:** Ana\n- **To:** Desk\n\nEarlier.\n")
+        with zipfile.ZipFile(d / "attachments" / "note.docx", "w") as z:
+            z.writestr("word/document.xml", "<w:document><w:body><w:p><w:r><w:t>Pallet count 11 of 12</w:t></w:r></w:p></w:body></w:document>")
+        with zipfile.ZipFile(d / "attachments" / "manifest.xlsx", "w") as z:
+            z.writestr("xl/sharedStrings.xml", "<sst><si><t>carton</t></si><si><t>C-07</t></si></sst>")
+            z.writestr("xl/worksheets/sheet1.xml", '<worksheet><sheetData><row><c t="s"><v>0</v></c><c t="s"><v>1</v></c><c><v>4</v></c></row></sheetData></worksheet>')
+        (d / "__MACOSX").mkdir()
+        (d / "__MACOSX" / "._note.docx").write_bytes(b"\x00\x05junk")
+        c = load_case(d)
+        assert len(c.events) == 2 and c.now.startswith("2026-05-02 10:00")
+        texts = {a.name: a.text for a in c.attachments}
+        assert "Pallet count 11 of 12" in texts["note.docx"] and "carton,C-07,4" in texts["manifest.xlsx"]
+        assert all("__MACOSX" not in a.rel_path for a in c.attachments) and c.answer_id == "7"
+
+
+def test_answer_md_has_required_sections():
+    from deskagent.pipeline import process_case
+    from deskagent.report import answer_md
+    _install_fake([("propose_plan", GOOD_PLAN), ("submit_review", APPROVE)])
+    llm_mod._ModelState.dead.clear()
+    ans = answer_md(process_case(load_case(CASE_DIR, public_cutoff=True), model="fake-model"))
+    for h in ("**Final result:**", "## What the system received", "## Actions taken", "## What was escalated", "## What failed"):
+        assert h in ans, h
+
+
+def test_answer_folders_do_not_collide_across_tracks():
+    import run
+    a = Path("/x/Delivery & Logistics/001")
+    b = Path("/x/Banking & Financial Services/001")
+    c = Path("/x/Delivery & Logistics/002")
+    names = run.answer_names([a, b, c])
+    assert names[c] == "2" and names[a] != names[b] and names[a].endswith("-1")
+    assert run.answer_names([a, c]) == {a: "1", c: "2"}
+
+
+def test_fatal_api_error_is_not_retried():
+    from deskagent.llm import LLM, FatalAPIError
+    _install_fake([])
+    fake_mod = sys.modules["anthropic"]
+    calls = []
+
+    class NoCredit:
+        def __init__(self, *a, **k):
+            self.messages = self
+
+        def create(self, **kw):
+            calls.append(kw["model"])
+            raise fake_mod.BadRequestError("Error code: 400 - Your credit balance is too low to access the Anthropic API.")
+
+    fake_mod.Anthropic = NoCredit
+    os.environ.setdefault("ANTHROPIC_API_KEY", "test")
+    llm_mod._ModelState.dead.clear()
+    try:
+        LLM(model="fake-model").create("t", "s", [{"role": "user", "content": "hi"}], [], {"type": "auto"})
+        raise AssertionError("expected FatalAPIError")
+    except FatalAPIError:
+        assert calls == ["fake-model"]   # no fallback to other models, no retries
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
