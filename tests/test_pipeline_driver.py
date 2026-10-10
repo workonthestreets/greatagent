@@ -81,7 +81,8 @@ def test_call_plan_review_approve_reject():
         llm_mod._ModelState.dead.clear()
 
         out = ask_agent(AskAgentIn(request=CALL, case_id=CASE))       # returns at once; the run is in the background
-        assert out["case_id"] == CASE and CASE in out["say"]
+        # the caller hears the case's public reference (C-10009 after migration 004; the id before it)
+        assert out["case_id"] == CASE and out["case_ref"] in out["say"]
         pipeline_driver._workers[CASE].join(timeout=60)
         assert len(fake.messages.calls) == 2, "planner + reviewer"
 

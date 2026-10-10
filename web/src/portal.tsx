@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { fmtTime, hub, useLive, type Case, type CaseEvent, type Shipment } from "./lib";
+import { caseLabel, fmtTime, hub, shipmentLabel, useLive, useRefs, type Case, type CaseEvent, type Shipment } from "./lib";
 import { Composer, Timeline } from "./Timeline";
 import { Bell } from "./icons";
 import { Status } from "./ui";
@@ -36,6 +36,7 @@ export function LatestBand({ caseId }: { caseId: string | null }) {
 
 /** The hero of a portal: the desk's most recent message on the current case (what the voice line reads out). */
 export function LatestFromDesk({ caseId }: { caseId: string }) {
+  const { caseRef } = useRefs();
   const events = useLive<CaseEvent>("case_events", (q) => q.eq("case_id", caseId).order("ts").order("id"), [caseId]);
   const fromDesk = events.filter((e) => e.kind === "agent_message" || (e.kind === "message" && e.author_role === "agent"));
   const latest = fromDesk[fromDesk.length - 1] ?? events[events.length - 1];
@@ -51,7 +52,7 @@ export function LatestFromDesk({ caseId }: { caseId: string }) {
       <p className="card-feature__body latest__body">{latest ? latest.body : "Nothing from the desk yet on this case."}</p>
       {latest && (
         <p className="latest__meta">
-          {fmtTime(latest.ts)}{latest.channel ? `, via ${latest.channel}` : ""} on case #{caseId}
+          {fmtTime(latest.ts)}{latest.channel ? `, via ${latest.channel}` : ""} on case {caseRef(caseId)}
         </p>
       )}
       <button className="btn btn--inverse card-feature__cta" onClick={reply}>Reply</button>
@@ -67,7 +68,7 @@ export function CaseList({ cases, current, onSelect, empty = "No cases yet." }: 
       {cases.map((c) => (
         <li key={c.id} className="case-row" aria-current={c.id === current ? "true" : undefined} onClick={() => onSelect(c.id)}>
           <div className="case-row__top">
-            <span className="case-row__title">#{c.id} {c.title}</span>
+            <span className="case-row__title">{caseLabel(c)}&nbsp; {c.title}</span>
             <Status status={c.status} />
           </div>
           <div className="case-row__summary">Updated {fmtTime(c.updated_at)}</div>
@@ -82,13 +83,14 @@ export function CaseList({ cases, current, onSelect, empty = "No cases yet." }: 
 export function Thread({ caseId, extra }: { caseId: string; extra?: (c: Case) => ReactNode }) {
   const [c] = useLive<Case>("cases", (q) => q.eq("id", caseId), [caseId]);
   const events = useLive<CaseEvent>("case_events", (q) => q.eq("case_id", caseId).order("ts").order("id"), [caseId]);
+  const { shipmentRef } = useRefs();
   if (!c) return <p className="text-muted empty">Loading…</p>;
   return (
     <div className="detail">
       <div className="detail__head">
-        <h2 className="headline-md">#{c.id}&nbsp; {c.title}</h2>
+        <h2 className="headline-md">{caseLabel(c)}&nbsp; {c.title}</h2>
       </div>
-      <div className="meta"><Status status={c.status} />{c.shipment_id && <span>Shipment {c.shipment_id}</span>}</div>
+      <div className="meta"><Status status={c.status} />{c.shipment_id && <span>Shipment {shipmentRef(c.shipment_id)}</span>}</div>
       <Timeline events={events} />
       {extra?.(c)}
       <Composer caseId={caseId} placeholder="Write to the delivery desk…" />
@@ -189,6 +191,7 @@ export function ShipmentStops({ title, shipments, options, empty, onReport, onSe
 function Stop({ shipment: s, options, onReport, onSelectCase, isCurrent }: {
   shipment: Shipment; options: StatusOption[]; onReport: () => void; onSelectCase: (caseId: string) => void; isCurrent: boolean;
 }) {
+  const { caseRef } = useRefs();
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
@@ -211,14 +214,14 @@ function Stop({ shipment: s, options, onReport, onSelectCase, isCurrent }: {
   return (
     <li className={`stop ${isCurrent ? "is-current" : ""}`}>
       <div className="stop__head">
-        <span className="tbl__id">{s.id}</span>
+        <span className="tbl__id">{shipmentLabel(s)}</span>
         <span className="stop__what">{s.description ?? "No description"}</span>
         {status ? <Status status={status} /> : <span className="text-muted body-sm">Not set</span>}
       </div>
       <div className="stop__meta">
         <span>{s.eta ? `ETA ${s.eta}` : "ETA not set"}</span>
         {s.case_id && (
-          <button className="stop__case" onClick={() => onSelectCase(s.case_id!)}>Case #{s.case_id}</button>
+          <button className="stop__case" onClick={() => onSelectCase(s.case_id!)}>Case {caseRef(s.case_id)}</button>
         )}
       </div>
       <div className="stop__actions">

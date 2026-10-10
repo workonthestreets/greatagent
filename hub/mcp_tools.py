@@ -10,7 +10,7 @@ from mcp.server.mcpserver import MCPServer
 
 from deskagent.policy import lint_text, record_numbers
 
-from . import db
+from . import db, refs
 
 DOCS_DIR = Path(__file__).resolve().parent / "docs"
 
@@ -33,6 +33,9 @@ def _json(value) -> str:
 
 def _case(case_id: str) -> dict:
     row = db.one("select * from cases where id = %s", (case_id,))
+    if not row:   # the agent may pass the public reference (C-10009) or a tracking number instead of the id
+        resolved = refs.resolve_case(case_id)
+        row = db.one("select * from cases where id = %s", (resolved,)) if resolved else None
     if not row:
         raise ValueError(f"unknown case_id {case_id!r}")
     return row
@@ -69,6 +72,7 @@ def _event(case_id: str, kind: str, body: str, *, channel: str = "", to_party: O
 def get_case(case_id: str) -> str:
     """Get one case: details, parties, shipment, the full dated timeline (oldest first) and the actions already taken."""
     case = _case(case_id)
+    case_id = case["id"]   # the agent may have passed a reference
     parties = db.query("select party_name, role from case_parties where case_id = %s order by role", (case_id,))
     shipment = db.one("select * from shipments where id = %s", (case["shipment_id"],)) if case["shipment_id"] else None
     timeline = db.query(
@@ -115,6 +119,7 @@ def send_message(case_id: str, to_party: str, channel: str, subject: str, body: 
     Business portal, Dispatch chat, Depot work queue, Call transcript, Warehouse work queue, Safety incident queue,
     Freight portal, Broker portal, Pickup-point portal)."""
     case = _case(case_id)
+    case_id = case["id"]   # the agent may have passed a reference
     args = {"to_party": to_party, "channel": channel, "subject": subject, "body": body}
     record_text = " ".join(e["body"] for e in db.query("select body from case_events where case_id = %s", (case_id,)))
     findings = lint_text(f"{subject}\n{body}", frozenset(record_numbers(record_text)))
@@ -135,6 +140,7 @@ def escalate_to_human(case_id: str, to_name: str, subject: str, body: str,
     """Hand the case to a human (desk supervisor or a named team) with a complete handover: what happened, verified facts,
     what was done, the risk, and the specific decision needed."""
     case = _case(case_id)
+    case_id = case["id"]   # the agent may have passed a reference
     args = {"to_name": to_name, "subject": subject, "body": body, "priority": priority}
     _event(case_id, "note", f"ESCALATION to {to_name} [{priority}]: {subject}\n\n{body}", channel="Internal",
            to_party=to_name, visibility="staff")
@@ -147,6 +153,7 @@ def escalate_to_human(case_id: str, to_name: str, subject: str, body: str,
 def schedule_follow_up(case_id: str, when: str, body: str) -> str:
     """Schedule a follow-up for the desk (when: ISO time or a plain trigger like "after dispatch replies")."""
     case = _case(case_id)
+    case_id = case["id"]   # the agent may have passed a reference
     _event(case_id, "note", f"Follow-up scheduled for {when}: {body}", channel="Internal", visibility="staff")
     action_id = _record(case, "schedule_follow_up", {"when": when, "body": body}, "done", None, {"when": when})
     return f"Follow-up scheduled for {when} (action {action_id})."
@@ -156,6 +163,7 @@ def schedule_follow_up(case_id: str, when: str, body: str) -> str:
 def record_case_note(case_id: str, body: str) -> str:
     """Add an internal note to the case (staff only, never shown to customers or partners)."""
     case = _case(case_id)
+    case_id = case["id"]   # the agent may have passed a reference
     _event(case_id, "note", body, channel="Internal", visibility="staff")
     action_id = _record(case, "record_case_note", {"body": body}, "done")
     return f"Note recorded (action {action_id})."
@@ -166,6 +174,7 @@ def update_case_status(case_id: str, status: Literal["open", "in_progress", "wai
                        reason: str) -> str:
     """Change the case status, with a short reason for the record."""
     case = _case(case_id)
+    case_id = case["id"]   # the agent may have passed a reference
     db.query("update cases set status = %s, updated_at = now() where id = %s", (status, case_id))
     _event(case_id, "system", f"Status changed to {status}: {reason}", channel="Internal", visibility="staff")
     action_id = _record(case, "update_case_status", {"status": status, "reason": reason}, "done")
@@ -179,6 +188,7 @@ def submit_decision(case_id: str,
     """Record your decision for this wake-up. Call exactly once, last. summary: one or two sentences a coordinator reads
     first. not_doing: what you deliberately did not do and why. next_trigger: what event or time moves the case next."""
     case = _case(case_id)
+    case_id = case["id"]   # the agent may have passed a reference
     decision = {"decision_type": decision_type, "summary": summary, "rationale": rationale,
                 "not_doing": not_doing, "next_trigger": next_trigger}
     status = {"hold_no_action": "waiting", "request_information": "waiting", "escalate_to_human": "escalated",

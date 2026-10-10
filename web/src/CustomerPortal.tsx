@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLive, type Case, type Profile, type Shipment } from "./lib";
+import { shipmentLabel, useLive, type Case, type Profile, type Shipment } from "./lib";
 import { CasesSplit, LatestBand, NewRequest, PortalHead } from "./portal";
 import { Status } from "./ui";
 
@@ -28,7 +28,7 @@ export default function CustomerPortal({ initialCase }: { profile: Profile; init
                 {shipments.map((s) => (
                   <tr key={s.id} onClick={() => s.case_id && setSelected(s.case_id)}
                     className={`clickable ${s.case_id && s.case_id === current ? "is-current" : ""}`}>
-                    <td className="tbl__id">{s.id}</td>
+                    <td className="tbl__id">{shipmentLabel(s)}</td>
                     <td>{s.description}</td>
                     <td>{s.status ? <Status status={s.status} /> : <span className="text-muted">Not set</span>}</td>
                     <td className="tbl__eta">{s.eta ?? <span className="text-muted">Not set</span>}</td>

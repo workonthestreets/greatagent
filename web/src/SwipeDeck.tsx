@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as RPointerEvent } from "react";
-import { fmtTime, hub, type Action, type DecisionResponse, type MedalRef } from "./lib";
+import { fmtTime, hub, useRefs, type Action, type DecisionResponse, type MedalRef } from "./lib";
 import { Award, Check, Coins, Mail, Send, X } from "./icons";
 import { statusText } from "./ui";
 
@@ -177,6 +177,7 @@ function DraftCard({ action, depth, style, className, intent, strength, reason, 
   action: Action; depth: number; style?: CSSProperties; className: string; intent: Verb | null; strength: number;
   reason: string; onReason: (v: string) => void; onOpen: () => void; pointer?: PointerHandlers;
 }) {
+  const { caseRef } = useRefs();
   const a = action.args as Record<string, string>;
   // Fade the bottom of a long draft while more of it is hidden below, so the cut reads as a scroll.
   const draftRef = useRef<HTMLDivElement>(null);
@@ -198,7 +199,7 @@ function DraftCard({ action, depth, style, className, intent, strength, reason, 
       <div className="approval__top">
         <span className="card-feature__icon">{a.channel === "email" ? <Mail /> : <Send />}</span>
         <span className="approval__meta">
-          <button className="approval__case" onClick={onOpen} tabIndex={isTop ? 0 : -1}>Case #{action.case_id}</button>
+          <button className="approval__case" onClick={onOpen} tabIndex={isTop ? 0 : -1}>Case {caseRef(action.case_id)}</button>
           <span>{fmtTime(action.created_at)}</span>
         </span>
       </div>

@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  fmtTime, go, hub, useLive, type Action, type AgentEvent, type AgentLive, type AgentRun, type Case,
+  caseLabel, fmtTime, go, hub, useLive, useRefs, type Action, type AgentEvent, type AgentLive, type AgentRun, type Case,
 } from "./lib";
 import { ArrowUpRight } from "./icons";
 import { Status } from "./ui";
 
 /** /agents: one row per case the agent has worked, newest activity first; /agents/<case id> opens its live log.
  *  Staff only (agent_events, agent_runs and agent_live are staff-only under RLS). */
-export default function AgentsPage({ caseId }: { caseId: string | null }) {
+export default function AgentsPage({ caseId: fromUrl }: { caseId: string | null }) {
+  const { caseIdFor } = useRefs();
+  const caseId = fromUrl ? caseIdFor(fromUrl) : null;
   const runs = useLive<AgentRun>("agent_runs", (q) => q.order("updated_at", { ascending: false }).limit(300));
   const cases = useLive<Case>("cases", (q) => q);
   const pending = useLive<Action>("actions", (q) => q.eq("status", "pending_approval"));
@@ -57,9 +59,9 @@ export default function AgentsPage({ caseId }: { caseId: string | null }) {
               const state = run.status === "running" ? "running" : ask ? "awaiting_approval" : stopLabel(run);
               return (
                 <li key={run.case_id} className="case-row" aria-current={run.case_id === caseId ? "true" : undefined}
-                    onClick={() => go(`/agents/${encodeURIComponent(run.case_id)}`)}>
+                    onClick={() => go(`/agents/${encodeURIComponent(c ? caseLabel(c) : run.case_id)}`)}>
                   <div className="case-row__top">
-                    <span className="case-row__title">#{run.case_id} {c?.title ?? ""}</span>
+                    <span className="case-row__title">{c ? caseLabel(c) : run.case_id}&nbsp; {c?.title ?? ""}</span>
                     <Status status={state} />
                   </div>
                   <div className="case-row__summary">
@@ -114,7 +116,7 @@ function CaseAgent({ caseId }: { caseId: string }) {
   return (
     <div className="detail">
       <div className="detail__head">
-        <h2 className="headline-md">#{caseId}&nbsp; {c?.title ?? ""}</h2>
+        <h2 className="headline-md">{c ? caseLabel(c) : caseId}&nbsp; {c?.title ?? ""}</h2>
         <button className="btn btn--secondary" disabled={busy} onClick={wake}>{busy ? "Waking agent…" : "Ask agent to re-assess"}</button>
       </div>
       {err && <p className="error-text">{err}</p>}

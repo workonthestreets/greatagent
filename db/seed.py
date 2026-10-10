@@ -147,6 +147,8 @@ def main() -> None:
     with psycopg.connect(settings.database_url, autocommit=True, prepare_threshold=None) as conn:
         if args.reset:
             conn.execute("truncate cases, case_parties, shipments, case_events, actions, agent_events, agent_runs restart identity cascade")
+            if conn.execute("select to_regclass('public.ref_aliases')").fetchone()[0]:
+                conn.execute("truncate ref_aliases")   # aliases point at refs of the rows just removed
         counts = load_cases(conn, Path(args.cases), args.limit)
         phone = os.environ.get("DEMO_CUSTOMER_PHONE")
         for acc in demo_accounts(counts):

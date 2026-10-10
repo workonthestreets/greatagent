@@ -3,14 +3,13 @@ Auth: the Supabase access token as a Bearer header (or X-Dev-User: <email> when 
 from __future__ import annotations
 
 import logging
-import secrets
 from typing import Literal, Optional
 
 import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 
-from . import db, driver, rewards
+from . import db, driver, refs, rewards
 from .config import settings
 
 log = logging.getLogger("hub.api")
@@ -107,7 +106,7 @@ def open_case(req: NewCaseIn, user: dict = Depends(current_user)) -> dict:
 
 
 def new_case(user: dict, title: str, body: str, shipment_id: Optional[str], channel: str) -> str:
-    case_id = f"C-{secrets.token_hex(3).upper()}"
+    case_id = refs.new_case_id()
     who = _speaker(user)
     db.query(
         """insert into cases (id, title, status, source_name, source_role, coordinator, shipment_id, initial_request)
@@ -119,6 +118,9 @@ def new_case(user: dict, title: str, body: str, shipment_id: Optional[str], chan
         """insert into case_events (case_id, channel, author, author_role, to_party, kind, body)
            values (%s, %s, %s, %s, 'Rivet Delivery Desk', %s, %s)""",
         (case_id, channel, who, user["role"], "call" if channel == "Phone call" else "message", body))
+    if refs.migrated():
+        source = "voice" if channel == "Phone call" else "staff" if user.get("role") in ("admin", "coordinator") else "portal"
+        db.query("update cases set source = %s where id = %s", (source, case_id))
     return case_id
 
 

@@ -1,5 +1,5 @@
 import { createClient, type Session } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 export const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 const HUB = (import.meta.env.VITE_HUB_URL || "http://localhost:8000").replace(/\/$/, "");
@@ -10,6 +10,7 @@ export type Case = {
   id: string; title: string; status: string; source_name: string | null; shipment_id: string | null;
   coordinator: string | null; context: string | null; initial_request: string | null; session_id: string | null;
   decision: Record<string, string> | null; decision_summary: string | null; updated_at: string;
+  ref?: string | null; source?: string | null; legacy_ref?: string | null;
 };
 export type CaseEvent = {
   id: number; case_id: string; ts: string; channel: string | null; author: string | null; author_role: string | null;
@@ -25,7 +26,10 @@ export type AgentRun = {
   session_id: string; case_id: string; status: string; stop_reason: string | null; list_cost_cents: number | null; trace_url: string;
   created_at: string; updated_at: string;
 };
-export type Shipment = { id: string; case_id: string | null; description: string | null; status: string | null; eta: string | null; depot: string | null; driver_name: string | null };
+export type Shipment = {
+  id: string; case_id: string | null; description: string | null; status: string | null; eta: string | null; depot: string | null;
+  driver_name: string | null; tracking_ref?: string | null;
+};
 
 /** Rewards (staff only). Shapes follow the hub contract for /api/rewards, /api/merch and decision responses. */
 export type MedalRef = { id: string; title: string; description: string; icon: string };
@@ -115,3 +119,53 @@ export function go(path: string): void {
 }
 
 export type AgentLive = { event_id: string; session_id: string; case_id: string; kind: string; text: string; done: boolean; started_at: string };
+
+// ---------------------------------------------------------------- public references (db/migrations/004_refs.sql)
+/** What people see and say: a case's reference (C-10009) and a shipment's tracking number (DL-4829137). Before the
+ *  migration these columns don't exist and every lookup falls back to the internal id. */
+export const caseLabel = (c: Pick<Case, "id" | "ref">) => c.ref || c.id;
+export const shipmentLabel = (s: Pick<Shipment, "id" | "tracking_ref">) => s.tracking_ref || s.id;
+
+type Refs = { cases: Map<string, string>; shipments: Map<string, string> };
+let refs: Refs = { cases: new Map(), shipments: new Map() };
+const refListeners = new Set<() => void>();
+let refsStarted = false;
+
+async function loadRefs() {
+  const [c, sh] = await Promise.all([
+    supabase.from("cases").select("id,ref"),
+    supabase.from("shipments").select("id,tracking_ref"),
+  ]);
+  refs = {
+    cases: new Map((c.error ? [] : (c.data as { id: string; ref: string | null }[])).filter((r) => r.ref).map((r) => [r.id, r.ref!])),
+    shipments: new Map((sh.error ? [] : (sh.data as { id: string; tracking_ref: string | null }[]))
+      .filter((r) => r.tracking_ref).map((r) => [r.id, r.tracking_ref!])),
+  };
+  refListeners.forEach((f) => f());
+}
+
+function startRefs() {
+  if (refsStarted) return;
+  refsStarted = true;
+  loadRefs();
+  supabase.auth.onAuthStateChange(() => { loadRefs(); });   // what RLS lets this user see changes with the session
+  supabase.channel("refs")
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "cases" }, () => loadRefs())
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "shipments" }, () => loadRefs())
+    .subscribe();
+}
+
+/** id -> reference lookups for places that only hold an id (an action's case_id, a case's shipment_id). */
+export function useRefs() {
+  startRefs();
+  const current = useSyncExternalStore((f) => { refListeners.add(f); return () => refListeners.delete(f); }, () => refs);
+  return {
+    caseRef: (id: string) => current.cases.get(id) ?? id,
+    shipmentRef: (id: string) => current.shipments.get(id) ?? id,
+    /** Internal case id for a reference or id (URLs carry the reference). */
+    caseIdFor: (refOrId: string) => {
+      for (const [id, ref] of current.cases) if (ref === refOrId) return id;
+      return refOrId;
+    },
+  };
+}

@@ -8,7 +8,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 
-from . import db, driver
+from . import db, driver, refs
 from .api import new_case
 from .config import settings
 
@@ -40,17 +40,8 @@ class AskAgentIn(BaseModel):
 
 
 def _case_ref(ref: Optional[str]) -> Optional[str]:
-    """Callers give a case number or a tracking reference (DL-103); map either to the case, open cases first.
-    Compared on letters and digits only, so "DL 103", "dl-103" and "DL103" are the same reference."""
-    ref = re.sub(r"[^A-Za-z0-9]", "", ref or "").upper()
-    if not ref:
-        return None
-    key = "upper(regexp_replace(coalesce({col}, ''), '[^A-Za-z0-9]', '', 'g'))"
-    row = db.one(f"select id from cases where {key.format(col='id')} = %s order by updated_at desc limit 1", (ref,)) or db.one(
-        f"""select c.id from cases c left join shipments s on s.case_id = c.id
-            where {key.format(col='c.shipment_id')} = %s or {key.format(col='s.id')} = %s
-            order by (c.status in ('resolved', 'closed')), c.updated_at desc limit 1""", (ref, ref))
-    return row["id"] if row else None
+    """Callers give a case reference, a legacy case number or a tracking reference; map any of them to the case."""
+    return refs.resolve_case(ref)
 
 
 @router.post("/ask_agent", dependencies=[Depends(check_secret)])
@@ -73,8 +64,9 @@ def ask_agent(req: AskAgentIn) -> dict:
     else:
         case_id = new_case(caller, req.request[:80], req.request, None, "Phone call")
         driver.wake(case_id, f"A new case was opened from a phone call by {who}. Work out the next step.")
-    return {"case_id": case_id,
-            "say": f"I've logged your request as case {case_id}. Nothing is confirmed yet; "
+    ref = refs.case_ref(case_id)
+    return {"case_id": case_id, "case_ref": ref,
+            "say": f"I've logged your request as case {ref}. Nothing is confirmed yet; "
                    "you can ask me for the latest at any time."}
 
 
@@ -169,13 +161,14 @@ def get_case_status(req: CaseIn) -> dict:
     row = db.one("select id, title, status, updated_at from cases where id = %s", (case_id,)) if case_id else None
     if not row:
         return {"found": False, "say": "I couldn't find that case number."}
-    return {"found": True, "case": row, "say": f"Case {row['id']} is {row['status'].replace('_', ' ')}."}
+    return {"found": True, "case": row, "say": f"Case {refs.case_ref(row['id'])} is {row['status'].replace('_', ' ')}."}
 
 
 @router.post("/get_latest_update", dependencies=[Depends(check_secret)])
 def get_latest_update(req: CaseIn) -> dict:
     case_id = _case_ref(req.case_id)
     case = db.one("select status from cases where id = %s", (case_id,)) if case_id else None
+    ref = refs.case_ref(case_id) if case_id else ""
     if not case:
         return {"found": False, "say": "I couldn't find that case number."}
     # Only messages the desk addressed to this caller are read out; never notes or other parties' messages.
@@ -186,12 +179,12 @@ def get_latest_update(req: CaseIn) -> dict:
     if not msg:
         run = db.one("select status from agent_runs where case_id = %s order by created_at desc limit 1", (case_id,))
         if run and run["status"] == "running":
-            return {"found": True, "say": f"The desk is still working on case {case_id}. Please ask me again in a minute."}
+            return {"found": True, "say": f"The desk is still working on case {ref}. Please ask me again in a minute."}
         if db.one("""select 1 from actions where case_id = %s and status = 'pending_approval' and tool = 'send_message'
                      and args->>'to_party' = %s""", (case_id, who)):
-            return {"found": True, "say": f"An update for you on case {case_id} is written and waiting for a coordinator "
+            return {"found": True, "say": f"An update for you on case {ref} is written and waiting for a coordinator "
                                           "to approve it. Please ask me again shortly."}
-        return {"found": True, "say": f"Case {case_id} is {case['status'].replace('_', ' ')}. "
+        return {"found": True, "say": f"Case {ref} is {case['status'].replace('_', ' ')}. "
                                       "There's no update addressed to you yet."}
     return {"found": True, "latest": msg, "say": f"Latest update: {spoken_update(msg['body'])}"}
 
