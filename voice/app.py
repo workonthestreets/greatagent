@@ -37,7 +37,7 @@ from voice import desk, hub
 
 LOG_DIR = Path(os.getenv("VOICE_LOG_DIR", "runs/voice"))
 DECIDE_BUDGET_S = 14
-UPDATE_WAIT_S = int(os.getenv("VOICE_UPDATE_WAIT_S", "8"))  # inside the 10 s get_case_update tool budget  # ElevenLabs gives a webhook tool 20 s by default; leave room for the network
+UPDATE_WAIT_S = int(os.getenv("VOICE_UPDATE_WAIT_S", "9"))  # inside the 10 s get_case_update tool budget  # ElevenLabs gives a webhook tool 20 s by default; leave room for the network
 _pool = ThreadPoolExecutor(4)
 app = FastAPI(title="Delivery voice line")
 
