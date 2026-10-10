@@ -176,3 +176,65 @@ def spoken_summary(ctx: KnownContext, safe: Callable[[str], bool]) -> str:
             said += "."
         break
     return said
+
+
+# ------------------------------------------------------------------ hub database (read-only, first choice)
+_NORM_SQL = "translate(upper(regexp_replace(coalesce({col}, ''), '[^A-Za-z0-9]', '', 'g')), 'OI', '01')"
+_CALLER_ROLES = ("customer", "recipient", "sender", "caller", "reporting customer", "intended recipient")
+
+
+def _plain(value: object, safe: Callable[[str], bool], limit: int = 120) -> str:
+    """A database value fit to say aloud, or '' (too long, an amount, contact details or a failed check)."""
+    text = " ".join(str(value or "").split())
+    return text if text and len(text) <= limit and not _UNSAYABLE.search(text) and safe(text) else ""
+
+
+def db_lookup(ref: str, safe: Callable[[str], bool]) -> dict | None:
+    """The shipment from the hub database when DATABASE_URL is set, else None.
+
+    Read-only session, 3 s connect and statement timeouts. Any error, no row, or a reference that
+    matches two shipments gives None, so the caller falls back to the case files.
+    """
+    url = os.getenv("DATABASE_URL", "")
+    n = norm(ref)
+    if not url or not n:
+        return None
+    import psycopg  # only needed on this path; hub deployments install it
+
+    with psycopg.connect(url, connect_timeout=3, autocommit=True, prepare_threshold=None) as conn:
+        conn.execute("set default_transaction_read_only = on")
+        conn.execute("set statement_timeout = 3000")
+        ships = conn.execute(f"select id, description, status, eta, depot, case_id from shipments "
+                             f"where {_NORM_SQL.format(col='id')} = %s limit 2", (n,)).fetchall()
+        case = None
+        if not ships:
+            case = conn.execute(f"select id, status, shipment_id from cases where {_NORM_SQL.format(col='shipment_id')} = %s "
+                                "order by updated_at desc limit 1", (n,)).fetchone()
+            if case and case[2]:
+                ships = conn.execute("select id, description, status, eta, depot, case_id from shipments where id = %s",
+                                     (case[2],)).fetchall()
+        if len(ships) != 1 and not case:
+            return None
+        ship = ships[0] if len(ships) == 1 else None
+        if case is None:
+            case_id = ship[5]
+            case = conn.execute("select id, status, shipment_id from cases where id = %s", (case_id,)).fetchone() if case_id \
+                else conn.execute(f"select id, status, shipment_id from cases where {_NORM_SQL.format(col='shipment_id')} = %s "
+                                  "order by updated_at desc limit 1", (n,)).fetchone()
+        event = conn.execute("select ts, author, author_role from case_events where case_id = %s and kind in ('call', 'message') "
+                             "and visibility = 'all' order by ts desc limit 1", (case[0],)).fetchone() if case else None
+    shipment_id = ship[0] if ship else case[2]
+    said = f"I can see shipment {shipment_id}"
+    if ship:
+        desc, status, depot, eta = (_plain(ship[1], safe), _plain(str(ship[2] or "").replace("_", " "), safe, 40),
+                                    _plain(ship[4], safe, 60), _plain(ship[3], safe, 40))
+        said += (f", {desc}" if desc else "") + (f", currently {status}" if status else "")
+        said += (f" at {depot}" if depot and status else "") + (f", expected {eta}" if eta else "")
+    said += "."
+    if event and event[0]:
+        role = str(event[2] or "").strip().lower()
+        who = "the customer" if role in _CALLER_ROLES else _plain(event[1], safe, 60)
+        if who:
+            ts = event[0]
+            said += f" The latest update on the case was from {who} on {ts.day} {_MONTHS[ts.month - 1]}."
+    return {"found": True, "shipment": shipment_id, "say": said}

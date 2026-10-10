@@ -376,14 +376,20 @@ def shipment_lookup(q: LookupQuery, x_tool_secret: str = Header("")) -> dict:
     """What the records already say about a caller's reference, read from the case as it stood before
     the desk acted. No model call: an exact or unique match only, and an ambiguous reference is not found."""
     _auth(x_tool_secret)
-    folder = lookup.find_shipment(q.ref)
-    if folder is None:
-        out = {"found": False, "shipment": "", "say": lookup.NOT_FOUND}
-    else:
+    folder, db_error = None, None
+    try:  # the hub database first, so cases loaded there need no code change here
+        found = lookup.db_lookup(q.ref, _sayable)
+    except Exception as exc:  # noqa: BLE001 - unreachable, slow or broken: the case files still answer
+        found, db_error = None, type(exc).__name__
+    if found:
+        out = {**found, "source": "db"}
+    elif (folder := lookup.find_shipment(q.ref)) is not None:
         ctx = lookup.known_context(folder)
-        out = {"found": True, "shipment": ctx.primary, "say": lookup.spoken_summary(ctx, _sayable)}
+        out = {"found": True, "shipment": ctx.primary, "say": lookup.spoken_summary(ctx, _sayable), "source": "files"}
+    else:
+        out = {"found": False, "shipment": "", "say": lookup.NOT_FOUND, "source": "none"}
     _log(q.conversation_id, f"-lookup-{lookup.norm(q.ref)[:20] or 'blank'}",
-         {"ref": q.ref, "source_case": folder.name if folder else None, **out})
+         {"ref": q.ref, "source_case": folder.name if folder else None, "db_error": db_error, **out})
     return out
 
 

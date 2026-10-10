@@ -389,14 +389,14 @@ def test_lookup_reads_back_only_what_the_record_showed_before_the_desk_acted(mon
     ask = lambda ref, secret="s3": client.post("/voice/lookup", json={"conversation_id": "conv_l", "ref": ref},
                                                headers={"x-tool-secret": secret})
     found = ask("DL0390").json()  # speech-to-text form of DL-039-O
-    assert found["found"] and found["shipment"] == "TG-039"
+    assert found["found"] and found["shipment"] == "TG-039" and found["source"] == "files"
     say = found["say"]
     assert "TG-039" in say and "DL-039-O" in say and "Tallowmere Goods" in say and "12 March" in say
     assert "TG-039 ordered one floor light." in say
     assert not any(s in say for s in ("SECRET", "instructions", "Duplicate returns", "Dessa", "Please tell me"))
     assert (tmp_path / "log" / "conv_l-lookup-DL0390.json").exists()
     missing = ask("DL-999").json()
-    assert missing == {"found": False, "shipment": "", "say": voice.lookup.NOT_FOUND}
+    assert missing == {"found": False, "shipment": "", "say": voice.lookup.NOT_FOUND, "source": "none"}
     assert ask("DL041").json()["found"] is False  # two cases share the core: ambiguous is not found
     assert ask("DL-041-A").json()["say"].endswith("on 12 March.")  # a request is not read out as news
     assert ask("DL0390", secret="wrong").status_code == 401
@@ -414,3 +414,56 @@ def test_waiting_lines_change_each_poll_then_offer_to_send_the_outcome(monkeypat
                            headers={"x-tool-secret": "s3"}).json() for _ in range(5)]
     assert len({r["say"] for r in replies[:4]}) == 4 and all(r["status"] == "pending" for r in replies)
     assert "offer_text" not in replies[2] and replies[3]["offer_text"] and replies[4]["offer_text"]
+
+
+class _FakeDb:
+    """Stands in for psycopg: answers the lookup's queries from fixed rows, read-only checked."""
+
+    def __init__(self, fail=False):
+        self.fail, self.sql = fail, []
+
+    def connect(self, url, **kw):
+        if self.fail:
+            raise OSError("connection timed out")
+        assert kw["connect_timeout"] == 3
+        return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def execute(self, sql, params=None):
+        import datetime
+        self.sql.append(sql)
+        rows = []
+        if "from shipments" in sql:
+            rows = [("DL-039", "one floor light", "in_transit", "", "Northgate depot", "C-039")]
+        elif "from case_events" in sql:
+            rows = [(datetime.datetime(2026, 3, 12, 9, 0), "Order reconciliation", "merchant")]
+        elif "from cases" in sql:
+            rows = [("C-039", "open", "DL-039")]
+        return type("Cur", (), {"fetchall": lambda s: rows, "fetchone": lambda s: rows[0] if rows else None})()
+
+
+def test_lookup_reads_the_hub_database_first_and_falls_back_to_files(monkeypatch, tmp_path):
+    import sys
+    client = _lookup_client(monkeypatch, tmp_path)
+    monkeypatch.setenv("DATABASE_URL", "postgresql://hub.test/db")
+    fake = _FakeDb()
+    monkeypatch.setitem(sys.modules, "psycopg", fake)
+    ask = lambda: client.post("/voice/lookup", json={"conversation_id": "conv_d", "ref": "dl 039"},
+                              headers={"x-tool-secret": "s3"}).json()
+    got = ask()
+    assert got == {"found": True, "shipment": "DL-039", "source": "db",
+                   "say": "I can see shipment DL-039, one floor light, currently in transit at Northgate depot. "
+                          "The latest update on the case was from Order reconciliation on 12 March."}
+    assert fake.sql[0] == "set default_transaction_read_only = on"
+    assert not any(w in s.lower() for s in fake.sql for w in ("insert", "update ", "delete"))
+    monkeypatch.setitem(sys.modules, "psycopg", _FakeDb(fail=True))
+    fallback = ask()
+    assert fallback["source"] == "files" and fallback["shipment"] == "TG-039"
+    monkeypatch.delenv("DATABASE_URL")
+    assert ask()["source"] == "files"
+    voice.lookup._index.cache_clear()
