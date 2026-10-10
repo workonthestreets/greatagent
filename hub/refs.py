@@ -6,6 +6,7 @@ is safe to deploy before the migration runs.
 """
 from __future__ import annotations
 
+import re
 import secrets
 from typing import Optional
 
@@ -37,11 +38,13 @@ def resolve_case(text: Optional[str]) -> Optional[str]:
     if migrated():
         row = db.one("select public.resolve_case(%s) as id", (ref,))
         return row["id"] if row else None
-    ref = ref.upper()
-    row = db.one("select id from cases where upper(id) = %s", (ref,)) or db.one(
-        """select c.id from cases c left join shipments s on s.case_id = c.id
-           where upper(c.shipment_id) = %s or upper(s.id) = %s
-           order by (c.status in ('resolved', 'closed')), c.updated_at desc limit 1""", (ref, ref))
+    # Pre-migration: compare on letters and digits only, so "DL 103", "dl-103" and "DL103" are the same reference.
+    key = re.sub(r"[^A-Za-z0-9]", "", ref).upper()
+    col = "upper(regexp_replace(coalesce({}, ''), '[^A-Za-z0-9]', '', 'g'))"
+    row = db.one(f"select id from cases where {col.format('id')} = %s order by updated_at desc limit 1", (key,)) or db.one(
+        f"""select c.id from cases c left join shipments s on s.case_id = c.id
+            where {col.format('c.shipment_id')} = %s or {col.format('s.id')} = %s
+            order by (c.status in ('resolved', 'closed')), c.updated_at desc limit 1""", (key, key))
     return row["id"] if row else None
 
 

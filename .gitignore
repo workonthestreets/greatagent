@@ -27,3 +27,5 @@ data/
 # local env file with live keys (never commit)
 _env
 holdout/followup/
+# a newcomer's own ElevenLabs ids (python -m voice.setup_agent --ids ...)
+voice/agent_ids.local.json

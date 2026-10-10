@@ -305,21 +305,25 @@ alter table public.actions alter column ref set not null;
 -- ------------------------------------------------------------------ resolving what a person typed or said
 -- Accepts a case ref (C-10009), a legacy case id (001, D101, C-C0F654), a shipment tracking ref (DL-4829137) or an
 -- old shipment id (DL-001), in any case and with spaces; returns the case id or null. Open cases win ties.
+create or replace function public.ref_key(t text) returns text
+language sql immutable as $$
+  -- Letters and digits only, upper-case: "DL 103", "dl-103", "DL103" and "c.10009" compare equal to their refs.
+  select upper(regexp_replace(coalesce(t, ''), '[^A-Za-z0-9]', '', 'g'))
+$$;
+
 create or replace function public.resolve_case(input text) returns text
 language sql stable security definer set search_path = public as $$
-  -- Spoken refs arrive without punctuation ("DL 103", "c 10009"): try the text as given and with a hyphen after
-  -- the letter prefix. Both forms are needed: legacy ids like D101 have no hyphen.
-  with raw as (select upper(regexp_replace(coalesce(input, ''), '[\s.]+', '', 'g')) as v),
-  q as (select v from raw union select regexp_replace(v, '^([A-Z]+)-?([0-9]+)$', '\1-\2') from raw)
-  select c.id from public.cases c
-  where exists (select 1 from q where
-        upper(c.ref) = q.v
-     or upper(c.id) = q.v
-     or c.ref in (select target_ref from public.ref_aliases where kind = 'case' and alias = q.v)
+  with q as (select public.ref_key(input) as k)
+  select c.id from public.cases c, q
+  where q.k <> '' and (
+        public.ref_key(c.ref) = q.k
+     or public.ref_key(c.id) = q.k
+     or c.ref in (select target_ref from public.ref_aliases where kind = 'case' and public.ref_key(alias) = q.k)
      or c.id in (select s.case_id from public.shipments s
-                 where upper(s.tracking_ref) = q.v or upper(s.id) = q.v
-                    or s.tracking_ref in (select target_ref from public.ref_aliases where kind = 'shipment' and alias = q.v))
-     or upper(c.shipment_id) = q.v)
+                 where public.ref_key(s.tracking_ref) = q.k or public.ref_key(s.id) = q.k
+                    or s.tracking_ref in (select target_ref from public.ref_aliases
+                                          where kind = 'shipment' and public.ref_key(alias) = q.k))
+     or public.ref_key(c.shipment_id) = q.k)
   order by (c.status in ('resolved', 'closed')), c.updated_at desc
   limit 1
 $$;

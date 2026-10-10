@@ -491,3 +491,34 @@ def test_uk_numbers_must_have_eleven_digits_and_a_wrong_one_is_asked_again(monke
                          headers={"X-Tool-Secret": "s3"}).json()
     assert "call 999" in hazard["say"] and started == ["conv_ph1"]  # safety never waits on a bad number
 
+
+def test_setup_agent_creates_fresh_ids_when_stored_ones_belong_to_another_account(monkeypatch, tmp_path):
+    from voice import setup_agent
+    stored = tmp_path / "agent_ids.json"
+    stored.write_text(json.dumps({"secret_id": "theirs", "tool_id": "t_theirs", "agent_id": "a_theirs"}))
+    calls = []
+
+    def fake_call(method, path, key, body=None, timeout=30, missing_ok=False):
+        calls.append((method, path))
+        if "theirs" in path:
+            raise setup_agent.NotYours(path)
+        if path == "/secrets":
+            return {"secret_id": "s_new"}
+        if path == "/tools":
+            return {"id": f"t_new{len(calls)}"}
+        if path == "/agents/create":
+            return {"agent_id": "a_new"}
+        return {}
+    monkeypatch.setattr(setup_agent, "call", fake_call)
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "k")
+    monkeypatch.delenv("APP_ELEVENLABS_API_KEY", raising=False)
+    monkeypatch.setenv("VOICE_TOOL_SECRET", "s")
+    mine = tmp_path / "agent_ids.local.json"
+    stored_copy = mine
+    stored_copy.write_text(stored.read_text())
+    assert setup_agent.main(["--public-url", "https://x.test", "--ids", str(mine)]) == 0
+    ids = json.loads(mine.read_text())
+    assert ids["agent_id"] == "a_new" and ids["secret_id"] == "s_new" and "theirs" not in json.dumps(ids)
+    assert ("PATCH", "/agents/a_theirs") not in calls and ("POST", "/agents/create") in calls
+    assert json.loads(stored.read_text())["agent_id"] == "a_theirs"  # the committed file is untouched
+
