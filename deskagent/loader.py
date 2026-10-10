@@ -1,0 +1,317 @@
+"""Load an operational case folder (index.md, history.md, attachments/) into a Case.
+
+Works on any folder layout: unknown files are read as text when possible, PDFs are
+text-extracted (and kept as raw bytes for native PDF input), images are kept for vision.
+
+`public_cutoff=True` is used only for development evaluation on the public example
+cases: it hides everything after the escalation point (later events, the recorded next
+action, the outcome, the boundaries rubric and attachments first referenced later), so
+the agent sees exactly what the desk knew at escalation.
+"""
+from __future__ import annotations
+
+import base64
+import mimetypes
+import re
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import List, Optional
+
+TEXT_EXT = {".md", ".txt", ".csv", ".json", ".eml", ".html", ".htm", ".xml", ".yaml", ".yml", ".log", ".tsv"}
+IMAGE_EXT = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp"}
+MAX_TEXT_CHARS = 120_000          # per file
+MAX_TOTAL_CHARS = 600_000         # whole case
+MAX_IMAGE_BYTES = 4_500_000
+
+# Sections of a public example index.md that reveal the ending (hidden in eval mode).
+REVEALING_SECTIONS = {"overview", "next action at escalation", "outcome", "boundaries and remaining work",
+                      "summary", "resolution", "result"}
+REVEALING_DETAIL_KEYS = ("status", "updated", "completed", "resolved", "closed")
+
+EVENT_SPLIT = re.compile(r'(?=^<a id="event-\d+"></a>\s*$)', re.M)
+EVENT_HEADER = re.compile(r'^##\s+(?P<ts>.+?)\s+—\s+event\s+(?P<num>\d+)', re.M)
+META_LINE = re.compile(r'^-\s+\*\*(?P<k>[^*]+?):\*\*\s*(?P<v>.*)$', re.M)
+LINK = re.compile(r'\]\(([^)]+)\)')
+
+
+@dataclass
+class Event:
+    num: int
+    timestamp: str
+    meta: dict
+    body: str
+    raw: str
+
+    @property
+    def stage(self) -> str:
+        return self.meta.get("stage", "").lower()
+
+
+@dataclass
+class Attachment:
+    name: str
+    rel_path: str
+    kind: str                 # text | pdf | image | unsupported
+    text: str = ""
+    media_type: str = ""
+    data_b64: str = ""        # for images / pdf
+    note: str = ""
+
+
+@dataclass
+class Case:
+    case_id: str
+    path: str
+    track: str
+    title: str
+    files: List[tuple] = field(default_factory=list)          # (name, text) for primary text files
+    attachments: List[Attachment] = field(default_factory=list)
+    events: List[Event] = field(default_factory=list)
+    hidden_events: List[Event] = field(default_factory=list)  # eval only
+    hidden_sections: dict = field(default_factory=dict)        # eval only: section -> text
+    hidden_attachments: List[str] = field(default_factory=list)
+    channels: List[str] = field(default_factory=list)
+    parties: List[str] = field(default_factory=list)
+    now: str = ""
+    warnings: List[str] = field(default_factory=list)
+    mode: str = "reality"
+
+    @property
+    def answer_id(self) -> str:
+        return str(int(self.case_id)) if self.case_id.isdigit() else self.case_id
+
+
+def _read_text(p: Path) -> str:
+    for enc in ("utf-8", "utf-8-sig", "latin-1"):
+        try:
+            return p.read_text(encoding=enc)
+        except UnicodeDecodeError:
+            continue
+        except Exception:
+            break
+    return ""
+
+
+def parse_events(history: str) -> List[Event]:
+    events: List[Event] = []
+    for chunk in EVENT_SPLIT.split(history):
+        m = EVENT_HEADER.search(chunk)
+        if not m:
+            continue
+        meta = {mm.group("k").strip().lower(): mm.group("v").strip() for mm in META_LINE.finditer(chunk)}
+        body_lines = []
+        past_header = False
+        for line in chunk.splitlines():
+            if line.startswith("## "):
+                past_header = True
+                continue
+            if not past_header or line.startswith("<a id=") or META_LINE.match(line):
+                continue
+            body_lines.append(line)
+        events.append(Event(int(m.group("num")), m.group("ts").strip(), meta,
+                            "\n".join(body_lines).strip(), chunk.strip()))
+    return events
+
+
+def split_sections(md: str) -> List[tuple]:
+    """Return [(heading or '', text_including_heading)] for '## ' sections."""
+    parts = re.split(r'(?=^##\s)', md, flags=re.M)
+    out = []
+    for part in parts:
+        m = re.match(r'^##\s+(.+)$', part, flags=re.M)
+        out.append(((m.group(1).strip() if m else ""), part))
+    return out
+
+
+def _cutoff_index(events: List[Event]) -> Optional[int]:
+    """Index of the first event the desk must NOT see (first agent action after escalation)."""
+    if not any(e.stage for e in events):
+        return None
+    for i, e in enumerate(events):
+        if "agent action" in e.stage:
+            return i
+    esc = [i for i, e in enumerate(events) if "escalation" in e.stage]
+    return (esc[-1] + 1) if esc else None
+
+
+def _strip_index_for_eval(index_md: str, case: Case) -> str:
+    keep = []
+    for heading, text in split_sections(index_md):
+        h = heading.lower()
+        if h in REVEALING_SECTIONS:
+            case.hidden_sections[heading] = text.strip()
+            continue
+        if h == "case details":
+            lines = []
+            for line in text.splitlines():
+                mm = META_LINE.match(line)
+                if mm and mm.group("k").strip().lower().startswith(REVEALING_DETAIL_KEYS):
+                    case.hidden_sections.setdefault("_details", "")
+                    case.hidden_sections["_details"] += line + "\n"
+                    continue
+                lines.append(line)
+            text = "\n".join(lines) + "\n"
+        if h == "attachments":
+            text = "## Attachments\n\nOnly attachments referenced in the visible history are provided.\n\n"
+        keep.append(text)
+    return "".join(keep)
+
+
+def _load_attachment(p: Path, root: Path) -> Attachment:
+    rel = str(p.relative_to(root))
+    ext = p.suffix.lower()
+    try:
+        size = p.stat().st_size
+        if ext in IMAGE_EXT:
+            if size > MAX_IMAGE_BYTES:
+                return Attachment(p.name, rel, "unsupported", note=f"image too large to send ({size} bytes)")
+            return Attachment(p.name, rel, "image", media_type=IMAGE_EXT[ext],
+                              data_b64=base64.b64encode(p.read_bytes()).decode())
+        if ext == ".pdf":
+            raw = p.read_bytes()
+            text = ""
+            try:
+                from pypdf import PdfReader
+                import io
+                reader = PdfReader(io.BytesIO(raw))
+                text = "\n\n".join((pg.extract_text() or "") for pg in reader.pages).strip()
+            except Exception as exc:  # noqa: BLE001
+                text = ""
+                note = f"pdf text extraction failed: {exc}"
+            att = Attachment(p.name, rel, "pdf", text=text[:MAX_TEXT_CHARS], media_type="application/pdf",
+                             data_b64=base64.b64encode(raw).decode() if size < 8_000_000 else "")
+            if not text:
+                att.note = "no extractable text layer; sent as native PDF for visual reading"
+            return att
+        if ext in TEXT_EXT or (mimetypes.guess_type(p.name)[0] or "").startswith("text"):
+            t = _read_text(p)
+            note = "truncated" if len(t) > MAX_TEXT_CHARS else ""
+            return Attachment(p.name, rel, "text", text=t[:MAX_TEXT_CHARS], note=note)
+        # last resort: try to decode as text
+        t = _read_text(p)
+        if t and sum(c.isprintable() or c.isspace() for c in t[:2000]) > 0.95 * min(len(t), 2000):
+            return Attachment(p.name, rel, "text", text=t[:MAX_TEXT_CHARS])
+        return Attachment(p.name, rel, "unsupported", note=f"binary file type {ext or '?'} not readable")
+    except Exception as exc:  # noqa: BLE001
+        return Attachment(p.name, rel, "unsupported", note=f"failed to read: {exc}")
+
+
+def load_case(path: str | Path, public_cutoff: bool = False, track: str = "") -> Case:
+    root = Path(path)
+    if root.is_file():
+        text = _read_text(root)
+        case = Case(case_id=root.stem, path=str(root), track=track or root.parent.name,
+                    title=_title(text) or root.stem, files=[(root.name, text[:MAX_TEXT_CHARS])])
+        case.events = parse_events(text)
+        _finish(case)
+        return case
+
+    case_id = root.name
+    case = Case(case_id=case_id, path=str(root), track=track or root.parent.name, title=case_id,
+                mode="public-eval" if public_cutoff else "reality")
+    index_p, history_p = root / "index.md", root / "history.md"
+    index_md = _read_text(index_p) if index_p.exists() else ""
+    history_md = _read_text(history_p) if history_p.exists() else ""
+    case.title = _title(index_md) or _title(history_md) or case_id
+
+    events = parse_events(history_md) if history_md else []
+    if public_cutoff and events:
+        cut = _cutoff_index(events)
+        if cut is not None:
+            case.hidden_events = events[cut:]
+            events = events[:cut]
+            hidden_nums = {e.num for e in case.hidden_events}
+            history_md = _rebuild_history(history_md, events, hidden_nums)
+        else:
+            case.warnings.append("no stage markers: could not determine escalation cutoff; showing full history")
+    case.events = events
+    if public_cutoff and index_md:
+        index_md = _strip_index_for_eval(index_md, case)
+
+    if index_md:
+        case.files.append(("index.md", index_md))
+    if history_md:
+        case.files.append(("history.md", history_md))
+
+    # Any other top-level text files (e.g. a challenge question file)
+    for p in sorted(root.iterdir()):
+        if p.is_file() and p.name not in ("index.md", "history.md") and not p.name.startswith((".", "_")):
+            att = _load_attachment(p, root)
+            if att.kind == "text":
+                case.files.append((p.name, att.text))
+            else:
+                case.attachments.append(att)
+
+    visible_text = "\n".join(t for _, t in case.files)
+    for p in sorted(x for x in root.rglob("*") if x.is_file() and x.parent != root and not x.name.startswith((".", "_"))):
+        rel = str(p.relative_to(root))
+        if public_cutoff and (rel not in visible_text and p.name not in visible_text):
+            case.hidden_attachments.append(rel)
+            continue
+        case.attachments.append(_load_attachment(p, root))
+
+    _finish(case)
+    return case
+
+
+def _rebuild_history(history_md: str, visible: List[Event], hidden_nums: set) -> str:
+    head = EVENT_SPLIT.split(history_md)[0]
+    head = re.sub(r'Total events:\s*\d+\.?', f'Events available at this point: {len(visible)}.', head)
+    return head.rstrip() + "\n\n" + "\n\n".join(e.raw for e in visible) + "\n"
+
+
+def _title(md: str) -> str:
+    m = re.search(r'^#\s+(.+)$', md, flags=re.M)
+    if not m:
+        return ""
+    t = re.sub(r'^Case\s+\w+\s*(history)?\s*[:—-]\s*', '', m.group(1).strip(), flags=re.I)
+    return t.strip()
+
+
+def _finish(case: Case) -> None:
+    chans, parties = [], []
+    for e in case.events:
+        for key, bucket in (("channel", chans), ("from", parties), ("to", parties)):
+            v = e.meta.get(key, "").strip()
+            if v and v not in bucket and v.lower() != "not specified":
+                bucket.append(v)
+    case.channels, case.parties = chans, parties
+    case.now = case.events[-1].timestamp if case.events else ""
+    total = sum(len(t) for _, t in case.files) + sum(len(a.text) for a in case.attachments)
+    if total > MAX_TOTAL_CHARS:
+        case.warnings.append(f"case text is very large ({total} chars); long files were truncated")
+        budget = MAX_TOTAL_CHARS
+        new_files = []
+        for name, t in case.files:
+            share = max(20_000, budget // max(1, len(case.files)))
+            new_files.append((name, t if len(t) <= share else t[:share // 2] + "\n\n[... truncated middle ...]\n\n" + t[-share // 2:]))
+        case.files = new_files
+    for a in case.attachments:
+        if a.kind == "unsupported":
+            case.warnings.append(f"attachment {a.rel_path}: {a.note}")
+
+
+def discover_cases(path: str | Path) -> List[Path]:
+    """A case dir has index.md/history.md (or any .md). A parent dir holds case dirs."""
+    root = Path(path)
+    if root.is_file():
+        return [root]
+    if (root / "index.md").exists() or (root / "history.md").exists():
+        return [root]
+    subdirs = sorted([d for d in root.iterdir() if d.is_dir() and not d.name.startswith(".")], key=_sort_key)
+    cases = [d for d in subdirs if any(d.glob("*.md")) or any(d.glob("*.txt"))]
+    if cases:
+        return cases
+    # nested one level deeper (e.g. HackatonChallendges/<track>/<case>)
+    nested = []
+    for d in subdirs:
+        nested.extend(discover_cases(d))
+    if nested:
+        return nested
+    # flat folder of case files
+    return sorted([p for p in root.iterdir() if p.is_file() and p.suffix.lower() in (".md", ".txt", ".json")], key=_sort_key)
+
+
+def _sort_key(p: Path):
+    s = p.stem if p.is_file() else p.name
+    return (0, int(s), "") if s.isdigit() else (1, 0, s)
