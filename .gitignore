@@ -27,3 +27,8 @@ data/
 # local env file with live keys (never commit)
 _env
 holdout/followup/
+web_v2/node_modules/
+web_v2/dist/
+web_v2/.env
+web_v2/.env.local
+web_v2/tsconfig.tsbuildinfo
