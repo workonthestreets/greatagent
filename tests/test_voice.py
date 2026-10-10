@@ -13,6 +13,7 @@ from voice import app as voice
 
 def test_tool_speaks_template_and_post_call_checks_signature(monkeypatch, tmp_path):
     monkeypatch.setenv("VOICE_TOOL_SECRET", "s3")
+    monkeypatch.setenv("VOICE_AGENT", "triage")
     monkeypatch.setenv("ELEVENLABS_WEBHOOK_SECRET", "wh")
     monkeypatch.setattr(voice, "LOG_DIR", tmp_path)
     monkeypatch.setattr(voice, "decide", lambda case: {
@@ -122,6 +123,7 @@ def test_turn_timeout_gives_safe_close(monkeypatch, tmp_path):
 
 def test_tool_asks_only_from_whitelist(monkeypatch, tmp_path):
     monkeypatch.setenv("VOICE_TOOL_SECRET", "s3")
+    monkeypatch.setenv("VOICE_AGENT", "triage")
     monkeypatch.setattr(voice, "LOG_DIR", tmp_path)
     client = TestClient(voice.app)
     for missing, key in [("the brother's full name, so the delivery can be authorised to him as an alternative recipient", "receiver"),
@@ -130,3 +132,37 @@ def test_tool_asks_only_from_whitelist(monkeypatch, tmp_path):
         monkeypatch.setattr(voice, "decide", lambda case, m=missing: {"action": "ask", "party": "customer", "missing": m, "escalate": False})
         say = client.post("/voice/tool", json={"conversation_id": f"w-{key}", "issue": "x"}, headers={"X-Tool-Secret": "s3"}).json()["say"]
         assert say == voice.ASKS[key] and "CVV" not in say and "brother" not in say
+
+
+def test_tool_hands_call_to_deskagent_and_speaks_only_templates(monkeypatch, tmp_path):
+    from voice import desk
+    monkeypatch.setenv("VOICE_TOOL_SECRET", "s3")
+    monkeypatch.setenv("VOICE_AGENT", "deskagent")
+    monkeypatch.setattr(voice, "LOG_DIR", tmp_path)
+    monkeypatch.setattr(desk, "CASES_DIR", tmp_path / "cases")
+    seen = {}
+
+    def fake_process(case, model=None):
+        seen["case"] = case
+        return {"plan": {"decision_type": "request_information", "decision_summary": "Ask carrier to trace."},
+                "approved": True, "answer_id": "x", "trace": [],
+                "executed": [{"index": 0, "status": "done", "action": {
+                    "tool": "send_message", "to_name": "Parcel trace team", "channel": "Email",
+                    "subject": "Trace DL-204", "body": "Please trace DL-204."}}]}
+    monkeypatch.setattr(desk, "_deskagent", lambda: (lambda path, track="": str(path), fake_process,
+                                                     lambda out, res: None))
+    client = TestClient(voice.app)
+    body = {"conversation_id": "conv_ab12", "caller_name": "Ana", "order_ref": "DL-204",
+            "issue": "My parcel never arrived.", "update_by": "text", "contact": "07700 900123"}
+    started = time.time()
+    reply = client.post("/voice/tool", json=body, headers={"X-Tool-Secret": "s3"}).json()
+    assert time.time() - started < 2 and reply["status"] == "logged" and "case AB12" in reply["say"]
+    folder = tmp_path / "cases" / "conv-ab12"
+    assert "Primary shipment:** DL-204" in (folder / "index.md").read_text()
+    assert '<a id="event-001"></a>' in (folder / "history.md").read_text()
+    desk._threads["conv_ab12"].join(5)
+    assert seen["case"] == str(folder)
+    update = client.post("/voice/update", json={"conversation_id": "conv_ab12"},
+                         headers={"X-Tool-Secret": "s3"}).json()["say"]
+    assert update.startswith("Our desk has asked for the information it needs, and has contacted Parcel trace team")
+

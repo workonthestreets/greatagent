@@ -61,3 +61,15 @@ decision's `missing` field against fixed keys — unmatched text falls back to t
 is never spoken. Credentials have no key (no PIN, CVV or password template exists), so the voice
 agent cannot be made to ask for one. `/voice/tool` now asks from the same whitelist; the
 60-second demo flow is unchanged.
+
+## Who decides: deskagent (default) or triage
+
+`VOICE_AGENT=deskagent` (default): `/voice/tool` writes the call as a case folder under
+`runs/voice/cases/<conversation>/` and replies at once with a template ("logged as case 5417…").
+The team's deskagent then runs `load_case` + `process_case` (reviewer on) in the background,
+about 40 s; its decision lands in `result.json`, `answer/<id>/ANSWER.md`, and the outbox
+(Mailpit with `SEND_EMAIL=1`). `POST /voice/update {conversation_id}` speaks a template summary.
+Before the merge with main, point `DESKAGENT_PATH` at a checkout of main
+(`git worktree add --detach ../greatagent-main origin/main`). `VOICE_AGENT=triage` restores
+the older inline path.
+

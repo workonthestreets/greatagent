@@ -1,0 +1,129 @@
+"""Hand a voice call to the team's deskagent: the call becomes a case folder, deskagent decides.
+
+Capture-line mode. The call is written in the same index.md + history.md shape the organisers'
+cases use, then `deskagent.loader.load_case` and `deskagent.pipeline.process_case` run in a
+background thread with the reviewer on. The caller only ever hears fixed templates; deskagent's
+decision lands in `<case>/result.json`, `<case>/answer/<id>/ANSWER.md` and the outbox.
+
+deskagent is imported, never edited. Before the merge it comes from a read-only checkout of main
+(`DESKAGENT_PATH`); after the merge it is a normal package at the repo root.
+"""
+from __future__ import annotations
+
+import json
+import os
+import sys
+import threading
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+
+from triage.outbox import deliver, slug
+
+CASES_DIR = Path(os.getenv("VOICE_CASES_DIR", "runs/voice/cases"))
+_threads: dict[str, threading.Thread] = {}  # conversation id -> worker, so tests can join
+
+DECISION_WORDS = {
+    "act": "Our desk has acted on it",
+    "request_information": "Our desk has asked for the information it needs",
+    "escalate_to_human": "Our desk has passed it to a colleague to review",
+    "hold_no_action": "Our desk is holding it for now",
+    "decline": "Our desk can't action this request as it stands",
+}
+
+
+def _deskagent():
+    """deskagent's public functions, plus its API key set for this process only (never a shell)."""
+    path = os.getenv("DESKAGENT_PATH")
+    if path and path not in sys.path:
+        sys.path.insert(0, path)
+    if not os.environ.get("ANTHROPIC_API_KEY") and os.environ.get("APP_ANTHROPIC_API_KEY"):
+        os.environ["ANTHROPIC_API_KEY"] = os.environ["APP_ANTHROPIC_API_KEY"]
+    from deskagent.loader import load_case
+    from deskagent.pipeline import process_case
+    from deskagent.report import write_case
+    return load_case, process_case, write_case
+
+
+def short_id(conversation_id: str) -> str:
+    """A case number a caller can say back: the last four letters or digits of the conversation id."""
+    tail = "".join(c for c in conversation_id if c.isalnum())[-4:]
+    return tail.upper() or "0000"
+
+
+def write_case_folder(conversation_id: str, caller: str, ref: str, issue: str, how: str, contact: str) -> Path:
+    folder = CASES_DIR / slug(conversation_id)
+    folder.mkdir(parents=True, exist_ok=True)
+    caller = caller or "Caller"
+    when = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+    reach = f"\n- **Updates by:** {how} to {contact}" if how else ""
+    (folder / "index.md").write_text(
+        f"# Case {short_id(conversation_id)}: Phone call to the delivery desk\n\n"
+        f"## Case details\n- **Source role:** {caller}, recipient\n"
+        f"- **Primary shipment:** {ref or '[reference not given]'}\n- **Created:** {when}{reach}\n\n"
+        f"## Initial request\n{issue}\n")
+    (folder / "history.md").write_text(
+        f"# Case {short_id(conversation_id)} history\n\n"
+        f'<a id="event-001"></a>\n## {when} — event 001\n'
+        f"- **Channel:** Phone call\n- **From:** {caller}, recipient\n- **To:** Delivery desk\n\n{issue}\n")
+    return folder
+
+
+def _deliver_actions(case_id: str, executed: list, folder: Path) -> list:
+    """Each message deskagent sent goes to the outbox; the same allowlist rules as every other email."""
+    sent = []
+    for rec in executed:
+        a = rec.get("action") or {}
+        if rec.get("status") != "done" or a.get("tool") not in ("send_message", "escalate_to_human"):
+            continue
+        as_decision = {"team": a.get("to_name") or a.get("to_role") or "desk supervisor", "org": "",
+                       "message": a.get("body", ""), "channel": a.get("channel", ""),
+                       "missing": a.get("subject") or f"{a.get('channel') or 'message'} update", "escalate": a.get("tool") == "escalate_to_human",
+                       "party": "internal" if a.get("tool") == "escalate_to_human" else "other_business"}
+        sent.append(deliver(case_id, as_decision, folder / "outbox" / str(rec.get("index"))))
+    return sent
+
+
+def run(conversation_id: str, folder: Path) -> dict:
+    """Run deskagent on one call folder and record the outcome. Never raises: a failure is a result."""
+    t0 = time.time()
+    out: dict
+    try:
+        load_case, process_case, write_case = _deskagent()
+        case = load_case(folder, track="Delivery & Logistics")
+        res = process_case(case, model=os.getenv("VOICE_DESK_MODEL") or None)
+        write_case(folder / "answer", res)
+        plan = res.get("plan") or {}
+        out = {"status": "done", "decision_type": plan.get("decision_type"),
+               "decision_summary": plan.get("decision_summary"), "approved": res.get("approved"),
+               "contacted": [r["action"].get("to_name") or r["action"].get("to_role")
+                             for r in res.get("executed", []) if r.get("status") == "done"
+                             and (r.get("action") or {}).get("tool") == "send_message"],
+               "emails": _deliver_actions(f"voice-{short_id(conversation_id)}", res.get("executed", []), folder)}
+    except Exception as exc:  # noqa: BLE001 — the caller has already hung up; record it for a human
+        out = {"status": "failed", "error": f"{type(exc).__name__}: {exc}"[:500]}
+    out["elapsed_s"] = round(time.time() - t0, 1)
+    (folder / "result.json").write_text(json.dumps(out, indent=2, default=str))
+    return out
+
+
+def start(conversation_id: str, folder: Path) -> None:
+    (folder / "result.json").write_text(json.dumps({"status": "pending"}))
+    worker = threading.Thread(target=run, args=(conversation_id, folder), daemon=True)
+    _threads[conversation_id] = worker
+    worker.start()
+
+
+def update_line(conversation_id: str) -> str:
+    """What a later call hears about the case. Templates only; names are short and digit-free."""
+    path = CASES_DIR / slug(conversation_id) / "result.json"
+    if not path.exists():
+        return "I can't find that case. A colleague will follow up."
+    r = json.loads(path.read_text())
+    if r.get("status") == "pending":
+        return "Your case is still with our delivery desk. We'll update you as soon as there's news."
+    if r.get("status") != "done":
+        return "Your case has been passed to a colleague, who will follow up with you."
+    said = DECISION_WORDS.get(r.get("decision_type") or "", "Our desk has reviewed it")
+    who = next((n for n in r.get("contacted") or [] if n and len(n) <= 60 and not any(c.isdigit() for c in n)), "")
+    return f"{said}{f', and has contacted {who}' if who else ''}. I can't promise a time or outcome yet."

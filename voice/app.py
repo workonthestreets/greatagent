@@ -9,6 +9,9 @@ With VOICE_ASSIST set, `POST /voice/turn` also serves a live-assist mode: the vo
 after every caller utterance, each turn's decision comes from the same fixed templates, and the
 call continues only while the next step is a question the caller can answer.
 
+VOICE_AGENT picks who decides /voice/tool calls: `deskagent` (default; the team's reviewed agent,
+run after the call from a case folder, see voice/desk.py) or `triage` (inline, the older path).
+
 Run: VOICE_TOOL_SECRET=... uv run uvicorn voice.app:app --port 8000
 """
 from __future__ import annotations
@@ -27,8 +30,9 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from scorer.cases import AgentInput
-from triage.decide import decide
+from triage.decide import code_flags, decide
 from triage.outbox import deliver
+from voice import desk
 
 LOG_DIR = Path(os.getenv("VOICE_LOG_DIR", "runs/voice"))
 DECIDE_BUDGET_S = 14  # ElevenLabs gives a webhook tool 20 s by default; leave room for the network
@@ -234,12 +238,14 @@ def tool(report: CallReport, x_tool_secret: str = Header("")) -> dict:
         how, stored = checked_contact(report.update_by, report.contact)
         record = json.loads(logged.read_text())
         if record.get("contact") == {"update_by": how, "contact": stored}:  # a repeat, not a correction:
-            return {"say": spoken(record["decision"], report.update_by, report.contact),  # same reply again
-                    "status": "decided", "repeat": True}
+            again = record.get("say") or spoken(record["decision"], report.update_by, report.contact)
+            return {"say": again, "status": "decided", "repeat": True}  # same reply again
         record["contact"] = {"update_by": how, "contact": stored}
         logged.write_text(json.dumps(record, indent=2, default=str))
         return {"say": f"Thanks, I've updated that. {update_line(report.update_by, report.contact)}.",
                 "status": "contact_updated"}
+    if os.getenv("VOICE_AGENT", "deskagent") == "deskagent":
+        return capture_for_desk(report)
     future = _pool.submit(_decide_and_log, report)
     try:
         d = future.result(timeout=DECIDE_BUDGET_S)
@@ -248,6 +254,38 @@ def tool(report: CallReport, x_tool_secret: str = Header("")) -> dict:
                        "the next step; I can't give a time or outcome yet.", "status": "logged"}
     return {"say": spoken(d, report.update_by, report.contact), "status": "decided", "action": d.get("action"),
             "escalate": d.get("escalate", False)}
+
+
+def capture_for_desk(report: CallReport) -> dict:
+    """Capture line: write the call as a case, let deskagent decide after the call, speak a template now.
+
+    A hazard word in the caller's own words (a code check, no model) still gets the emergency line.
+    """
+    how, stored = checked_contact(report.update_by, report.contact)
+    folder = desk.write_case_folder(report.conversation_id, report.caller_name, report.order_ref,
+                                    report.issue, how, stored)
+    case = desk.short_id(report.conversation_id)
+    if "hazard_from_code" in code_flags(report.issue):
+        say = (f"Thank you. If anyone feels unwell, call 999 now. I've logged this as urgent case {case} "
+               f"for our delivery desk, and they'll contact you; I can't give a time or outcome yet.")
+    else:
+        say = (f"Thank you. I've logged this as case {case} for our delivery desk. "
+               f"{update_line(report.update_by, report.contact)}; I can't promise a time or outcome yet.")
+    _log(report.conversation_id, "", {"agent": "deskagent", "case_dir": str(folder), "say": say,
+                                      "contact": {"update_by": how, "contact": stored}})
+    desk.start(report.conversation_id, folder)
+    return {"say": say, "status": "logged", "case": case}
+
+
+class UpdateQuery(BaseModel):
+    conversation_id: str = Field(max_length=200)
+
+
+@app.post("/voice/update")
+def latest_update(q: UpdateQuery, x_tool_secret: str = Header("")) -> dict:
+    """What deskagent decided for an earlier call, as a fixed template."""
+    _auth(x_tool_secret)
+    return {"say": desk.update_line(q.conversation_id)}
 
 
 @app.post("/voice/turn")

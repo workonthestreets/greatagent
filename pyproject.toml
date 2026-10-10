@@ -8,6 +8,7 @@ dependencies = [
     "anthropic>=0.60",
     "fastapi>=0.143.0",
     "uvicorn>=0.54.0",
+    "pypdf>=4.0",
 ]
 
 [dependency-groups]
