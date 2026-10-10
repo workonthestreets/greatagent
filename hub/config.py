@@ -37,6 +37,9 @@ class Settings:
     auto_approve: bool = _bool("AGENT_AUTO_APPROVE")
     # Local testing without Supabase Auth: trust an X-Dev-User email header on /api.
     dev_auth: bool = _bool("HUB_DEV_AUTH")
+    # Which agent works the cases: "managed" (Managed Agents session, hub/driver.py) or "pipeline" (the evaluated
+    # deskagent planner -> lint -> reviewer, hub/pipeline_driver.py).
+    engine: str = os.environ.get("DESK_ENGINE", "managed").strip().lower()
 
     @property
     def mcp_url(self) -> str:

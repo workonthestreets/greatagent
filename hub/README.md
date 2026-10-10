@@ -53,3 +53,17 @@ DATABASE_URL=... HUB_DEV_AUTH=1 HUB_MCP_TOKEN=x HUB_WEBHOOK_SECRET=y .venv/bin/u
 ```
 
 With `HUB_DEV_AUTH=1`, `/api` accepts `X-Dev-User: <email>` instead of a Supabase token.
+
+## Engines
+
+`DESK_ENGINE` picks what works a case when it is woken (by `/api`, `/webhooks` or a re-assess click):
+
+- `managed` (default): one Managed Agents session per case, using the `/mcp` tools (`hub/driver.py`). Needs `hub.setup_agent` and a public `HUB_PUBLIC_URL`.
+- `pipeline`: the evaluated `deskagent` pipeline (planner → policy lint → independent reviewer, the same code `run.py` uses for the Reality Test), in `hub/pipeline_driver.py`.
+  - It renders the case from the database in the CLI's case format and plans it.
+  - It then carries out the approved plan through the same desk tools in `hub/mcp_tools.py`.
+  - Sends wait in Approvals like the managed engine, and the agent live log shows the planner, reviewer and tool steps.
+  - Every run keeps its input plus `ANSWER.md` / `REASONING.md` / `trace.json` under `runs/live/<run>/`.
+  - No public URL is needed for the agent itself, only for ElevenLabs.
+
+Demo cases with times relative to now: `python -m db.seed_demo [--wake D101]` (see `DEMO.md`). Pipeline engine test against local Postgres: `python tests/test_pipeline_driver.py`.
