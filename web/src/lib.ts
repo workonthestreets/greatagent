@@ -90,15 +90,35 @@ export function useLive<T>(table: string, build: (q: any) => any, deps: unknown[
 export const fmtTime = (ts: string) =>
   new Date(ts).toLocaleString(undefined, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 
-/** Sign out even when the server-side session is already gone (e.g. after a reseed): the client's own
- *  signOut can hang on its refresh lock, so clear the stored session ourselves and reload. */
-export async function signOut(): Promise<void> {
+export const DEMO_PASSWORD: string = import.meta.env.VITE_DEMO_PASSWORD || "greatagent-demo";
+export const DEMO_ROLES: Role[] = ["coordinator", "customer", "admin", "driver", "depot", "merchant"];
+export const demoEmail = (role: Role) => `${role}@greatagent.demo`;
+
+/** Forget the current session on this device even when the server-side session is already gone (e.g. after a
+ *  reseed): the client's own signOut can hang on its refresh lock, so cap it and clear the stored session ourselves. */
+async function forgetSession(): Promise<void> {
   try {
     await Promise.race([supabase.auth.signOut({ scope: "local" }), new Promise((r) => setTimeout(r, 1500))]);
-  } finally {
-    Object.keys(localStorage).filter((k) => k.startsWith("sb-")).forEach((k) => localStorage.removeItem(k));
-    window.location.reload();
+  } catch { /* already signed out, or the server rejected the token */ }
+  for (const store of [localStorage, sessionStorage]) {
+    try { Object.keys(store).filter((k) => k.startsWith("sb-")).forEach((k) => store.removeItem(k)); } catch { /* storage unavailable */ }
   }
+}
+
+/** Sign out and land on the login page: a full navigation to "/" also drops any OAuth hash or deep link. */
+export async function signOut(): Promise<void> {
+  await forgetSession();
+  window.location.replace("/");
+}
+
+/** Sign out and sign in as another demo account in one step, without a reload. Returns an error message or null. */
+export async function switchAccount(role: Role): Promise<string | null> {
+  await forgetSession();
+  const { error } = await supabase.auth.signInWithPassword({ email: demoEmail(role), password: DEMO_PASSWORD });
+  if (error) return error.message;
+  if (window.location.pathname !== "/") go("/");
+  window.scrollTo({ top: 0 });
+  return null;
 }
 
 /** Minimal client-side routing: the current path, and go() to change it without a reload. */

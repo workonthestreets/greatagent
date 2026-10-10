@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "./lib";
+import { DEMO_PASSWORD, supabase } from "./lib";
 import { Mark, Phone, User } from "./icons";
 
 const OTHER_DEMO = ["admin", "driver", "depot", "merchant"];
@@ -8,15 +8,22 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState("");   // the demo email being signed in, or "form"
 
   const signIn = async (e?: React.FormEvent, demoEmail?: string) => {
     e?.preventDefault();
+    if (busy) return;
     setError("");
-    const { error } = await supabase.auth.signInWithPassword({
-      email: demoEmail ?? email,
-      password: demoEmail ? (import.meta.env.VITE_DEMO_PASSWORD || "greatagent-demo") : password,
-    });
-    if (error) setError(error.message);
+    setBusy(demoEmail ?? "form");
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: demoEmail ?? email,
+        password: demoEmail ? DEMO_PASSWORD : password,
+      });
+      if (error) setError(`${demoEmail ? `Could not sign in as ${demoEmail.split("@")[0]}: ` : ""}${error.message}`);
+    } finally {
+      setBusy("");
+    }
   };
 
   return (
@@ -47,7 +54,7 @@ export default function Login() {
         </label>
         {error && <p className="error-text" role="alert">{error}</p>}
         <div className="login__actions">
-          <button type="submit" className="btn btn--primary">Sign in</button>
+          <button type="submit" className="btn btn--primary" disabled={!!busy}>{busy === "form" ? "Signing in…" : "Sign in"}</button>
           <button type="button" className="btn btn--secondary" onClick={() =>
             supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } })}>
             Continue with Google
@@ -64,8 +71,8 @@ export default function Login() {
             <p className="card-feature__body">
               Approve the agent's drafts before they go out and watch its live log as it works a case.
             </p>
-            <button className="btn btn--inverse card-feature__cta" onClick={() => signIn(undefined, "coordinator@greatagent.demo")}>
-              Sign in as coordinator
+            <button className="btn btn--inverse card-feature__cta" disabled={!!busy} onClick={() => signIn(undefined, "coordinator@greatagent.demo")}>
+              {busy === "coordinator@greatagent.demo" ? "Signing in…" : "Sign in as coordinator"}
             </button>
           </article>
           <article className="card-feature">
@@ -74,8 +81,8 @@ export default function Login() {
             <p className="card-feature__body">
               Follow one parcel's thread with the desk, the same answers the voice line reads out.
             </p>
-            <button className="btn btn--inverse card-feature__cta" onClick={() => signIn(undefined, "customer@greatagent.demo")}>
-              Sign in as customer
+            <button className="btn btn--inverse card-feature__cta" disabled={!!busy} onClick={() => signIn(undefined, "customer@greatagent.demo")}>
+              {busy === "customer@greatagent.demo" ? "Signing in…" : "Sign in as customer"}
             </button>
           </article>
         </div>
@@ -85,11 +92,12 @@ export default function Login() {
         <span className="label text-muted">Other demo accounts</span>
         <div className="demo-row__pills">
           {OTHER_DEMO.map((r) => (
-            <button key={r} className="btn btn--secondary btn--sm" onClick={() => signIn(undefined, `${r}@greatagent.demo`)}>
-              {r.charAt(0).toUpperCase() + r.slice(1)}
+            <button key={r} className="btn btn--secondary btn--sm" disabled={!!busy} onClick={() => signIn(undefined, `${r}@greatagent.demo`)}>
+              {busy === `${r}@greatagent.demo` ? "Signing in…" : r.charAt(0).toUpperCase() + r.slice(1)}
             </button>
           ))}
         </div>
+        {error && busy === "" && <p className="error-text demo-row__error" role="alert">{error}</p>}
       </section>
     </div>
   );

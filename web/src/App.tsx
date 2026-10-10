@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { go as goPath, isStaff, signOut, supabase, usePath, useSession, type Profile } from "./lib";
+import { DEMO_ROLES, go as goPath, isStaff, signOut, supabase, switchAccount, usePath, useSession, type Profile, type Role } from "./lib";
 import AgentsPage from "./AgentPage";
 import InvestigatePage from "./investigate/InvestigatePage";
 import Login from "./Login";
@@ -31,6 +31,8 @@ export default function App({ initialCase, initialPage = "desk" }: { initialCase
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState("");
   const [statePage, setPage] = useState<Page>(initialPage);
+  const [switching, setSwitching] = useState(false);
+  const [switchError, setSwitchError] = useState("");
   // /agents and /agents/<case id> are real URLs (shareable, back button works); Desk and Rewards stay in-app pages.
   const path = usePath();
   const agentsRoute = /^\/agents?(\/|$)/.test(path);
@@ -92,9 +94,25 @@ export default function App({ initialCase, initialPage = "desk" }: { initialCase
         <span className="nav__mark" aria-label="Rivet Delivery Desk" role="img"><Mark /></span>
         <div className="nav__auth">
           <span className="nav__role">{ROLE_LABEL[profile.role]}</span>
-          <button className="btn btn--secondary" onClick={() => signOut()}>Sign out</button>
+          <label className="nav__switch">
+            <span className="sr-only">Switch role</span>
+            <select className="input input--sm" value="" disabled={switching} aria-label="Switch role"
+              onChange={async (e) => {
+                const role = e.target.value as Role;
+                if (!role) return;
+                setSwitching(true); setSwitchError("");
+                const err = await switchAccount(role);
+                setSwitching(false);
+                if (err) setSwitchError(err);
+              }}>
+              <option value="">{switching ? "Switching…" : "Switch role…"}</option>
+              {DEMO_ROLES.filter((r) => r !== profile.role).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+            </select>
+          </label>
+          <button className="btn btn--secondary" disabled={switching} onClick={() => signOut()}>Sign out</button>
         </div>
       </nav>
+      {switchError && <p className="error-text nav__error" role="alert">Could not switch role: {switchError}</p>}
       {staff
         ? page === "agents" ? <AgentsPage caseId={agentCase} />
           : page === "investigate" ? <InvestigatePage />
