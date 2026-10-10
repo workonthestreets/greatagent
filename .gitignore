@@ -5,6 +5,12 @@ runs/
 .venv/
 .DS_Store
 .transfer/
+
+# Local-only research scratch data (useful for research, not pushed or presented)
+dump-research/
+
+# Local session state
+STATE.md
 # derived from the organisers' public cases; regenerate with: python stress_cases/mutate_public.py
 holdout/*/mut-*/
 holdout/_debug/
@@ -14,3 +20,6 @@ web/dist/
 web/.env
 web/.env.local
 web/tsconfig.tsbuildinfo
+# voice channel
+data/
+*.eml

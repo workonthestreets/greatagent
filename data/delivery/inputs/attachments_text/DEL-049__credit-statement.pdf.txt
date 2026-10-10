@@ -1,0 +1,19 @@
+SYNTHETIC EXERCISE - NOT A LIVE DOCUMENT
+
+Credit CN-049 and revised statement
+
+Issued: 2026-03-22 09:50 UTC
+
+Issuer: Plover Arc Logistics - Business billing
+
+Customer: Mossline Press | Invoice: INV-049 | Shipment: DL-049
+
+Original line 1: delivery service, 2026-03-22, GBP 18.00
+
+Original line 2: duplicate of line 1, GBP 18.00 | Original total: GBP 36.00
+
+Credit note CN-049: GBP 18.00 against duplicate line 2.
+
+Revised amount due: GBP 18.00 (36.00 - 18.00). Nothing has been paid.
+
+Accounting credit only; no cash refund or bank transfer has occurred.

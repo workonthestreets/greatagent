@@ -1,0 +1,1558 @@
+{
+  "n_cases": 100,
+  "n_events": 493,
+  "events_per_case": {
+    "5": 57,
+    "6": 18,
+    "4": 25
+  },
+  "stage_pattern": {
+    "CEAFF": 57,
+    "CEAFFF": 18,
+    "CEAF": 25
+  },
+  "escalation_channel": {
+    "Customer portal": 74,
+    "Depot work queue": 2,
+    "Business portal": 15,
+    "Warehouse work queue": 3,
+    "Email": 2,
+    "Broker portal": 4
+  },
+  "gold_channel": {
+    "Customer portal": 6,
+    "Email": 78,
+    "Depot work queue": 3,
+    "Call transcript": 2,
+    "Business portal": 5,
+    "Warehouse work queue": 3,
+    "Safety incident queue": 3
+  },
+  "context_author_org_type": {
+    "carrier": 64,
+    "pickup_point": 2,
+    "unknown": 3,
+    "merchant": 22,
+    "business_counterparty": 2,
+    "customs_broker": 7
+  },
+  "requester_org_type": {
+    "customer": 74,
+    "carrier": 4,
+    "business_counterparty": 15,
+    "merchant": 3,
+    "customs_broker": 4
+  },
+  "recipient_org_type": {
+    "customer": 8,
+    "carrier": 56,
+    "pickup_point": 2,
+    "international_carrier": 1,
+    "business_counterparty": 9,
+    "merchant": 24
+  },
+  "recipient_raw_distinct": 48,
+  "recipient_equals_context_author": 16,
+  "recipient_party_mentioned_in_visible_text": 88,
+  "attachments": {
+    "files": 0,
+    "cases": 0,
+    "visible_at_escalation": 0,
+    "first_event": {}
+  },
+  "refs_introduced_after_cutoff_cases": 71,
+  "next_update_due_cases": [
+    "SYN-255",
+    "SYN-257",
+    "SYN-263",
+    "SYN-267"
+  ],
+  "timing": {
+    "agent_action_minutes": {
+      "25.0": 100
+    },
+    "escalation_minutes": {
+      "10.0": 100
+    },
+    "cases_with_follow_through_next_day": [
+      "SYN-207",
+      "SYN-211",
+      "SYN-213",
+      "SYN-218",
+      "SYN-229",
+      "SYN-230",
+      "SYN-233",
+      "SYN-234",
+      "SYN-237",
+      "SYN-240",
+      "SYN-261",
+      "SYN-287",
+      "SYN-292",
+      "SYN-295",
+      "SYN-298",
+      "SYN-300"
+    ]
+  },
+  "parameters": [
+    {
+      "name": "requester_type",
+      "tier": "min",
+      "role": "input",
+      "source": "Source role + event 002 From",
+      "type": "enum",
+      "definition": "Who escalates: consumer, business counterparty, carrier ops, merchant ops, customs broker.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 5,
+      "entropy_bits": 1.255,
+      "variability_index": 0.189,
+      "top_values": [
+        [
+          "consumer",
+          74
+        ],
+        [
+          "business_counterparty",
+          15
+        ],
+        [
+          "carrier_ops",
+          4
+        ],
+        [
+          "customs_broker",
+          4
+        ],
+        [
+          "merchant_ops",
+          3
+        ]
+      ]
+    },
+    {
+      "name": "issue_type",
+      "tier": "min",
+      "role": "input",
+      "source": "events 001-002 (classified)",
+      "type": "enum",
+      "definition": "Problem family the request belongs to.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 14,
+      "entropy_bits": 3.549,
+      "variability_index": 0.534,
+      "top_values": [
+        [
+          "tracking_visibility",
+          18
+        ],
+        [
+          "reschedule",
+          14
+        ],
+        [
+          "money_and_billing",
+          12
+        ],
+        [
+          "return_processing",
+          8
+        ],
+        [
+          "address_or_access",
+          7
+        ],
+        [
+          "safety_hazard",
+          7
+        ]
+      ]
+    },
+    {
+      "name": "shipment_stage",
+      "tier": "min",
+      "role": "input",
+      "source": "event 001 Context",
+      "type": "enum",
+      "definition": "Where the goods physically are and what the last record says.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 15,
+      "entropy_bits": 3.407,
+      "variability_index": 0.513,
+      "top_values": [
+        [
+          "at_depot",
+          19
+        ],
+        [
+          "delivered",
+          18
+        ],
+        [
+          "booked_not_dispatched",
+          12
+        ],
+        [
+          "return_approved",
+          11
+        ],
+        [
+          "delivered_partial",
+          9
+        ],
+        [
+          "customs_hold",
+          8
+        ]
+      ]
+    },
+    {
+      "name": "owner_org_type",
+      "tier": "min",
+      "role": "input",
+      "source": "event 001 Context (stated in 50/50)",
+      "type": "enum",
+      "definition": "Which organisation owns the next decision (same vocabulary as actor.org_type); the desk never owns it.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 6,
+      "entropy_bits": 1.746,
+      "variability_index": 0.263,
+      "top_values": [
+        [
+          "carrier",
+          56
+        ],
+        [
+          "merchant",
+          24
+        ],
+        [
+          "business_counterparty",
+          9
+        ],
+        [
+          "customer",
+          8
+        ],
+        [
+          "pickup_point",
+          2
+        ],
+        [
+          "international_carrier",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "customer_input_required",
+      "tier": "min",
+      "role": "derived",
+      "source": "events 001-002",
+      "type": "bool",
+      "definition": "A choice, confirmation or missing datum from the customer/counterparty gates the next step.",
+      "coverage": 17,
+      "coverage_pct": 17.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.658,
+      "variability_index": 0.099,
+      "top_values": [
+        [
+          "False",
+          83
+        ],
+        [
+          "True",
+          17
+        ]
+      ]
+    },
+    {
+      "name": "urgency",
+      "tier": "min",
+      "role": "input",
+      "source": "events 001-002 (cutoff phrases)",
+      "type": "enum",
+      "definition": "Only when an explicit cutoff makes the state irreversible (return-to-sender timer, driver departure, dispatch sweep, offer/extension expiry, hazard). A future booking date alone is none. immediate = within ~2h; deadline_today = later today; deadline_bound = a dated cutoff beyond today. Low inter-annotator reliability (kappa 0.28) until this definition is applied.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 3,
+      "entropy_bits": 0.667,
+      "variability_index": 0.1,
+      "top_values": [
+        [
+          "none",
+          86
+        ],
+        [
+          "immediate",
+          12
+        ],
+        [
+          "deadline_bound",
+          2
+        ]
+      ]
+    },
+    {
+      "name": "risk_flags",
+      "tier": "min",
+      "role": "derived",
+      "source": "events 001-002 (keywords + policy)",
+      "type": "set",
+      "definition": "safety, physical_handling, privacy_third_party, credentials (visible text forbids requesting/sending codes, credentials or payment links), money, fraud_dispute, authority, consumption. All flags except credentials (kappa 0.31) reached kappa >= 0.70 between two annotators.",
+      "coverage": 56,
+      "coverage_pct": 56.0,
+      "n_distinct": 16,
+      "entropy_bits": 2.824,
+      "variability_index": 0.425,
+      "top_values": [
+        [
+          "(none)",
+          44
+        ],
+        [
+          "money",
+          15
+        ],
+        [
+          "authority",
+          11
+        ],
+        [
+          "fraud_dispute",
+          7
+        ],
+        [
+          "money|authority",
+          4
+        ],
+        [
+          "credentials",
+          3
+        ]
+      ]
+    },
+    {
+      "name": "primary_ref",
+      "tier": "standard",
+      "role": "input",
+      "source": "Case details",
+      "type": "id",
+      "definition": "Shipment or task reference the whole case hangs on.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 100,
+      "entropy_bits": 6.644,
+      "variability_index": 1.0,
+      "top_values": [
+        [
+          "DL-201",
+          1
+        ],
+        [
+          "DL-202",
+          1
+        ],
+        [
+          "DL-203",
+          1
+        ],
+        [
+          "DL-204",
+          1
+        ],
+        [
+          "DL-205",
+          1
+        ],
+        [
+          "DL-206",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "verification_state",
+      "tier": "standard",
+      "role": "input",
+      "source": "event 001 Context / channel",
+      "type": "enum",
+      "definition": "verified_by_operator, authenticated_session, internal_party, asserted_only.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 3,
+      "entropy_bits": 0.99,
+      "variability_index": 0.149,
+      "top_values": [
+        [
+          "authenticated_session",
+          66
+        ],
+        [
+          "verified_by_operator",
+          33
+        ],
+        [
+          "asserted_only",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "recipient_function",
+      "tier": "standard",
+      "role": "output",
+      "source": "gold: index Recipient",
+      "type": "enum",
+      "definition": "Functional role of the party the agent writes to.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 16,
+      "entropy_bits": 3.709,
+      "variability_index": 0.558,
+      "top_values": [
+        [
+          "trace",
+          14
+        ],
+        [
+          "merchant_authorisation",
+          12
+        ],
+        [
+          "dispatch_scheduling",
+          11
+        ],
+        [
+          "counterparty_business",
+          9
+        ],
+        [
+          "billing",
+          9
+        ],
+        [
+          "customer_self",
+          8
+        ]
+      ]
+    },
+    {
+      "name": "action_class",
+      "tier": "standard",
+      "role": "output",
+      "source": "gold: event 003",
+      "type": "enum",
+      "definition": "What the agent asks for.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 8,
+      "entropy_bits": 2.854,
+      "variability_index": 0.43,
+      "top_values": [
+        [
+          "request_operator_action",
+          23
+        ],
+        [
+          "request_physical_trace",
+          17
+        ],
+        [
+          "request_review_or_investigation",
+          16
+        ],
+        [
+          "request_authorisation_or_decision",
+          14
+        ],
+        [
+          "ask_counterparty",
+          9
+        ],
+        [
+          "ask_customer",
+          8
+        ]
+      ]
+    },
+    {
+      "name": "channel",
+      "tier": "standard",
+      "role": "output",
+      "source": "gold: index Channel",
+      "type": "enum",
+      "definition": "Channel of the agent message.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 7,
+      "entropy_bits": 1.307,
+      "variability_index": 0.197,
+      "top_values": [
+        [
+          "Email",
+          78
+        ],
+        [
+          "Customer portal",
+          6
+        ],
+        [
+          "Business portal",
+          5
+        ],
+        [
+          "Depot work queue",
+          3
+        ],
+        [
+          "Warehouse work queue",
+          3
+        ],
+        [
+          "Safety incident queue",
+          3
+        ]
+      ]
+    },
+    {
+      "name": "money_involved",
+      "tier": "standard",
+      "role": "input",
+      "source": "events 001-002 (GBP, charge, credit, refund)",
+      "type": "bool",
+      "definition": "Any charge, credit, refund or authority limit in play.",
+      "coverage": 22,
+      "coverage_pct": 22.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.76,
+      "variability_index": 0.114,
+      "top_values": [
+        [
+          "False",
+          78
+        ],
+        [
+          "True",
+          22
+        ]
+      ]
+    },
+    {
+      "name": "evidence_conflict",
+      "tier": "standard",
+      "role": "derived",
+      "source": "events 001-002",
+      "type": "bool",
+      "definition": "A record contradicts a party statement or another record.",
+      "coverage": 15,
+      "coverage_pct": 15.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.61,
+      "variability_index": 0.092,
+      "top_values": [
+        [
+          "False",
+          85
+        ],
+        [
+          "True",
+          15
+        ]
+      ]
+    },
+    {
+      "name": "proof_standard",
+      "tier": "standard",
+      "role": "output",
+      "source": "gold: event 003 wording",
+      "type": "enum",
+      "definition": "What evidence the agent should demand before calling the step done.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 15,
+      "entropy_bits": 3.638,
+      "variability_index": 0.548,
+      "top_values": [
+        [
+          "operator_confirmation",
+          15
+        ],
+        [
+          "approval_reference",
+          15
+        ],
+        [
+          "booking_reference",
+          10
+        ],
+        [
+          "physical_scan",
+          9
+        ],
+        [
+          "credit_note",
+          8
+        ],
+        [
+          "approved_statement",
+          7
+        ]
+      ]
+    },
+    {
+      "name": "options_offered",
+      "tier": "max",
+      "role": "input",
+      "source": "event 001 Context",
+      "type": "list",
+      "definition": "Concrete alternatives the owner has already offered.",
+      "coverage": 35,
+      "coverage_pct": 35.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.934,
+      "variability_index": 0.141,
+      "top_values": [
+        [
+          "False",
+          65
+        ],
+        [
+          "True",
+          35
+        ]
+      ]
+    },
+    {
+      "name": "policy_constraints",
+      "tier": "max",
+      "role": "input",
+      "source": "event 001 Context",
+      "type": "list",
+      "definition": "Eligibility rules stated by the owner (hold <= 3 days, one extension, nominee must be adult household member...).",
+      "coverage": 35,
+      "coverage_pct": 35.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.934,
+      "variability_index": 0.141,
+      "top_values": [
+        [
+          "False",
+          65
+        ],
+        [
+          "True",
+          35
+        ]
+      ]
+    },
+    {
+      "name": "constraint_sentences",
+      "tier": "max",
+      "role": "input",
+      "source": "events 001-002",
+      "type": "list",
+      "definition": "Explicit prohibitions and scope limits (do not request codes, do not fill values...).",
+      "coverage": 83,
+      "coverage_pct": 83.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.658,
+      "variability_index": 0.099,
+      "top_values": [
+        [
+          "True",
+          83
+        ],
+        [
+          "False",
+          17
+        ]
+      ]
+    },
+    {
+      "name": "customer_availability",
+      "tier": "max",
+      "role": "input",
+      "source": "event 002",
+      "type": "list",
+      "definition": "Dates/windows the customer offers.",
+      "coverage": 13,
+      "coverage_pct": 13.0,
+      "n_distinct": 2,
+      "entropy_bits": 0.557,
+      "variability_index": 0.084,
+      "top_values": [
+        [
+          "False",
+          87
+        ],
+        [
+          "True",
+          13
+        ]
+      ]
+    },
+    {
+      "name": "cutoff_utc",
+      "tier": "max",
+      "role": "input",
+      "source": "events 001-002",
+      "type": "datetime",
+      "definition": "Hard deadline after which the state changes irreversibly.",
+      "coverage": 14,
+      "coverage_pct": 14.0,
+      "n_distinct": 13,
+      "entropy_bits": 1.077,
+      "variability_index": 0.162,
+      "top_values": [
+        [
+          "(none)",
+          86
+        ],
+        [
+          "2026-04-22T16:00:00Z",
+          2
+        ],
+        [
+          "2026-04-26T10:00:00Z",
+          2
+        ],
+        [
+          "2026-04-05T18:00:00Z",
+          1
+        ],
+        [
+          "2026-04-11T18:00:00Z",
+          1
+        ],
+        [
+          "2026-04-16T11:30:00Z",
+          1
+        ]
+      ]
+    },
+    {
+      "name": "amount_gbp_known",
+      "tier": "max",
+      "role": "input",
+      "source": "events 001-002",
+      "type": "number",
+      "definition": "Amount or authority limit visible at escalation.",
+      "coverage": 22,
+      "coverage_pct": 22.0,
+      "n_distinct": 11,
+      "entropy_bits": 1.442,
+      "variability_index": 0.217,
+      "top_values": [
+        [
+          "(none)",
+          78
+        ],
+        [
+          "4.5",
+          5
+        ],
+        [
+          "48.0",
+          3
+        ],
+        [
+          "32.0",
+          3
+        ],
+        [
+          "12.0",
+          3
+        ],
+        [
+          "60.0",
+          2
+        ]
+      ]
+    },
+    {
+      "name": "boundaries",
+      "tier": "max",
+      "role": "output",
+      "source": "gold: index Boundaries",
+      "type": "text",
+      "definition": "What the final reply must say is NOT established.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 1,
+      "entropy_bits": -0.0,
+      "variability_index": -0.0,
+      "top_values": [
+        [
+          "True",
+          100
+        ]
+      ]
+    },
+    {
+      "name": "queue",
+      "tier": "max",
+      "role": "output",
+      "source": "labelled",
+      "type": "enum",
+      "definition": "Operational queue the case enters after the agent action.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 9,
+      "entropy_bits": 2.947,
+      "variability_index": 0.444,
+      "top_values": [
+        [
+          "carrier_ops",
+          23
+        ],
+        [
+          "merchant_authorisation",
+          19
+        ],
+        [
+          "carrier_trace",
+          17
+        ],
+        [
+          "awaiting_counterparty",
+          9
+        ],
+        [
+          "billing_review",
+          9
+        ],
+        [
+          "investigations",
+          7
+        ]
+      ]
+    },
+    {
+      "name": "complexity_level",
+      "tier": "max",
+      "role": "input",
+      "source": "hand-assigned from Andrey's easy-to-hard ladder (system model, section 6)",
+      "type": "enum 1-7",
+      "definition": "Level 1 simple status, 2 shipment data correction, 3 multi-parcel orders, 4 evidence and downstream decisions, 5 conflicting reports, 6 safety and regulatory holds, 7 reconciliation across related shipments.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 7,
+      "entropy_bits": 2.802,
+      "variability_index": 0.422,
+      "top_values": [
+        [
+          "4 Evidence and downstream decisions",
+          16
+        ],
+        [
+          "6 Safety and regulatory holds",
+          16
+        ],
+        [
+          "1 Simple status",
+          14
+        ],
+        [
+          "2 Shipment data correction",
+          14
+        ],
+        [
+          "5 Conflicting reports",
+          14
+        ],
+        [
+          "7 Reconciliation across related shipments",
+          14
+        ]
+      ]
+    },
+    {
+      "name": "human_gate",
+      "tier": "max",
+      "role": "output",
+      "source": "labelled",
+      "type": "enum",
+      "definition": "hard = the message commits or credits money with an amount, concerns safety or a delivered-not-received/loss dispute, or relies on a signing authority; soft = third-party privacy or a disputed record framed neutrally; none = routine relay, option request or customer question. Low inter-annotator reliability (kappa 0.35); treat as a policy knob.",
+      "coverage": 100,
+      "coverage_pct": 100.0,
+      "n_distinct": 3,
+      "entropy_bits": 1.218,
+      "variability_index": 0.183,
+      "top_values": [
+        [
+          "none",
+          64
+        ],
+        [
+          "hard",
+          28
+        ],
+        [
+          "soft",
+          8
+        ]
+      ]
+    }
+  ],
+  "risk_flag_frequency": {
+    "money": 22,
+    "authority": 19,
+    "physical_handling": 8,
+    "fraud_dispute": 8,
+    "safety": 7,
+    "credentials": 5,
+    "privacy_third_party": 3,
+    "consumption": 2
+  },
+  "risk_flag_cases": 56,
+  "routing_cells": {
+    "address_or_access | carrier": {
+      "n": 2,
+      "cases": [
+        "SYN-220",
+        "SYN-223"
+      ],
+      "action_class": {
+        "request_record_or_statement": 2
+      },
+      "recipient_function": {
+        "support_records": 1,
+        "dispatch_scheduling": 1
+      },
+      "channel": {
+        "Email": 2
+      },
+      "queue": {
+        "carrier_ops": 2
+      },
+      "deterministic_action": true
+    },
+    "address_or_access | customer": {
+      "n": 5,
+      "cases": [
+        "SYN-215",
+        "SYN-216",
+        "SYN-217",
+        "SYN-225",
+        "SYN-226"
+      ],
+      "action_class": {
+        "ask_customer": 5
+      },
+      "recipient_function": {
+        "customer_self": 5
+      },
+      "channel": {
+        "Customer portal": 3,
+        "Call transcript": 2
+      },
+      "queue": {
+        "awaiting_customer": 3,
+        "urgent_cutoff": 2
+      },
+      "deterministic_action": true
+    },
+    "cancel_or_reship | merchant": {
+      "n": 6,
+      "cases": [
+        "SYN-222",
+        "SYN-227",
+        "SYN-228",
+        "SYN-249",
+        "SYN-251",
+        "SYN-293"
+      ],
+      "action_class": {
+        "request_operator_action": 3,
+        "request_authorisation_or_decision": 3
+      },
+      "recipient_function": {
+        "warehouse_execution": 3,
+        "merchant_authorisation": 3
+      },
+      "channel": {
+        "Warehouse work queue": 3,
+        "Email": 3
+      },
+      "queue": {
+        "urgent_cutoff": 3,
+        "merchant_authorisation": 3
+      },
+      "deterministic_action": false
+    },
+    "customs_and_import | business_counterparty": {
+      "n": 7,
+      "cases": [
+        "SYN-274",
+        "SYN-275",
+        "SYN-279",
+        "SYN-280",
+        "SYN-281",
+        "SYN-283",
+        "SYN-285"
+      ],
+      "action_class": {
+        "ask_counterparty": 7
+      },
+      "recipient_function": {
+        "counterparty_business": 7
+      },
+      "channel": {
+        "Email": 4,
+        "Business portal": 3
+      },
+      "queue": {
+        "awaiting_counterparty": 7
+      },
+      "deterministic_action": true
+    },
+    "damage_or_condition | customer": {
+      "n": 1,
+      "cases": [
+        "SYN-241"
+      ],
+      "action_class": {
+        "ask_customer": 1
+      },
+      "recipient_function": {
+        "customer_self": 1
+      },
+      "channel": {
+        "Customer portal": 1
+      },
+      "queue": {
+        "awaiting_customer": 1
+      },
+      "deterministic_action": true
+    },
+    "damage_or_condition | merchant": {
+      "n": 1,
+      "cases": [
+        "SYN-242"
+      ],
+      "action_class": {
+        "request_authorisation_or_decision": 1
+      },
+      "recipient_function": {
+        "merchant_authorisation": 1
+      },
+      "channel": {
+        "Email": 1
+      },
+      "queue": {
+        "merchant_authorisation": 1
+      },
+      "deterministic_action": true
+    },
+    "freight_booking | business_counterparty": {
+      "n": 2,
+      "cases": [
+        "SYN-221",
+        "SYN-289"
+      ],
+      "action_class": {
+        "ask_counterparty": 2
+      },
+      "recipient_function": {
+        "counterparty_business": 2
+      },
+      "channel": {
+        "Business portal": 2
+      },
+      "queue": {
+        "awaiting_counterparty": 2
+      },
+      "deterministic_action": true
+    },
+    "freight_booking | carrier": {
+      "n": 2,
+      "cases": [
+        "SYN-232",
+        "SYN-276"
+      ],
+      "action_class": {
+        "request_operator_action": 2
+      },
+      "recipient_function": {
+        "freight_planning": 2
+      },
+      "channel": {
+        "Email": 2
+      },
+      "queue": {
+        "carrier_ops": 2
+      },
+      "deterministic_action": true
+    },
+    "loss_or_misdelivery | carrier": {
+      "n": 4,
+      "cases": [
+        "SYN-257",
+        "SYN-261",
+        "SYN-263",
+        "SYN-267"
+      ],
+      "action_class": {
+        "request_review_or_investigation": 3,
+        "request_operator_action": 1
+      },
+      "recipient_function": {
+        "investigation_review": 3,
+        "recovery_collection": 1
+      },
+      "channel": {
+        "Email": 4
+      },
+      "queue": {
+        "investigations": 3,
+        "carrier_ops": 1
+      },
+      "deterministic_action": false
+    },
+    "money_and_billing | carrier": {
+      "n": 9,
+      "cases": [
+        "SYN-231",
+        "SYN-235",
+        "SYN-236",
+        "SYN-238",
+        "SYN-239",
+        "SYN-245",
+        "SYN-246",
+        "SYN-253",
+        "SYN-254"
+      ],
+      "action_class": {
+        "request_review_or_investigation": 8,
+        "request_record_or_statement": 1
+      },
+      "recipient_function": {
+        "billing": 9
+      },
+      "channel": {
+        "Email": 9
+      },
+      "queue": {
+        "billing_review": 9
+      },
+      "deterministic_action": false
+    },
+    "money_and_billing | merchant": {
+      "n": 3,
+      "cases": [
+        "SYN-244",
+        "SYN-255",
+        "SYN-262"
+      ],
+      "action_class": {
+        "request_authorisation_or_decision": 2,
+        "request_review_or_investigation": 1
+      },
+      "recipient_function": {
+        "merchant_fulfilment": 3
+      },
+      "channel": {
+        "Email": 3
+      },
+      "queue": {
+        "merchant_authorisation": 3
+      },
+      "deterministic_action": false
+    },
+    "redirect_or_hold | carrier": {
+      "n": 3,
+      "cases": [
+        "SYN-218",
+        "SYN-219",
+        "SYN-224"
+      ],
+      "action_class": {
+        "request_operator_action": 3
+      },
+      "recipient_function": {
+        "routing_redirect": 1,
+        "dispatch_scheduling": 2
+      },
+      "channel": {
+        "Email": 3
+      },
+      "queue": {
+        "carrier_ops": 3
+      },
+      "deterministic_action": true
+    },
+    "redirect_or_hold | pickup_point": {
+      "n": 2,
+      "cases": [
+        "SYN-204",
+        "SYN-210"
+      ],
+      "action_class": {
+        "request_operator_action": 2
+      },
+      "recipient_function": {
+        "pickup_point_operator": 2
+      },
+      "channel": {
+        "Email": 2
+      },
+      "queue": {
+        "carrier_ops": 2
+      },
+      "deterministic_action": true
+    },
+    "reschedule | carrier": {
+      "n": 12,
+      "cases": [
+        "SYN-202",
+        "SYN-207",
+        "SYN-208",
+        "SYN-211",
+        "SYN-213",
+        "SYN-258",
+        "SYN-264",
+        "SYN-266",
+        "SYN-268",
+        "SYN-290",
+        "SYN-291",
+        "SYN-299"
+      ],
+      "action_class": {
+        "request_operator_action": 8,
+        "request_review_or_investigation": 4
+      },
+      "recipient_function": {
+        "dispatch_scheduling": 4,
+        "recovery_collection": 4,
+        "investigation_review": 4
+      },
+      "channel": {
+        "Email": 12
+      },
+      "queue": {
+        "carrier_ops": 8,
+        "investigations": 4
+      },
+      "deterministic_action": false
+    },
+    "reschedule | customer": {
+      "n": 2,
+      "cases": [
+        "SYN-201",
+        "SYN-214"
+      ],
+      "action_class": {
+        "ask_customer": 2
+      },
+      "recipient_function": {
+        "customer_self": 2
+      },
+      "channel": {
+        "Customer portal": 2
+      },
+      "queue": {
+        "awaiting_customer": 2
+      },
+      "deterministic_action": true
+    },
+    "return_processing | merchant": {
+      "n": 8,
+      "cases": [
+        "SYN-243",
+        "SYN-252",
+        "SYN-256",
+        "SYN-260",
+        "SYN-265",
+        "SYN-269",
+        "SYN-270",
+        "SYN-277"
+      ],
+      "action_class": {
+        "request_operator_action": 4,
+        "request_authorisation_or_decision": 4
+      },
+      "recipient_function": {
+        "merchant_fulfilment": 4,
+        "merchant_authorisation": 4
+      },
+      "channel": {
+        "Email": 8
+      },
+      "queue": {
+        "merchant_authorisation": 8
+      },
+      "deterministic_action": false
+    },
+    "safety_hazard | carrier": {
+      "n": 5,
+      "cases": [
+        "SYN-271",
+        "SYN-273",
+        "SYN-278",
+        "SYN-284",
+        "SYN-286"
+      ],
+      "action_class": {
+        "escalate_safety": 3,
+        "request_record_or_statement": 2
+      },
+      "recipient_function": {
+        "safety": 3,
+        "dispatch_scheduling": 2
+      },
+      "channel": {
+        "Safety incident queue": 3,
+        "Email": 2
+      },
+      "queue": {
+        "safety": 3,
+        "carrier_ops": 2
+      },
+      "deterministic_action": false
+    },
+    "safety_hazard | merchant": {
+      "n": 2,
+      "cases": [
+        "SYN-272",
+        "SYN-282"
+      ],
+      "action_class": {
+        "escalate_safety": 2
+      },
+      "recipient_function": {
+        "safety": 2
+      },
+      "channel": {
+        "Email": 2
+      },
+      "queue": {
+        "safety": 2
+      },
+      "deterministic_action": true
+    },
+    "service_disruption | carrier": {
+      "n": 2,
+      "cases": [
+        "SYN-205",
+        "SYN-209"
+      ],
+      "action_class": {
+        "request_record_or_statement": 2
+      },
+      "recipient_function": {
+        "dispatch_scheduling": 2
+      },
+      "channel": {
+        "Email": 2
+      },
+      "queue": {
+        "carrier_ops": 2
+      },
+      "deterministic_action": true
+    },
+    "tracking_visibility | carrier": {
+      "n": 17,
+      "cases": [
+        "SYN-203",
+        "SYN-212",
+        "SYN-229",
+        "SYN-230",
+        "SYN-233",
+        "SYN-234",
+        "SYN-237",
+        "SYN-240",
+        "SYN-247",
+        "SYN-259",
+        "SYN-288",
+        "SYN-292",
+        "SYN-294",
+        "SYN-295",
+        "SYN-296",
+        "SYN-297",
+        "SYN-300"
+      ],
+      "action_class": {
+        "request_physical_trace": 16,
+        "request_record_or_statement": 1
+      },
+      "recipient_function": {
+        "depot_physical": 3,
+        "trace": 13,
+        "support_records": 1
+      },
+      "channel": {
+        "Depot work queue": 3,
+        "Email": 14
+      },
+      "queue": {
+        "carrier_trace": 16,
+        "carrier_ops": 1
+      },
+      "deterministic_action": false
+    },
+    "tracking_visibility | international_carrier": {
+      "n": 1,
+      "cases": [
+        "SYN-206"
+      ],
+      "action_class": {
+        "request_physical_trace": 1
+      },
+      "recipient_function": {
+        "trace": 1
+      },
+      "channel": {
+        "Email": 1
+      },
+      "queue": {
+        "carrier_trace": 1
+      },
+      "deterministic_action": true
+    },
+    "wrong_or_duplicate_item | merchant": {
+      "n": 4,
+      "cases": [
+        "SYN-248",
+        "SYN-250",
+        "SYN-287",
+        "SYN-298"
+      ],
+      "action_class": {
+        "request_authorisation_or_decision": 4
+      },
+      "recipient_function": {
+        "merchant_authorisation": 4
+      },
+      "channel": {
+        "Email": 4
+      },
+      "queue": {
+        "merchant_authorisation": 4
+      },
+      "deterministic_action": true
+    }
+  },
+  "routing_cells_deterministic": 14,
+  "channel_by_recipient_org_type": {
+    "customer": {
+      "Customer portal": 6,
+      "Call transcript": 2
+    },
+    "carrier": {
+      "Email": 50,
+      "Depot work queue": 3,
+      "Safety incident queue": 3
+    },
+    "pickup_point": {
+      "Email": 2
+    },
+    "international_carrier": {
+      "Email": 1
+    },
+    "business_counterparty": {
+      "Business portal": 5,
+      "Email": 4
+    },
+    "merchant": {
+      "Warehouse work queue": 3,
+      "Email": 21
+    }
+  },
+  "min_tier_keys": 48,
+  "min_tier_conflicts": [],
+  "three_param_conflicts": [
+    {
+      "key": [
+        "reschedule",
+        "carrier",
+        "False"
+      ],
+      "actions": {
+        "request_operator_action": 8,
+        "request_review_or_investigation": 4
+      }
+    },
+    {
+      "key": [
+        "tracking_visibility",
+        "carrier",
+        "False"
+      ],
+      "actions": {
+        "request_physical_trace": 16,
+        "request_record_or_statement": 1
+      }
+    },
+    {
+      "key": [
+        "cancel_or_reship",
+        "merchant",
+        "False"
+      ],
+      "actions": {
+        "request_operator_action": 3,
+        "request_authorisation_or_decision": 3
+      }
+    },
+    {
+      "key": [
+        "money_and_billing",
+        "carrier",
+        "False"
+      ],
+      "actions": {
+        "request_review_or_investigation": 8,
+        "request_record_or_statement": 1
+      }
+    },
+    {
+      "key": [
+        "return_processing",
+        "merchant",
+        "False"
+      ],
+      "actions": {
+        "request_operator_action": 4,
+        "request_authorisation_or_decision": 4
+      }
+    },
+    {
+      "key": [
+        "money_and_billing",
+        "merchant",
+        "False"
+      ],
+      "actions": {
+        "request_authorisation_or_decision": 2,
+        "request_review_or_investigation": 1
+      }
+    },
+    {
+      "key": [
+        "loss_or_misdelivery",
+        "carrier",
+        "False"
+      ],
+      "actions": {
+        "request_review_or_investigation": 3,
+        "request_operator_action": 1
+      }
+    },
+    {
+      "key": [
+        "safety_hazard",
+        "carrier",
+        "False"
+      ],
+      "actions": {
+        "escalate_safety": 3,
+        "request_record_or_statement": 2
+      }
+    }
+  ],
+  "self_check_problems": []
+}

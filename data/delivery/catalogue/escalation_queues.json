@@ -1,0 +1,279 @@
+{
+  "queues": {
+    "safety": {
+      "description": "Hazard to people or goods (leak, spill, out-of-range perishable). Human safety authority takes over; the agent relays facts and gives no handling or consumption advice.",
+      "trigger": {
+        "risk_flags_any": [
+          "safety",
+          "consumption"
+        ],
+        "issue_type": [
+          "safety_hazard"
+        ]
+      },
+      "human_gate": "hard",
+      "channel_rule": "Safety incident queue (carrier) or the merchant food-safety lead by email; never a driver or the customer",
+      "sla": "immediate; no batching",
+      "members": [
+        "DEL-023",
+        "DEL-029"
+      ],
+      "n": 2,
+      "human_gate_distribution": {
+        "hard": 2
+      },
+      "channels_seen": {
+        "Safety incident queue": 1,
+        "Email": 1
+      }
+    },
+    "investigations": {
+      "description": "A record and a party statement conflict (delivered scan vs no receipt; failed-attempt scan vs customer at home). The owner reviews its own record; no fraud, loss or liability conclusion is drawn by the agent.",
+      "trigger": {
+        "evidence_conflict": true,
+        "risk_flags_any": [
+          "fraud_dispute"
+        ]
+      },
+      "human_gate": "hard for delivered-not-received; soft for attempt disputes",
+      "channel_rule": "Email to the carrier review/investigation team",
+      "sla": "register same day; follow up at the next-update time the team gives",
+      "members": [
+        "DEL-013",
+        "DEL-024"
+      ],
+      "n": 2,
+      "human_gate_distribution": {
+        "soft": 1,
+        "hard": 1
+      },
+      "channels_seen": {
+        "Email": 2
+      }
+    },
+    "billing_review": {
+      "description": "Any charge, credit, refund or guarantee amount. The desk cannot set prices, waive, pay or multiply amounts; it relays the request with timestamps and terms.",
+      "trigger": {
+        "money_involved": true,
+        "issue_type": [
+          "money_and_billing"
+        ]
+      },
+      "human_gate": "hard when an amount is to be credited; none for a pure explanation",
+      "channel_rule": "Email to the owning billing team; reply to the customer in the verified order thread without payment links",
+      "sla": "same day; follow up on the billing team's stated date",
+      "members": [
+        "DEL-047",
+        "DEL-049",
+        "DEL-050"
+      ],
+      "n": 3,
+      "human_gate_distribution": {
+        "none": 1,
+        "hard": 2
+      },
+      "channels_seen": {
+        "Email": 3
+      }
+    },
+    "urgent_cutoff": {
+      "description": "A hard cutoff within hours (driver waiting at the gate, return-to-sender at 16:00, next outbound sweep). Missing it is irreversible.",
+      "trigger": {
+        "urgency": [
+          "immediate",
+          "deadline_today"
+        ]
+      },
+      "human_gate": "none, but escalate to a human if the party does not answer before the cutoff",
+      "channel_rule": "Call or chat/work queue, never email",
+      "sla": "act within minutes; verify before the cutoff",
+      "members": [
+        "DEL-003",
+        "DEL-018",
+        "DEL-040"
+      ],
+      "n": 3,
+      "human_gate_distribution": {
+        "none": 3
+      },
+      "channels_seen": {
+        "Call transcript": 2,
+        "Warehouse work queue": 1
+      }
+    },
+    "awaiting_customer": {
+      "description": "The next step needs the customer to choose, confirm or supply something (slot, apartment number, nominee, checklist, photos). The agent asks exactly for that and nothing else.",
+      "trigger": {
+        "customer_input_required": true,
+        "owner_org_type": [
+          "customer"
+        ]
+      },
+      "human_gate": "none",
+      "channel_rule": "Customer portal (order-linked thread); call only when a cutoff applies",
+      "sla": "wait state with reminder timer; resume on reply",
+      "members": [
+        "DEL-001",
+        "DEL-002",
+        "DEL-005",
+        "DEL-009",
+        "DEL-021"
+      ],
+      "n": 5,
+      "human_gate_distribution": {
+        "none": 5
+      },
+      "channels_seen": {
+        "Customer portal": 5
+      }
+    },
+    "awaiting_counterparty": {
+      "description": "A business shipper, consignee or signatory must supply data or complete a mandate before the carrier can act.",
+      "trigger": {
+        "customer_input_required": true,
+        "owner_org_type": [
+          "business_counterparty"
+        ]
+      },
+      "human_gate": "hard when a signing authority is involved (mandate)",
+      "channel_rule": "Business portal (verified channel) or email to the named authorised person",
+      "sla": "wait state; chase before the carrier slot lapses",
+      "members": [
+        "DEL-014",
+        "DEL-041",
+        "DEL-043",
+        "DEL-045",
+        "DEL-046"
+      ],
+      "n": 5,
+      "human_gate_distribution": {
+        "none": 4,
+        "hard": 1
+      },
+      "channels_seen": {
+        "Business portal": 4,
+        "Email": 1
+      }
+    },
+    "merchant_authorisation": {
+      "description": "Replacement, exchange, reshipment, duplicate return, label/token issue, specialist collection, refund review. Only the merchant team with that authority can approve; the agent supplies the accepted evidence and the customer's recorded choice.",
+      "trigger": {
+        "owner_org_type": [
+          "merchant"
+        ],
+        "action_class": [
+          "request_authorisation_or_decision",
+          "request_operator_action"
+        ]
+      },
+      "human_gate": "none (merchant team is the human)",
+      "channel_rule": "Email to the specific merchant team",
+      "sla": "same day; approval reference expected",
+      "members": [
+        "DEL-022",
+        "DEL-025",
+        "DEL-028",
+        "DEL-031",
+        "DEL-032",
+        "DEL-035",
+        "DEL-037",
+        "DEL-038",
+        "DEL-039"
+      ],
+      "n": 9,
+      "human_gate_distribution": {
+        "none": 9
+      },
+      "channels_seen": {
+        "Email": 9
+      }
+    },
+    "carrier_trace": {
+      "description": "Physical verification: locate, scan, trace, confirm handover. The agent demands a physical scan or receipt, never a planned or departure status.",
+      "trigger": {
+        "action_class": [
+          "request_physical_trace"
+        ]
+      },
+      "human_gate": "none",
+      "channel_rule": "Depot work queue or email to the trace team",
+      "sla": "scan expected same day; otherwise escalate to investigations",
+      "members": [
+        "DEL-011",
+        "DEL-020",
+        "DEL-034",
+        "DEL-044",
+        "DEL-048"
+      ],
+      "n": 5,
+      "human_gate_distribution": {
+        "none": 5
+      },
+      "channels_seen": {
+        "Depot work queue": 1,
+        "Email": 4
+      }
+    },
+    "carrier_ops": {
+      "description": "Routine operator execution within stated policy: rebook, hold, redirect, extension, callback note, transfer, recovery, collection, capacity booking, approved wording.",
+      "trigger": {
+        "action_class": [
+          "request_operator_action",
+          "request_options_for_customer",
+          "request_record_or_statement"
+        ],
+        "owner_org_type": [
+          "carrier",
+          "pickup_point"
+        ]
+      },
+      "human_gate": "none unless money or authority flags are present",
+      "channel_rule": "Email to the owning carrier team; dispatch chat when the request originates in chat",
+      "sla": "confirmation expected within the working day",
+      "members": [
+        "DEL-004",
+        "DEL-006",
+        "DEL-007",
+        "DEL-008",
+        "DEL-010",
+        "DEL-012",
+        "DEL-015",
+        "DEL-016",
+        "DEL-017",
+        "DEL-019",
+        "DEL-026",
+        "DEL-027",
+        "DEL-030",
+        "DEL-033",
+        "DEL-036",
+        "DEL-042"
+      ],
+      "n": 16,
+      "human_gate_distribution": {
+        "none": 13,
+        "soft": 2,
+        "hard": 1
+      },
+      "channels_seen": {
+        "Dispatch chat": 1,
+        "Email": 15
+      }
+    }
+  },
+  "human_gate_cases": {
+    "hard": [
+      "DEL-023",
+      "DEL-024",
+      "DEL-029",
+      "DEL-042",
+      "DEL-046",
+      "DEL-049",
+      "DEL-050"
+    ],
+    "soft": [
+      "DEL-013",
+      "DEL-026",
+      "DEL-027"
+    ]
+  }
+}

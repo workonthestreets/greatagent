@@ -1,0 +1,549 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://greatagent.local/schemas/delivery-case.schema.json",
+  "title": "Normalized delivery case (agent-ready record)",
+  "description": "One record per case in cases.jsonl. Everything the agent may read before deciding is under `at_escalation`; everything that reveals the ending is under `disclosed_after_escalation`. Gold decision labels are under `decision`.",
+  "type": "object",
+  "required": [
+    "case_id",
+    "track",
+    "title",
+    "meta",
+    "parties",
+    "at_escalation",
+    "decision",
+    "disclosed_after_escalation",
+    "events",
+    "attachments"
+  ],
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "pattern": "^[A-Z]{2,4}-\\d{3}$"
+    },
+    "track": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "description": "Index H1. May hint at the stage; hidden from decision-point inputs by default."
+    },
+    "meta": {
+      "type": "object",
+      "required": [
+        "created",
+        "escalated",
+        "primary_ref",
+        "primary_ref_kind",
+        "coordinator",
+        "status"
+      ],
+      "properties": {
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "escalated": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string"
+        },
+        "primary_ref": {
+          "type": "string"
+        },
+        "primary_ref_kind": {
+          "type": "string",
+          "enum": [
+            "shipment",
+            "task"
+          ]
+        },
+        "coordinator": {
+          "type": "string"
+        },
+        "data_note": {
+          "type": "string"
+        },
+        "n_events": {
+          "type": "integer"
+        },
+        "duration_minutes": {
+          "type": "number"
+        }
+      }
+    },
+    "parties": {
+      "type": "object",
+      "properties": {
+        "requester": {
+          "$ref": "#/$defs/actor"
+        },
+        "requester_type": {
+          "type": "string",
+          "enum": [
+            "consumer",
+            "business_counterparty",
+            "carrier_ops",
+            "merchant_ops",
+            "customs_broker"
+          ]
+        },
+        "agent": {
+          "$ref": "#/$defs/actor"
+        },
+        "actors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/actor"
+          }
+        }
+      }
+    },
+    "at_escalation": {
+      "type": "object",
+      "description": "Input available at the decision point (events 001-002, whitelisted case details, initial request). No outcome text.",
+      "required": [
+        "initial_request",
+        "visible_event_ids",
+        "refs",
+        "params"
+      ],
+      "properties": {
+        "initial_request": {
+          "type": "string"
+        },
+        "visible_event_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sub_units": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "amounts_gbp": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "measurements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dates_mentioned": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "time_windows": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "prohibitions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Sentences in the visible events that restrict what may be done or asked."
+        },
+        "options_offered": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "customer_availability": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "params": {
+          "$ref": "#/$defs/decision_params"
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "description": "Gold label: the recorded agent action (event 003) plus hand-labelled routing fields.",
+      "required": [
+        "recipient_raw",
+        "recipient",
+        "channel",
+        "action_class",
+        "message",
+        "queue"
+      ],
+      "properties": {
+        "next_action_text": {
+          "type": "string"
+        },
+        "recipient_raw": {
+          "type": "string"
+        },
+        "recipient": {
+          "$ref": "#/$defs/actor"
+        },
+        "recipient_function": {
+          "type": "string"
+        },
+        "channel": {
+          "type": "string"
+        },
+        "action_class": {
+          "type": "string",
+          "enum": [
+            "ask_customer",
+            "ask_counterparty",
+            "request_operator_action",
+            "request_options_for_customer",
+            "request_physical_trace",
+            "request_record_or_statement",
+            "request_review_or_investigation",
+            "request_authorisation_or_decision",
+            "escalate_safety"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "proof_standard": {
+          "type": "string"
+        },
+        "queue": {
+          "type": "string",
+          "enum": [
+            "awaiting_customer",
+            "awaiting_counterparty",
+            "urgent_cutoff",
+            "carrier_ops",
+            "carrier_trace",
+            "investigations",
+            "safety",
+            "merchant_authorisation",
+            "billing_review"
+          ]
+        },
+        "human_gate": {
+          "type": "string",
+          "enum": [
+            "none",
+            "soft",
+            "hard"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "disclosed_after_escalation": {
+      "type": "object",
+      "properties": {
+        "context_summary": {
+          "type": "string"
+        },
+        "outcome": {
+          "type": "string"
+        },
+        "boundaries": {
+          "type": "string"
+        },
+        "follow_through_event_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "references_introduced_later": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "next_update_due": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/attachment"
+      }
+    }
+  },
+  "$defs": {
+    "actor": {
+      "type": "object",
+      "required": [
+        "raw",
+        "org_type"
+      ],
+      "properties": {
+        "raw": {
+          "type": "string"
+        },
+        "party": {
+          "type": "string",
+          "description": "Person or team name before the organisation"
+        },
+        "org": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "org_type": {
+          "type": "string",
+          "enum": [
+            "desk",
+            "carrier",
+            "merchant",
+            "pickup_point",
+            "customer",
+            "business_counterparty",
+            "customs_broker",
+            "international_carrier",
+            "unknown"
+          ]
+        },
+        "is_person": {
+          "type": "boolean"
+        },
+        "role": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "required": [
+        "event_id",
+        "timestamp",
+        "stage",
+        "channel",
+        "from",
+        "to",
+        "body"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "integer"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "minutes_since_created": {
+          "type": "number"
+        },
+        "stage": {
+          "type": "string",
+          "enum": [
+            "context",
+            "escalation",
+            "agent_action",
+            "follow_through"
+          ]
+        },
+        "channel": {
+          "type": "string"
+        },
+        "from": {
+          "$ref": "#/$defs/actor"
+        },
+        "to": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/actor"
+          }
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "inbound_to_desk",
+            "outbound_from_desk",
+            "third_party"
+          ]
+        },
+        "visible_at_escalation": {
+          "type": "boolean"
+        },
+        "body": {
+          "type": "string"
+        },
+        "refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "amounts_gbp": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "links": {
+          "type": "array"
+        }
+      }
+    },
+    "attachment": {
+      "type": "object",
+      "required": [
+        "name",
+        "first_event_id",
+        "visible_at_escalation"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "href": {
+          "type": "string"
+        },
+        "bytes": {
+          "type": "integer"
+        },
+        "first_event_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "visible_at_escalation": {
+          "type": "boolean"
+        },
+        "extractor": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "decision_params": {
+      "type": "object",
+      "description": "Hand-labelled decision parameters (see parameters.json for tiers and definitions).",
+      "properties": {
+        "segment": {
+          "type": "string"
+        },
+        "issue_type": {
+          "type": "string"
+        },
+        "requester_type": {
+          "type": "string"
+        },
+        "shipment_stage": {
+          "type": "string"
+        },
+        "owner_org_type": {
+          "type": "string"
+        },
+        "customer_input_required": {
+          "type": "boolean"
+        },
+        "urgency": {
+          "type": "string",
+          "enum": [
+            "none",
+            "deadline_bound",
+            "deadline_today",
+            "immediate"
+          ]
+        },
+        "cutoff_utc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "risk_flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "money_involved": {
+          "type": "boolean"
+        },
+        "amount_gbp_known": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "verification_state": {
+          "type": "string",
+          "enum": [
+            "verified_by_operator",
+            "authenticated_session",
+            "internal_party",
+            "asserted_only"
+          ]
+        },
+        "evidence_conflict": {
+          "type": "boolean"
+        },
+        "complexity_level": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 7,
+          "description": "Andrey's easy-to-hard ladder, system model section 6"
+        },
+        "complexity_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

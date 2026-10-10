@@ -1,0 +1,19 @@
+SYNTHETIC EXERCISE - NOT A LIVE DOCUMENT
+
+Commercial invoice CI-045
+
+Issued: 2026-03-18 09:50 UTC
+
+Seller: Mavelle Export Studio | Authorised issuer: Fera Noll
+
+Buyer: Ossmere Shelf Supply, Merrow Quay (fictional buyer)
+
+Shipment: DL-045 | Order: OS-045 | Currency: GBP
+
+Goods: woven pouches | Quantity: 12 | Unit value: GBP 8.00
+
+Invoice goods total: GBP 96.00 (12 x GBP 8.00). No other charges on this invoice.
+
+Shipper origin declaration: made in Aster Reach (fictional jurisdiction).
+
+For broker document review only. Not a customs clearance certificate.

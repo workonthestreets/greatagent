@@ -1,0 +1,710 @@
+{
+  "cells": {
+    "address_or_access | customer": {
+      "n": 4,
+      "cases": [
+        "DEL-002",
+        "DEL-003",
+        "DEL-005",
+        "DEL-009"
+      ],
+      "action_class": {
+        "ask_customer": 4
+      },
+      "recipient_function": {
+        "customer_self": 4
+      },
+      "channel": {
+        "Customer portal": 3,
+        "Call transcript": 1
+      },
+      "queue": {
+        "awaiting_customer": 3,
+        "urgent_cutoff": 1
+      },
+      "deterministic_action": true
+    },
+    "cancel_or_reship | merchant": {
+      "n": 2,
+      "cases": [
+        "DEL-038",
+        "DEL-040"
+      ],
+      "action_class": {
+        "request_authorisation_or_decision": 1,
+        "request_operator_action": 1
+      },
+      "recipient_function": {
+        "merchant_authorisation": 1,
+        "warehouse_execution": 1
+      },
+      "channel": {
+        "Email": 1,
+        "Warehouse work queue": 1
+      },
+      "queue": {
+        "merchant_authorisation": 1,
+        "urgent_cutoff": 1
+      },
+      "deterministic_action": false
+    },
+    "customs_and_import | business_counterparty": {
+      "n": 2,
+      "cases": [
+        "DEL-045",
+        "DEL-046"
+      ],
+      "action_class": {
+        "ask_counterparty": 2
+      },
+      "recipient_function": {
+        "counterparty_business": 2
+      },
+      "channel": {
+        "Email": 1,
+        "Business portal": 1
+      },
+      "queue": {
+        "awaiting_counterparty": 2
+      },
+      "deterministic_action": true
+    },
+    "damage_or_condition | customer": {
+      "n": 1,
+      "cases": [
+        "DEL-021"
+      ],
+      "action_class": {
+        "ask_customer": 1
+      },
+      "recipient_function": {
+        "customer_self": 1
+      },
+      "channel": {
+        "Customer portal": 1
+      },
+      "queue": {
+        "awaiting_customer": 1
+      },
+      "deterministic_action": true
+    },
+    "damage_or_condition | merchant": {
+      "n": 1,
+      "cases": [
+        "DEL-022"
+      ],
+      "action_class": {
+        "request_authorisation_or_decision": 1
+      },
+      "recipient_function": {
+        "merchant_authorisation": 1
+      },
+      "channel": {
+        "Email": 1
+      },
+      "queue": {
+        "merchant_authorisation": 1
+      },
+      "deterministic_action": true
+    },
+    "freight_booking | business_counterparty": {
+      "n": 2,
+      "cases": [
+        "DEL-041",
+        "DEL-043"
+      ],
+      "action_class": {
+        "ask_counterparty": 2
+      },
+      "recipient_function": {
+        "counterparty_business": 2
+      },
+      "channel": {
+        "Business portal": 2
+      },
+      "queue": {
+        "awaiting_counterparty": 2
+      },
+      "deterministic_action": true
+    },
+    "freight_booking | carrier": {
+      "n": 2,
+      "cases": [
+        "DEL-036",
+        "DEL-042"
+      ],
+      "action_class": {
+        "request_operator_action": 2
+      },
+      "recipient_function": {
+        "freight_planning": 2
+      },
+      "channel": {
+        "Email": 2
+      },
+      "queue": {
+        "carrier_ops": 2
+      },
+      "deterministic_action": true
+    },
+    "loss_or_misdelivery | carrier": {
+      "n": 3,
+      "cases": [
+        "DEL-024",
+        "DEL-026",
+        "DEL-027"
+      ],
+      "action_class": {
+        "request_review_or_investigation": 1,
+        "request_operator_action": 2
+      },
+      "recipient_function": {
+        "investigation_review": 1,
+        "recovery_collection": 2
+      },
+      "channel": {
+        "Email": 3
+      },
+      "queue": {
+        "investigations": 1,
+        "carrier_ops": 2
+      },
+      "deterministic_action": false
+    },
+    "loss_or_misdelivery | merchant": {
+      "n": 1,
+      "cases": [
+        "DEL-025"
+      ],
+      "action_class": {
+        "request_authorisation_or_decision": 1
+      },
+      "recipient_function": {
+        "merchant_authorisation": 1
+      },
+      "channel": {
+        "Email": 1
+      },
+      "queue": {
+        "merchant_authorisation": 1
+      },
+      "deterministic_action": true
+    },
+    "money_and_billing | carrier": {
+      "n": 3,
+      "cases": [
+        "DEL-047",
+        "DEL-049",
+        "DEL-050"
+      ],
+      "action_class": {
+        "request_record_or_statement": 1,
+        "request_review_or_investigation": 2
+      },
+      "recipient_function": {
+        "billing": 3
+      },
+      "channel": {
+        "Email": 3
+      },
+      "queue": {
+        "billing_review": 3
+      },
+      "deterministic_action": false
+    },
+    "money_and_billing | merchant": {
+      "n": 1,
+      "cases": [
+        "DEL-035"
+      ],
+      "action_class": {
+        "request_authorisation_or_decision": 1
+      },
+      "recipient_function": {
+        "merchant_fulfilment": 1
+      },
+      "channel": {
+        "Email": 1
+      },
+      "queue": {
+        "merchant_authorisation": 1
+      },
+      "deterministic_action": true
+    },
+    "redirect_or_hold | carrier": {
+      "n": 3,
+      "cases": [
+        "DEL-006",
+        "DEL-010",
+        "DEL-016"
+      ],
+      "action_class": {
+        "request_operator_action": 2,
+        "request_options_for_customer": 1
+      },
+      "recipient_function": {
+        "routing_redirect": 2,
+        "dispatch_scheduling": 1
+      },
+      "channel": {
+        "Email": 3
+      },
+      "queue": {
+        "carrier_ops": 3
+      },
+      "deterministic_action": false
+    },
+    "redirect_or_hold | customer": {
+      "n": 1,
+      "cases": [
+        "DEL-018"
+      ],
+      "action_class": {
+        "ask_customer": 1
+      },
+      "recipient_function": {
+        "customer_self": 1
+      },
+      "channel": {
+        "Call transcript": 1
+      },
+      "queue": {
+        "urgent_cutoff": 1
+      },
+      "deterministic_action": true
+    },
+    "redirect_or_hold | pickup_point": {
+      "n": 1,
+      "cases": [
+        "DEL-007"
+      ],
+      "action_class": {
+        "request_operator_action": 1
+      },
+      "recipient_function": {
+        "pickup_point_operator": 1
+      },
+      "channel": {
+        "Email": 1
+      },
+      "queue": {
+        "carrier_ops": 1
+      },
+      "deterministic_action": true
+    },
+    "reschedule | business_counterparty": {
+      "n": 1,
+      "cases": [
+        "DEL-014"
+      ],
+      "action_class": {
+        "ask_counterparty": 1
+      },
+      "recipient_function": {
+        "counterparty_business": 1
+      },
+      "channel": {
+        "Business portal": 1
+      },
+      "queue": {
+        "awaiting_counterparty": 1
+      },
+      "deterministic_action": true
+    },
+    "reschedule | carrier": {
+      "n": 5,
+      "cases": [
+        "DEL-004",
+        "DEL-008",
+        "DEL-012",
+        "DEL-013",
+        "DEL-033"
+      ],
+      "action_class": {
+        "request_operator_action": 3,
+        "request_options_for_customer": 1,
+        "request_review_or_investigation": 1
+      },
+      "recipient_function": {
+        "dispatch_scheduling": 3,
+        "investigation_review": 1,
+        "recovery_collection": 1
+      },
+      "channel": {
+        "Dispatch chat": 1,
+        "Email": 4
+      },
+      "queue": {
+        "carrier_ops": 4,
+        "investigations": 1
+      },
+      "deterministic_action": false
+    },
+    "reschedule | customer": {
+      "n": 1,
+      "cases": [
+        "DEL-001"
+      ],
+      "action_class": {
+        "ask_customer": 1
+      },
+      "recipient_function": {
+        "customer_self": 1
+      },
+      "channel": {
+        "Customer portal": 1
+      },
+      "queue": {
+        "awaiting_customer": 1
+      },
+      "deterministic_action": true
+    },
+    "return_processing | merchant": {
+      "n": 3,
+      "cases": [
+        "DEL-031",
+        "DEL-032",
+        "DEL-037"
+      ],
+      "action_class": {
+        "request_operator_action": 3
+      },
+      "recipient_function": {
+        "merchant_fulfilment": 3
+      },
+      "channel": {
+        "Email": 3
+      },
+      "queue": {
+        "merchant_authorisation": 3
+      },
+      "deterministic_action": true
+    },
+    "safety_hazard | carrier": {
+      "n": 1,
+      "cases": [
+        "DEL-023"
+      ],
+      "action_class": {
+        "escalate_safety": 1
+      },
+      "recipient_function": {
+        "safety": 1
+      },
+      "channel": {
+        "Safety incident queue": 1
+      },
+      "queue": {
+        "safety": 1
+      },
+      "deterministic_action": true
+    },
+    "safety_hazard | merchant": {
+      "n": 1,
+      "cases": [
+        "DEL-029"
+      ],
+      "action_class": {
+        "escalate_safety": 1
+      },
+      "recipient_function": {
+        "safety": 1
+      },
+      "channel": {
+        "Email": 1
+      },
+      "queue": {
+        "safety": 1
+      },
+      "deterministic_action": true
+    },
+    "service_disruption | carrier": {
+      "n": 1,
+      "cases": [
+        "DEL-019"
+      ],
+      "action_class": {
+        "request_record_or_statement": 1
+      },
+      "recipient_function": {
+        "dispatch_scheduling": 1
+      },
+      "channel": {
+        "Email": 1
+      },
+      "queue": {
+        "carrier_ops": 1
+      },
+      "deterministic_action": true
+    },
+    "tracking_visibility | carrier": {
+      "n": 7,
+      "cases": [
+        "DEL-011",
+        "DEL-015",
+        "DEL-017",
+        "DEL-020",
+        "DEL-030",
+        "DEL-034",
+        "DEL-044"
+      ],
+      "action_class": {
+        "request_physical_trace": 4,
+        "request_operator_action": 1,
+        "request_record_or_statement": 2
+      },
+      "recipient_function": {
+        "depot_physical": 1,
+        "routing_redirect": 1,
+        "support_records": 2,
+        "trace": 3
+      },
+      "channel": {
+        "Depot work queue": 1,
+        "Email": 6
+      },
+      "queue": {
+        "carrier_trace": 4,
+        "carrier_ops": 3
+      },
+      "deterministic_action": false
+    },
+    "tracking_visibility | international_carrier": {
+      "n": 1,
+      "cases": [
+        "DEL-048"
+      ],
+      "action_class": {
+        "request_physical_trace": 1
+      },
+      "recipient_function": {
+        "trace": 1
+      },
+      "channel": {
+        "Email": 1
+      },
+      "queue": {
+        "carrier_trace": 1
+      },
+      "deterministic_action": true
+    },
+    "wrong_or_duplicate_item | merchant": {
+      "n": 2,
+      "cases": [
+        "DEL-028",
+        "DEL-039"
+      ],
+      "action_class": {
+        "request_authorisation_or_decision": 2
+      },
+      "recipient_function": {
+        "merchant_authorisation": 2
+      },
+      "channel": {
+        "Email": 2
+      },
+      "queue": {
+        "merchant_authorisation": 2
+      },
+      "deterministic_action": true
+    }
+  },
+  "deterministic_cells": 18,
+  "channel_by_recipient_org_type": {
+    "customer": {
+      "Customer portal": 5,
+      "Call transcript": 2
+    },
+    "carrier": {
+      "Dispatch chat": 1,
+      "Email": 22,
+      "Depot work queue": 1,
+      "Safety incident queue": 1
+    },
+    "pickup_point": {
+      "Email": 1
+    },
+    "business_counterparty": {
+      "Business portal": 4,
+      "Email": 1
+    },
+    "merchant": {
+      "Email": 10,
+      "Warehouse work queue": 1
+    },
+    "international_carrier": {
+      "Email": 1
+    }
+  },
+  "three_param_conflicts": [
+    {
+      "key": [
+        "reschedule",
+        "carrier",
+        "False"
+      ],
+      "actions": {
+        "request_operator_action": 3,
+        "request_review_or_investigation": 1
+      }
+    },
+    {
+      "key": [
+        "tracking_visibility",
+        "carrier",
+        "False"
+      ],
+      "actions": {
+        "request_physical_trace": 4,
+        "request_operator_action": 1,
+        "request_record_or_statement": 2
+      }
+    },
+    {
+      "key": [
+        "loss_or_misdelivery",
+        "carrier",
+        "False"
+      ],
+      "actions": {
+        "request_review_or_investigation": 1,
+        "request_operator_action": 2
+      }
+    },
+    {
+      "key": [
+        "cancel_or_reship",
+        "merchant",
+        "False"
+      ],
+      "actions": {
+        "request_authorisation_or_decision": 1,
+        "request_operator_action": 1
+      }
+    },
+    {
+      "key": [
+        "money_and_billing",
+        "carrier",
+        "False"
+      ],
+      "actions": {
+        "request_record_or_statement": 1,
+        "request_review_or_investigation": 2
+      }
+    }
+  ],
+  "min_tier_conflicts": [],
+  "graph": {
+    "nodes": [
+      "load_and_cut",
+      "normalize",
+      "extract_params",
+      "owner_resolver",
+      "risk_screen",
+      "policy_gate",
+      "decide",
+      "critic",
+      "draft",
+      "human_gate",
+      "emit"
+    ],
+    "edges": [
+      {
+        "from": "extract_params",
+        "to": "owner_resolver",
+        "when": "always"
+      },
+      {
+        "from": "owner_resolver",
+        "to": "risk_screen",
+        "when": "owner_org_type resolved (Context names it)"
+      },
+      {
+        "from": "risk_screen",
+        "to": "human_gate",
+        "when": "'safety' in risk_flags"
+      },
+      {
+        "from": "risk_screen",
+        "to": "policy_gate",
+        "when": "otherwise"
+      },
+      {
+        "from": "policy_gate",
+        "to": "decide",
+        "when": "allowed_actions narrowed by (issue_type, owner_org_type, customer_input_required, money_involved)"
+      },
+      {
+        "from": "decide",
+        "to": "critic",
+        "when": "always"
+      },
+      {
+        "from": "critic",
+        "to": "decide",
+        "when": "violation and retries < 2"
+      },
+      {
+        "from": "critic",
+        "to": "human_gate",
+        "when": "human_gate in (soft, hard) or retries exhausted"
+      },
+      {
+        "from": "critic",
+        "to": "draft",
+        "when": "pass"
+      },
+      {
+        "from": "draft",
+        "to": "emit",
+        "when": "always"
+      }
+    ],
+    "channel_rule": {
+      "customer": "Customer portal; Call transcript if urgency in (immediate, deadline_today)",
+      "business_counterparty": "Business portal; Email if the person is named by the carrier",
+      "carrier": "Email by default; the originating work queue / chat when the request arrived there; Safety incident queue for safety",
+      "merchant": "Email; Warehouse work queue when the request arrived there",
+      "pickup_point": "Email",
+      "international_carrier": "Email"
+    },
+    "action_rule": [
+      {
+        "if": "'safety' in risk_flags",
+        "then": "escalate_safety"
+      },
+      {
+        "if": "customer_input_required and owner_org_type == customer",
+        "then": "ask_customer"
+      },
+      {
+        "if": "customer_input_required and owner_org_type == business_counterparty",
+        "then": "ask_counterparty"
+      },
+      {
+        "if": "customer_input_required and owner_org_type == carrier (carrier must present the options)",
+        "then": "request_options_for_customer"
+      },
+      {
+        "if": "evidence_conflict or (money_involved and a credit/charge decision is requested)",
+        "then": "request_review_or_investigation"
+      },
+      {
+        "if": "owner_org_type == merchant and the merchant must approve/decide (replacement, exchange, reshipment, duplicate, refund review)",
+        "then": "request_authorisation_or_decision"
+      },
+      {
+        "if": "issue_type == tracking_visibility and the goods must be physically located or a scan is missing",
+        "then": "request_physical_trace"
+      },
+      {
+        "if": "the owner holds a record, reference, approved wording or itemisation the customer needs",
+        "then": "request_record_or_statement"
+      },
+      {
+        "else": "request_operator_action (execute within stated policy: rebook, hold, redirect, transfer, recover, collect, issue label/token, book crew, stop dispatch)"
+      }
+    ]
+  }
+}

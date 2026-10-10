@@ -1,0 +1,11 @@
+SYNTHETIC PRINTER-FREE RETURN TOKEN
+Not live shipping authorisation | RT-032 / TG-032
+
+ull
+
+QR payload and fallback token: DLO32R
+
+Supported: Copperfin Returns Counter
+Hours: 10:00-18:00 UTC | Issuer: Tallowmere Goods
+
+Issued: 2026-03-05 09:50 UTC.
