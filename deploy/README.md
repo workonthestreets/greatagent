@@ -94,7 +94,7 @@ Two more services in the same project build from `main` with their own Dockerfil
 
 | Service | Config-as-code | Dockerfile | Serves |
 | --- | --- | --- | --- |
-| `hub` | `deploy/railway.hub.json` | `deploy/Dockerfile.hub` | `hub.app:app` (`/api`, `/webhooks`, `/mcp`); healthcheck `/health` hits the database |
+| `hub` | `deploy/railway.hub.json` | `deploy/Dockerfile.hub` | `hub.app:app` (`/api`, `/webhooks`, `/mcp`); healthcheck `/api/health` hits the database |
 | `web` | `deploy/railway.web.json` | `deploy/Dockerfile.web` | the Vite build of `web/`, served as a single-page app |
 
 Hub variables: everything in `.env.example` under "Live desk" (`SUPABASE_*`, `DATABASE_URL`, `ADMIN_EMAILS`,
