@@ -234,3 +234,19 @@ LICENSE                # Apache 2.0
 - `data/delivery/human/REPORT.md` explains the data, the 24 decision parameters in three tiers, and the escalation queues; `data/delivery/human/RECONCILIATION.md` maps the data onto the system model field by field, with `N/A` wherever the cases say nothing.
 - `data/delivery/database/delivery.sqlite` is the database: orders, shipments, parcels, events, cases, tasks, evidence, actors, with a shipment dashboard view.
 - `bash data/pipeline/run_all.sh` regenerates all of it from the public cases and `stress_cases/`; `python3 -I data/pipeline_qa/test_db.py data/delivery/database/delivery.sqlite` and `data/pipeline_qa/validate_cases.py` are the guards.
+- `synthetic_cases/` holds 100 generated evaluation cases (201-300) with gold labels; `data/delivery/database/delivery_eval.sqlite` is the evaluation database (public + stress + synthetic), kept separate from `delivery.sqlite`. Benchmark results: `evals/benchmark-2026-10-10/`.
+
+## Voice channel (optional)
+
+`voice/` puts a phone line in front of the agent. An ElevenLabs voice agent takes the
+caller's name, reference and problem, then calls `POST /voice/tool`. The call is written
+as a case folder and handed to `deskagent` unchanged, in the background, so the caller
+hears a fixed reply and never a promise of money or a date. Nothing in `deskagent/`,
+`run.py` or `reality.sh` depends on it.
+
+```bash
+pip install -r requirements.txt
+VOICE_TOOL_SECRET=<long random> uvicorn voice.app:app --port 8010
+```
+
+Setup for ElevenLabs and the tunnel is in `voice/README.md`. Tests: `python -m pytest tests`.

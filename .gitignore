@@ -20,3 +20,6 @@ web/dist/
 web/.env
 web/.env.local
 web/tsconfig.tsbuildinfo
+# voice channel
+data/
+*.eml
