@@ -6,6 +6,8 @@
    ```bash
    ./reality.sh "/path/to/RealityTest"            # or: python3 run.py <folder> --out ANSWERS --workers 12 --resume
    ```
+   - Pass the `Delivery & Logistics` folder (or a folder with only our cases), never the release root with every track.
+   - Use the same interpreter that passed `python3 tests/test_offline.py` (plain `python3`, not the hub `.venv`).
    - A case takes about 30–60 s, and cases run in parallel.
    - The run can be resumed: running it again skips cases that already have a result and retries any that failed.
    - A case that still fails gets an honest `SYSTEM FAILURE` answer, with nothing sent and a human handover.

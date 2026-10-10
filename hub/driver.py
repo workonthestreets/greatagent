@@ -8,7 +8,7 @@ from typing import Optional
 
 import anthropic
 
-from . import db
+from . import db, pipeline_driver
 from .config import agent_state, settings
 
 log = logging.getLogger("hub.driver")
@@ -64,6 +64,8 @@ def _usable(session_id: Optional[str]) -> bool:
 
 def wake(case_id: str, text: str, *, wait: bool = False) -> str:
     """Wake the agent on a case with a message. Creates the case's session on first use. Returns the session ID."""
+    if settings.engine == "pipeline":
+        return pipeline_driver.wake(case_id, text, wait=wait)
     case = db.one("select * from cases where id = %s", (case_id,))
     if not case:
         raise ValueError(f"unknown case {case_id}")
@@ -75,6 +77,8 @@ def wake(case_id: str, text: str, *, wait: bool = False) -> str:
 
 def confirm(action_id: int, allow: bool, by: str, reason: str = "") -> dict:
     """Answer a paused tool call from the approvals queue."""
+    if settings.engine == "pipeline":
+        return pipeline_driver.confirm(action_id, allow, by, reason)
     action = db.one("select * from actions where id = %s", (action_id,))
     if not action or action["status"] != "pending_approval":
         raise ValueError("action is not waiting for approval")

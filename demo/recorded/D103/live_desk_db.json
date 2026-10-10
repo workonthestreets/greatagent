@@ -1,0 +1,533 @@
+{
+ "case_events": [
+  {
+   "id": 119,
+   "case_id": "D103",
+   "ts": "2026-10-10 11:49:17.322771+00:00",
+   "channel": "Email",
+   "author": "Dispatch, Plover Arc Logistics",
+   "author_role": "merchant",
+   "to_party": "Iona Quill, Rivet Delivery Desk",
+   "kind": "message",
+   "visibility": "all",
+   "body": "DL-103 is booked today 15:00-18:00 UTC. Rescheduling options: 2026-10-11 09:00-12:00 or 2026-10-11 13:00-16:00. Changes must reach dispatch by 13:30 UTC today. Dispatch email is monitored; dispatch chat is for drivers.",
+   "meta": {
+    "demo": true
+   },
+   "created_at": "2026-10-10 12:49:17.338103+00:00"
+  },
+  {
+   "id": 120,
+   "case_id": "D103",
+   "ts": "2026-10-10 12:07:17.322771+00:00",
+   "channel": "Customer portal",
+   "author": "Vessa Lorne, recipient",
+   "author_role": "customer",
+   "to_party": "Iona Quill, Rivet Delivery Desk",
+   "kind": "message",
+   "visibility": "all",
+   "body": "I won't be home 15:00-18:00 today. Please move it to tomorrow morning, 09:00-12:00.",
+   "meta": {
+    "demo": true
+   },
+   "created_at": "2026-10-10 12:49:17.338781+00:00"
+  },
+  {
+   "id": 121,
+   "case_id": "D103",
+   "ts": "2026-10-10 12:19:17.322771+00:00",
+   "channel": "Dispatch chat",
+   "author": "Iona Quill, Rivet Delivery Desk",
+   "author_role": "coordinator",
+   "to_party": "Dispatch, Plover Arc Logistics",
+   "kind": "message",
+   "visibility": "all",
+   "body": "Please rebook DL-103 to 2026-10-11 09:00-12:00 per recipient Vessa Lorne.",
+   "meta": {
+    "demo": true
+   },
+   "created_at": "2026-10-10 12:49:17.339208+00:00"
+  },
+  {
+   "id": 122,
+   "case_id": "D103",
+   "ts": "2026-10-10 12:20:17.322771+00:00",
+   "channel": "System",
+   "author": "Messaging gateway",
+   "author_role": null,
+   "to_party": "Iona Quill, Rivet Delivery Desk",
+   "kind": "message",
+   "visibility": "staff",
+   "body": "DELIVERY FAILURE: Dispatch chat unavailable (maintenance until 16:00 UTC). Message to Dispatch was not delivered.",
+   "meta": {
+    "demo": true
+   },
+   "created_at": "2026-10-10 12:49:17.339636+00:00"
+  },
+  {
+   "id": 127,
+   "case_id": "D103",
+   "ts": "2026-10-10 12:49:17.371732+00:00",
+   "channel": "Phone call",
+   "author": "Unidentified caller",
+   "author_role": "customer",
+   "to_party": "Rivet Delivery Desk",
+   "kind": "call",
+   "visibility": "all",
+   "body": "Hi, it is Vessa Lorne. Has my delivery DL-103 been moved? I cannot be home this afternoon.",
+   "meta": {},
+   "created_at": "2026-10-10 12:49:17.371732+00:00"
+  },
+  {
+   "id": 128,
+   "case_id": "D103",
+   "ts": "2026-10-10 12:49:52.346402+00:00",
+   "channel": "Internal",
+   "author": "Desk AI coordinator",
+   "author_role": "agent",
+   "to_party": null,
+   "kind": "note",
+   "visibility": "staff",
+   "body": "Dispatch chat delivery failed at 12:20 UTC (maintenance until 16:00 UTC). Rebooking request resent via dispatch email at ~12:50 UTC. The caller at 12:49 UTC was unverified; status answered through the customer portal only, not by phone.",
+   "meta": {},
+   "created_at": "2026-10-10 12:49:52.346402+00:00"
+  },
+  {
+   "id": 129,
+   "case_id": "D103",
+   "ts": "2026-10-10 12:49:52.350996+00:00",
+   "channel": "Internal",
+   "author": "Desk AI coordinator",
+   "author_role": "agent",
+   "to_party": null,
+   "kind": "note",
+   "visibility": "staff",
+   "body": "Follow-up scheduled for 2026-10-10 13:15 UTC: Check dispatch email for confirmation of the DL-103 rebooking. If there is no reply, escalate to the desk supervisor right away so the 13:30 UTC cutoff is not missed. Once dispatch confirms, update Vessa on the portal.",
+   "meta": {},
+   "created_at": "2026-10-10 12:49:52.350996+00:00"
+  },
+  {
+   "id": 130,
+   "case_id": "D103",
+   "ts": "2026-10-10 12:49:52.355440+00:00",
+   "channel": "Internal",
+   "author": "Desk AI coordinator",
+   "author_role": "agent",
+   "to_party": null,
+   "kind": "decision",
+   "visibility": "staff",
+   "body": "[act] Resend the rebooking request urgently to dispatch by email (its monitored channel) before the 13:30 UTC cutoff, and update Vessa through the verified portal that the change is requested but not yet confirmed.\n\nNext: At 13:15 UTC, check for dispatch's reply. If there is none, escalate to the human supervisor before 13:30 UTC. Once dispatch confirms, update Vessa on the portal. If dispatch declines, give her the dispatch reply and the remaining options.",
+   "meta": {
+    "summary": "Resend the rebooking request urgently to dispatch by email (its monitored channel) before the 13:30 UTC cutoff, and update Vessa through the verified portal that the change is requested but not yet confirmed.",
+    "not_doing": "Not telling anyone the delivery has been moved until dispatch confirms; Not discussing shipment details with the unverified phone caller; Not retrying dispatch chat, which is down until 16:00 UTC (after the cutoff); Not asking for the 13:00-16:00 slot; the customer chose 09:00-12:00",
+    "rationale": "The customer chose a slot that dispatch offered, through a verified channel, so the request is legitimate. Only the delivery failed. Dispatch named email as its monitored channel, and the chat is down until after the cutoff. The phone caller is unverified, so the answer goes through the portal thread, not the phone.",
+    "next_trigger": "At 13:15 UTC, check for dispatch's reply. If there is none, escalate to the human supervisor before 13:30 UTC. Once dispatch confirms, update Vessa on the portal. If dispatch declines, give her the dispatch reply and the remaining options.",
+    "decision_type": "act"
+   },
+   "created_at": "2026-10-10 12:49:52.355440+00:00"
+  },
+  {
+   "id": 131,
+   "case_id": "D103",
+   "ts": "2026-10-10 12:50:07.065196+00:00",
+   "channel": "Email",
+   "author": "Desk AI coordinator",
+   "author_role": "agent",
+   "to_party": "Dispatch, Plover Arc Logistics",
+   "kind": "agent_message",
+   "visibility": "all",
+   "body": "URGENT before 13:30 UTC: Rebook DL-103 to 2026-10-11 09:00-12:00 UTC\n\nHello Dispatch,\n\nPlease rebook shipment DL-103 from today's slot (2026-10-10 15:00-18:00 UTC) to 2026-10-11 09:00-12:00 UTC, one of the options you offered. The recipient, Vessa Lorne, asked for this through our customer portal at 12:07 UTC because she will not be home this afternoon.\n\nWe first sent this at 12:19 UTC via dispatch chat, but it was not delivered because the chat is down for maintenance. We are resending by email so that it reaches you before your 13:30 UTC cutoff.\n\nPlease reply to confirm the new booking (or tell us if it cannot be done) so we can update the recipient.\n\nThank you,\nIona Quill, Rivet Delivery Desk",
+   "meta": {
+    "subject": "URGENT before 13:30 UTC: Rebook DL-103 to 2026-10-11 09:00-12:00 UTC"
+   },
+   "created_at": "2026-10-10 12:50:07.065196+00:00"
+  },
+  {
+   "id": 132,
+   "case_id": "D103",
+   "ts": "2026-10-10 12:50:07.076980+00:00",
+   "channel": "Customer portal",
+   "author": "Desk AI coordinator",
+   "author_role": "agent",
+   "to_party": "Vessa Lorne, recipient",
+   "kind": "agent_message",
+   "visibility": "all",
+   "body": "DL-103: your request to move the delivery\n\nHello Vessa,\n\nThanks for getting in touch about DL-103. We have asked the delivery company's dispatch team to move your delivery from today (15:00-18:00 UTC) to tomorrow, 11 October, 09:00-12:00 UTC. The change is not confirmed yet. We will update you here as soon as dispatch confirms it.\n\nWe also received a phone call asking about this delivery. For your security, we reply about shipment details only through this portal.\n\nKind regards,\nIona Quill, Rivet Delivery Desk",
+   "meta": {
+    "subject": "DL-103: your request to move the delivery"
+   },
+   "created_at": "2026-10-10 12:50:07.076980+00:00"
+  }
+ ],
+ "actions": [
+  {
+   "id": 11,
+   "case_id": "D103",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "tool": "send_message",
+   "args": {
+    "body": "Hello Dispatch,\n\nPlease rebook shipment DL-103 from today's slot (2026-10-10 15:00-18:00 UTC) to 2026-10-11 09:00-12:00 UTC, one of the options you offered. The recipient, Vessa Lorne, asked for this through our customer portal at 12:07 UTC because she will not be home this afternoon.\n\nWe first sent this at 12:19 UTC via dispatch chat, but it was not delivered because the chat is down for maintenance. We are resending by email so that it reaches you before your 13:30 UTC cutoff.\n\nPlease reply to confirm the new booking (or tell us if it cannot be done) so we can update the recipient.\n\nThank you,\nIona Quill, Rivet Delivery Desk",
+    "channel": "Email",
+    "subject": "URGENT before 13:30 UTC: Rebook DL-103 to 2026-10-11 09:00-12:00 UTC",
+    "to_party": "Dispatch, Plover Arc Logistics"
+   },
+   "status": "done",
+   "policy": [],
+   "result": {
+    "delivered_to": "Dispatch, Plover Arc Logistics"
+   },
+   "mcp_event_id": null,
+   "decided_by": "Iona Quill, Rivet Delivery Desk",
+   "created_at": "2026-10-10 12:49:52.342093+00:00",
+   "updated_at": "2026-10-10 12:50:07.065990+00:00"
+  },
+  {
+   "id": 12,
+   "case_id": "D103",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "tool": "send_message",
+   "args": {
+    "body": "Hello Vessa,\n\nThanks for getting in touch about DL-103. We have asked the delivery company's dispatch team to move your delivery from today (15:00-18:00 UTC) to tomorrow, 11 October, 09:00-12:00 UTC. The change is not confirmed yet. We will update you here as soon as dispatch confirms it.\n\nWe also received a phone call asking about this delivery. For your security, we reply about shipment details only through this portal.\n\nKind regards,\nIona Quill, Rivet Delivery Desk",
+    "channel": "Customer portal",
+    "subject": "DL-103: your request to move the delivery",
+    "to_party": "Vessa Lorne, recipient"
+   },
+   "status": "done",
+   "policy": [],
+   "result": {
+    "delivered_to": "Vessa Lorne, recipient"
+   },
+   "mcp_event_id": null,
+   "decided_by": "Iona Quill, Rivet Delivery Desk",
+   "created_at": "2026-10-10 12:49:52.344420+00:00",
+   "updated_at": "2026-10-10 12:50:07.077606+00:00"
+  },
+  {
+   "id": 13,
+   "case_id": "D103",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "tool": "record_case_note",
+   "args": {
+    "body": "Dispatch chat delivery failed at 12:20 UTC (maintenance until 16:00 UTC). Rebooking request resent via dispatch email at ~12:50 UTC. The caller at 12:49 UTC was unverified; status answered through the customer portal only, not by phone."
+   },
+   "status": "done",
+   "policy": [],
+   "result": null,
+   "mcp_event_id": null,
+   "decided_by": null,
+   "created_at": "2026-10-10 12:49:52.348637+00:00",
+   "updated_at": "2026-10-10 12:49:52.348637+00:00"
+  },
+  {
+   "id": 14,
+   "case_id": "D103",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "tool": "schedule_follow_up",
+   "args": {
+    "body": "Check dispatch email for confirmation of the DL-103 rebooking. If there is no reply, escalate to the desk supervisor right away so the 13:30 UTC cutoff is not missed. Once dispatch confirms, update Vessa on the portal.",
+    "when": "2026-10-10 13:15 UTC"
+   },
+   "status": "done",
+   "policy": [],
+   "result": {
+    "when": "2026-10-10 13:15 UTC"
+   },
+   "mcp_event_id": null,
+   "decided_by": null,
+   "created_at": "2026-10-10 12:49:52.352982+00:00",
+   "updated_at": "2026-10-10 12:49:52.352982+00:00"
+  },
+  {
+   "id": 15,
+   "case_id": "D103",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "tool": "submit_decision",
+   "args": {
+    "summary": "Resend the rebooking request urgently to dispatch by email (its monitored channel) before the 13:30 UTC cutoff, and update Vessa through the verified portal that the change is requested but not yet confirmed.",
+    "not_doing": "Not telling anyone the delivery has been moved until dispatch confirms; Not discussing shipment details with the unverified phone caller; Not retrying dispatch chat, which is down until 16:00 UTC (after the cutoff); Not asking for the 13:00-16:00 slot; the customer chose 09:00-12:00",
+    "rationale": "The customer chose a slot that dispatch offered, through a verified channel, so the request is legitimate. Only the delivery failed. Dispatch named email as its monitored channel, and the chat is down until after the cutoff. The phone caller is unverified, so the answer goes through the portal thread, not the phone.",
+    "next_trigger": "At 13:15 UTC, check for dispatch's reply. If there is none, escalate to the human supervisor before 13:30 UTC. Once dispatch confirms, update Vessa on the portal. If dispatch declines, give her the dispatch reply and the remaining options.",
+    "decision_type": "act"
+   },
+   "status": "done",
+   "policy": [],
+   "result": null,
+   "mcp_event_id": null,
+   "decided_by": null,
+   "created_at": "2026-10-10 12:49:52.356722+00:00",
+   "updated_at": "2026-10-10 12:49:52.356722+00:00"
+  }
+ ],
+ "agent_events": [
+  {
+   "id": 29,
+   "event_id": "pipeline-D103-20261010T124917-6e89:4ad503d5aec7",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "user.message",
+   "payload": {
+    "content": [
+     {
+      "text": "Unidentified caller called the desk (voice assistant transcript):\n\nHi, it is Vessa Lorne. Has my delivery DL-103 been moved? I cannot be home this afternoon.",
+      "type": "text"
+     }
+    ]
+   },
+   "created_at": "2026-10-10 12:49:17.375208+00:00"
+  },
+  {
+   "id": 30,
+   "event_id": "pipeline-D103-20261010T124917-6e89:a58ecc885d84",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "agent.message",
+   "payload": {
+    "content": [
+     {
+      "text": "Reading the case and planning the next step (planner, then policy lint, then an independent reviewer).",
+      "type": "text"
+     }
+    ]
+   },
+   "created_at": "2026-10-10 12:49:17.378853+00:00"
+  },
+  {
+   "id": 31,
+   "event_id": "pipeline-D103-20261010T124917-6e89:7b6c9957e062",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "agent.message",
+   "payload": {
+    "content": [
+     {
+      "text": "Planner, round 0: act \u2014 Resend the rebooking request urgently to dispatch by email (its monitored channel) before the 13:30 UTC cutoff, and update Vessa through the verified portal that the change is requested but not yet confirmed.",
+      "type": "text"
+     }
+    ]
+   },
+   "created_at": "2026-10-10 12:49:52.337073+00:00"
+  },
+  {
+   "id": 32,
+   "event_id": "pipeline-D103-20261010T124917-6e89:52bee833e84b",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "agent.message",
+   "payload": {
+    "content": [
+     {
+      "text": "Independent reviewer, round 0: approve \u2014 The plan resends the verified customer's chosen slot (one dispatch offered) to dispatch's monitored email before the 13:30 cutoff. It updates Vessa only through the verified portal, without saying the change is confirmed, and gives the unverified caller no shipment details. The facts, times and the 41-minute calculation are correct.",
+      "type": "text"
+     }
+    ]
+   },
+   "created_at": "2026-10-10 12:49:52.339379+00:00"
+  },
+  {
+   "id": 33,
+   "event_id": "pipeline-D103-20261010T124917-6e89:302206cafb1e",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "agent.message",
+   "payload": {
+    "content": [
+     {
+      "text": "Decision: act \u2014 Resend the rebooking request urgently to dispatch by email (its monitored channel) before the 13:30 UTC cutoff, and update Vessa through the verified portal that the change is requested but not yet confirmed.",
+      "type": "text"
+     }
+    ]
+   },
+   "created_at": "2026-10-10 12:49:52.340257+00:00"
+  },
+  {
+   "id": 34,
+   "event_id": "pipeline-D103-20261010T124917-6e89:116652a55afa",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "agent.mcp_tool_use",
+   "payload": {
+    "name": "send_message",
+    "input": {
+     "body": "Hello Dispatch,\n\nPlease rebook shipment DL-103 from today's slot (2026-10-10 15:00-18:00 UTC) to 2026-10-11 09:00-12:00 UTC, one of the options you offered. The recipient, Vessa Lorne, asked for this through our customer portal at 12:07 UTC because she will not be home this afternoon.\n\nWe first sent this at 12:19 UTC via dispatch chat, but it was not delivered because the chat is down for maintenance. We are resending by email so that it reaches you before your 13:30 UTC cutoff.\n\nPlease reply to confirm the new booking (or tell us if it cannot be done) so we can update the recipient.\n\nThank you,\nIona Quill, Rivet Delivery Desk",
+     "channel": "Email",
+     "subject": "URGENT before 13:30 UTC: Rebook DL-103 to 2026-10-11 09:00-12:00 UTC",
+     "to_party": "Dispatch, Plover Arc Logistics"
+    },
+    "action_id": 11,
+    "evaluated_permission": "ask"
+   },
+   "created_at": "2026-10-10 12:49:52.343294+00:00"
+  },
+  {
+   "id": 35,
+   "event_id": "pipeline-D103-20261010T124917-6e89:4baa484fc64c",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "agent.mcp_tool_use",
+   "payload": {
+    "name": "send_message",
+    "input": {
+     "body": "Hello Vessa,\n\nThanks for getting in touch about DL-103. We have asked the delivery company's dispatch team to move your delivery from today (15:00-18:00 UTC) to tomorrow, 11 October, 09:00-12:00 UTC. The change is not confirmed yet. We will update you here as soon as dispatch confirms it.\n\nWe also received a phone call asking about this delivery. For your security, we reply about shipment details only through this portal.\n\nKind regards,\nIona Quill, Rivet Delivery Desk",
+     "channel": "Customer portal",
+     "subject": "DL-103: your request to move the delivery",
+     "to_party": "Vessa Lorne, recipient"
+    },
+    "action_id": 12,
+    "evaluated_permission": "ask"
+   },
+   "created_at": "2026-10-10 12:49:52.345313+00:00"
+  },
+  {
+   "id": 36,
+   "event_id": "pipeline-D103-20261010T124917-6e89:89fdd31a6a59",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "agent.mcp_tool_use",
+   "payload": {
+    "name": "record_case_note",
+    "input": {
+     "body": "Dispatch chat delivery failed at 12:20 UTC (maintenance until 16:00 UTC). Rebooking request resent via dispatch email at ~12:50 UTC. The caller at 12:49 UTC was unverified; status answered through the customer portal only, not by phone."
+    },
+    "evaluated_permission": "allow"
+   },
+   "created_at": "2026-10-10 12:49:52.349302+00:00"
+  },
+  {
+   "id": 37,
+   "event_id": "pipeline-D103-20261010T124917-6e89:54d5131a99e3",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "agent.mcp_tool_result",
+   "payload": {
+    "content": "Note recorded (action 13)."
+   },
+   "created_at": "2026-10-10 12:49:52.350049+00:00"
+  },
+  {
+   "id": 38,
+   "event_id": "pipeline-D103-20261010T124917-6e89:5d9c6a727495",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "agent.mcp_tool_use",
+   "payload": {
+    "name": "schedule_follow_up",
+    "input": {
+     "body": "Check dispatch email for confirmation of the DL-103 rebooking. If there is no reply, escalate to the desk supervisor right away so the 13:30 UTC cutoff is not missed. Once dispatch confirms, update Vessa on the portal.",
+     "when": "2026-10-10 13:15 UTC"
+    },
+    "evaluated_permission": "allow"
+   },
+   "created_at": "2026-10-10 12:49:52.353632+00:00"
+  },
+  {
+   "id": 39,
+   "event_id": "pipeline-D103-20261010T124917-6e89:6e1703b8a5e0",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "agent.mcp_tool_result",
+   "payload": {
+    "content": "Follow-up scheduled for 2026-10-10 13:15 UTC (action 14)."
+   },
+   "created_at": "2026-10-10 12:49:52.354115+00:00"
+  },
+  {
+   "id": 40,
+   "event_id": "pipeline-D103-20261010T124917-6e89:19ad1f46cc27",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "agent.mcp_tool_use",
+   "payload": {
+    "name": "submit_decision",
+    "input": {
+     "summary": "Resend the rebooking request urgently to dispatch by email (its monitored channel) before the 13:30 UTC cutoff, and update Vessa through the verified portal that the change is requested but not yet confirmed.",
+     "not_doing": "Not telling anyone the delivery has been moved until dispatch confirms; Not discussing shipment details with the unverified phone caller; Not retrying dispatch chat, which is down until 16:00 UTC (after the cutoff); Not asking for the 13:00-16:00 slot; the customer chose 09:00-12:00",
+     "rationale": "The customer chose a slot that dispatch offered, through a verified channel, so the request is legitimate. Only the delivery failed. Dispatch named email as its monitored channel, and the chat is down until after the cutoff. The phone caller is unverified, so the answer goes through the portal thread, not the phone.",
+     "next_trigger": "At 13:15 UTC, check for dispatch's reply. If there is none, escalate to the human supervisor before 13:30 UTC. Once dispatch confirms, update Vessa on the portal. If dispatch declines, give her the dispatch reply and the remaining options.",
+     "decision_type": "act"
+    },
+    "evaluated_permission": "allow"
+   },
+   "created_at": "2026-10-10 12:49:52.357225+00:00"
+  },
+  {
+   "id": 41,
+   "event_id": "pipeline-D103-20261010T124917-6e89:209274f907bb",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "session.status_idle",
+   "payload": {
+    "stop_reason": {
+     "type": "end_turn"
+    }
+   },
+   "created_at": "2026-10-10 12:49:52.358378+00:00"
+  },
+  {
+   "id": 42,
+   "event_id": "pipeline-D103-20261010T124917-6e89:f867cd38b16b",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "user.tool_confirmation",
+   "payload": {
+    "result": "allow"
+   },
+   "created_at": "2026-10-10 12:50:07.063705+00:00"
+  },
+  {
+   "id": 43,
+   "event_id": "pipeline-D103-20261010T124917-6e89:adecfc15ce8f",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "agent.mcp_tool_result",
+   "payload": {
+    "content": "Sent to Dispatch, Plover Arc Logistics via Email (action 11)."
+   },
+   "created_at": "2026-10-10 12:50:07.066382+00:00"
+  },
+  {
+   "id": 44,
+   "event_id": "pipeline-D103-20261010T124917-6e89:d5fd9cc7a99d",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "user.tool_confirmation",
+   "payload": {
+    "result": "allow"
+   },
+   "created_at": "2026-10-10 12:50:07.076041+00:00"
+  },
+  {
+   "id": 45,
+   "event_id": "pipeline-D103-20261010T124917-6e89:2ebd20aa93f3",
+   "session_id": "pipeline-D103-20261010T124917-6e89",
+   "case_id": "D103",
+   "type": "agent.mcp_tool_result",
+   "payload": {
+    "content": "Sent to Vessa Lorne, recipient via Customer portal (action 12)."
+   },
+   "created_at": "2026-10-10 12:50:07.077973+00:00"
+  }
+ ],
+ "case": {
+  "id": "D103",
+  "title": "Recipient asks to move today's delivery",
+  "track": "Delivery & Logistics",
+  "status": "in_progress",
+  "source_name": "Vessa Lorne",
+  "source_role": "customer",
+  "coordinator": "Iona Quill, Rivet Delivery Desk",
+  "shipment_id": "DL-103",
+  "context": "Home delivery DL-103 is booked for this afternoon.",
+  "initial_request": "I won't be home 15:00-18:00 today. Please move my delivery to tomorrow morning.",
+  "session_id": "pipeline-D103-20261010T124917-6e89",
+  "decision": {
+   "summary": "Resend the rebooking request urgently to dispatch by email (its monitored channel) before the 13:30 UTC cutoff, and update Vessa through the verified portal that the change is requested but not yet confirmed.",
+   "not_doing": "Not telling anyone the delivery has been moved until dispatch confirms; Not discussing shipment details with the unverified phone caller; Not retrying dispatch chat, which is down until 16:00 UTC (after the cutoff); Not asking for the 13:00-16:00 slot; the customer chose 09:00-12:00",
+   "rationale": "The customer chose a slot that dispatch offered, through a verified channel, so the request is legitimate. Only the delivery failed. Dispatch named email as its monitored channel, and the chat is down until after the cutoff. The phone caller is unverified, so the answer goes through the portal thread, not the phone.",
+   "next_trigger": "At 13:15 UTC, check for dispatch's reply. If there is none, escalate to the human supervisor before 13:30 UTC. Once dispatch confirms, update Vessa on the portal. If dispatch declines, give her the dispatch reply and the remaining options.",
+   "decision_type": "act"
+  },
+  "decision_summary": "Resend the rebooking request urgently to dispatch by email (its monitored channel) before the 13:30 UTC cutoff, and update Vessa through the verified portal that the change is requested but not yet confirmed.",
+  "created_at": "2026-10-10 11:49:17.322771+00:00",
+  "updated_at": "2026-10-10 12:50:07.077310+00:00"
+ }
+}
